@@ -101,8 +101,6 @@ export default function SimulationRunner({ sim, onBack }) {
   const [runnerError, setRunnerError] = useState('');
   const [exportToast, setExportToast] = useState('');
   const [isRecording, setIsRecording] = useState(false);
-  const [recordingElapsed, setRecordingElapsed] = useState(0);
-  const [recordQuality, setRecordQuality] = useState('standard');
 
   const controls = useMemo(() => sim.controls ?? [], [sim.controls]);
 
@@ -130,14 +128,6 @@ export default function SimulationRunner({ sim, onBack }) {
     const timer = setTimeout(() => setExportToast(''), 6000);
     return () => clearTimeout(timer);
   }, [exportToast]);
-
-  useEffect(() => {
-    if (!isRecording) return undefined;
-    const timer = setInterval(() => {
-      setRecordingElapsed((Date.now() - recordingStartedAtRef.current) / 1000);
-    }, 250);
-    return () => clearInterval(timer);
-  }, [isRecording]);
 
   // Instantiate simulation
   useEffect(() => {
@@ -247,8 +237,7 @@ export default function SimulationRunner({ sim, onBack }) {
       return;
     }
 
-    const fps = recordQuality === 'high' ? 60 : 30;
-    const stream = canvas.captureStream(fps);
+    const stream = canvas.captureStream(30);
     const preferredTypes = [
       'video/webm;codecs=vp9',
       'video/webm;codecs=vp8',
@@ -259,7 +248,6 @@ export default function SimulationRunner({ sim, onBack }) {
 
     recordedChunksRef.current = [];
     recordingStartedAtRef.current = Date.now();
-    setRecordingElapsed(0);
 
     recorder.ondataavailable = (event) => {
       if (event.data && event.data.size > 0) recordedChunksRef.current.push(event.data);
@@ -306,7 +294,7 @@ export default function SimulationRunner({ sim, onBack }) {
       runningRef.current = true;
       setRunning(true);
     }
-  }, [recordQuality, runnerError, sim.id]);
+  }, [runnerError, sim.id]);
 
   // Apply scenario preset
   const applyScenario = useCallback((scenario) => {
@@ -357,23 +345,20 @@ export default function SimulationRunner({ sim, onBack }) {
       {/* ── Main area (canvas + controls) ────────────────────── */}
       <div className="sim-main-area">
         {/* Top bar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', flexShrink: 0 }}>
+        <div className="sim-runner-top-bar">
           <button className="icon-btn" onClick={onBack} title="Back">
             <ArrowLeft size={16} />
           </button>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: 'var(--font-serif)', fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>
+          <div style={{ flex: 1, minWidth: 120 }}>
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: 15, fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {sim.title}
             </div>
             <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2, display: 'flex', gap: 6, alignItems: 'center' }}>
               {sim.method && (
                 <span className={`method-badge ${sim.method === 'rk45' ? 'rk45' : sim.method === 'yoshida4' ? 'symplectic' : sim.method === 'fdm' ? 'fdm' : 'rk45'}`}>
-                  {sim.method === 'rk45' ? 'RK45 Adaptive' : sim.method === 'yoshida4' ? 'Yoshida⁴' : sim.method === 'fdm' ? 'FDM' : 'RK4'}
+                  {sim.method === 'rk45' ? 'RK45' : sim.method === 'yoshida4' ? 'Yoshida⁴' : sim.method === 'fdm' ? 'FDM' : 'RK4'}
                 </span>
               )}
-              {sim.tags?.slice(0, 2).map(t => (
-                <span key={t} className="sim-tag">{t}</span>
-              ))}
             </div>
           </div>
           {/* Playback controls */}
@@ -397,19 +382,8 @@ export default function SimulationRunner({ sim, onBack }) {
               title={isRecording ? 'Stop video recording' : 'Export video'}
             >
               {isRecording ? <Square size={11} /> : <Video size={12} />}
-              {isRecording ? 'Stop Video' : 'Video'}
+              {isRecording ? 'Video' : 'Video'}
             </button>
-            <select
-              className={`speed-select record-quality${isRecording ? ' active' : ''}`}
-              value={recordQuality}
-              onChange={(e) => setRecordQuality(e.target.value)}
-              disabled={isRecording}
-              title="Video recording quality"
-            >
-              <option value="standard">30fps</option>
-              <option value="high">60fps</option>
-            </select>
-            {isRecording && <span className="record-pill">REC {formatClock(recordingElapsed)}</span>}
           </div>
           {/* Speed control */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginLeft: 2 }}>
@@ -423,10 +397,10 @@ export default function SimulationRunner({ sim, onBack }) {
                 if (simRef.current?.setSpeed) simRef.current.setSpeed(s);
               }}
             >
-              <option value={0.25}>×0.25</option>
-              <option value={0.5}>×0.5</option>
-              <option value={1}>×1</option>
-              <option value={2}>×2</option>
+              <option value={0.25}>0.25x</option>
+              <option value={0.5}>0.5x</option>
+              <option value={1}>1x</option>
+              <option value={2}>2x</option>
             </select>
           </div>
         </div>

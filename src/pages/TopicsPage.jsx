@@ -26,19 +26,20 @@ export default function TopicsPage({ onBack }) {
         <button className="topics-back-btn icon-btn" onClick={onBack}>
           <ArrowLeft size={16} />
         </button>
-        <nav className="topics-nav">
+        <nav className="topics-nav" style={{ overflowX: 'auto', scrollbarWidth: 'none' }}>
           {Object.entries(TOPICS).map(([key, t]) => (
             <button
               key={key}
               className={`topics-nav-btn${activeTopic === key ? ' active' : ''}`}
               onClick={() => setActiveTopic(key)}
+              style={{ whiteSpace: 'nowrap' }}
             >
               {t.label}
             </button>
           ))}
         </nav>
-        <div style={{ flex: 1 }} />
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em' }}>
+        <div className="mobile-hide" style={{ flex: 1 }} />
+        <span className="mobile-hide" style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em' }}>
           RESEARCH LAB
         </span>
       </div>

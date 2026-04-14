@@ -1,6 +1,7 @@
 import { useSandboxStore } from '../store/sandboxStore';
 import { applyBodyProps, applyConstraintProps, removeFromWorld } from '../physics/engine';
 import Matter from 'matter-js';
+import { X } from 'lucide-react';
 
 function SliderRow({ label, value, min, max, step = 0.01, onChange, unit }) {
   const display = typeof value === 'number' ? value.toFixed(step < 0.01 ? 4 : step < 0.1 ? 3 : 2) : value;
@@ -41,6 +42,7 @@ export default function PropertiesPanel() {
     updateBodyProp, updateConstraintProp,
     removeBody, removeConstraint,
     gravity, setGravity,
+    showPropertiesPanel, togglePropertiesPanel
   } = useSandboxStore();
 
   const selectedBody = selectedId ? bodies[selectedId] : null;
@@ -80,8 +82,17 @@ export default function PropertiesPanel() {
   const mc = selectedConstraint?.matterConstraint;
 
   return (
-    <aside className="inspector-panel ui-panel">
-      <div className="panel-header">Properties</div>
+    <aside className={`inspector-panel ui-panel${showPropertiesPanel ? ' show' : ''}`}>
+      <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span>Properties</span>
+        <button 
+          className="icon-btn mobile-only-flex" 
+          onClick={togglePropertiesPanel}
+          style={{ width: 28, height: 28, border: 'none', background: 'transparent' }}
+        >
+          <X size={18} />
+        </button>
+      </div>
       <div className="panel-content">
 
         {/* ── World gravity ────────────────────────────────── */}

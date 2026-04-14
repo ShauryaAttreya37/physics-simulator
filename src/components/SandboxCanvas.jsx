@@ -573,14 +573,14 @@ export default function SandboxCanvas({ engineRef }) {
   }
 
   // ---- Physics helpers ----
+function addFloor(eng) {
+  const canvas = canvasRef.current;
+  const w = canvas?.width ?? window.innerWidth - 220;
+  const floor = createWall(w / 2, 580, w + 200, 20);
+  floor._isFloor = true;
+  Matter.Composite.add(eng.world, floor);
+}
 
-  function addFloor(eng) {
-    const canvas = canvasRef.current;
-    const w = canvas?.width ?? window.innerWidth - 220;
-    const floor = createWall(w / 2, 580, w + 200, 20);
-    floor._isFloor = true;
-    Matter.Composite.add(eng.world, floor);
-  }
 
   function getBodyAtScreen(sx, sy) {
     const wp = screenToWorld(sx, sy);
@@ -728,18 +728,26 @@ export default function SandboxCanvas({ engineRef }) {
     return () => window.removeEventListener('pointerup', onWindowPointerUp);
   }, []);
 
-  // Canvas resize
+  // Canvas resize with ResizeObserver
   useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
     const resize = () => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
       canvas.width = canvas.offsetWidth;
       canvas.height = canvas.offsetHeight;
       drawFrame();
     };
+
+    const observer = new ResizeObserver(() => {
+      // Use requestAnimationFrame to avoid "ResizeObserver loop limit exceeded" error
+      requestAnimationFrame(resize);
+    });
+
+    observer.observe(canvas);
     resize();
-    window.addEventListener('resize', resize);
-    return () => window.removeEventListener('resize', resize);
+
+    return () => observer.disconnect();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

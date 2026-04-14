@@ -980,7 +980,6 @@ export default function FluidSandboxPage({ onBack }) {
     const ih = Math.floor((TN_BOT   - TN_TOP)  / 4);
     const R  = getShapeR(shape);
     const data = new Uint8ClampedArray(iw * ih * 4);
-    const cx = OBJ_CX - TN_LEFT, cy = OBJ_CY - TN_TOP;
 
     for (let j = 0; j < ih; j++) {
       for (let i = 0; i < iw; i++) {
@@ -1210,35 +1209,37 @@ export default function FluidSandboxPage({ onBack }) {
   const selBlock = bSimRef.current.blocks.find(b => b.id === selBlockId);
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', width:'100vw', height:'100vh', background:'#07080f', color:'#e2e8f0', fontFamily:'var(--font)', overflow:'hidden' }}>
+    <div className="fluid-lab-container">
 
       {/* ── Header ── */}
-      <div style={{ display:'flex', alignItems:'center', gap:16, padding:'10px 18px', borderBottom:'1px solid rgba(255,255,255,0.07)', background:'rgba(14,14,22,0.8)', flexShrink:0 }}>
+      <div className="fluid-lab-header">
         <button
           onClick={onBack}
-          style={{ background:'#2A3441', border:'1px solid rgba(255,255,255,0.1)', color:'#a1a1aa', padding:'5px 14px', borderRadius:8, cursor:'pointer', fontSize:13 }}
+          className="btn"
         >← Back</button>
         <span style={{ fontWeight:700, fontSize:16, letterSpacing:'0.05em', color:'#e2e8f0' }}>FLUID DYNAMICS LAB</span>
-        <div style={{ display:'flex', gap:4, marginLeft:'auto' }}>
+        <div style={{ display:'flex', gap:4, marginLeft:'auto', overflowX: 'auto', paddingBottom: 4 }}>
           {['buoyancy','tunnel'].map(t => (
             <button key={t}
               onClick={() => setTab(t)}
+              className={`btn ${tab === t ? 'active' : ''}`}
               style={{
                 padding:'5px 18px', borderRadius:8, fontSize:13, cursor:'pointer', fontWeight:600,
                 background: tab===t ? 'rgba(96,165,250,0.2)' : 'rgba(255,255,255,0.04)',
                 border:     tab===t ? '1px solid rgba(96,165,250,0.5)' : '1px solid rgba(255,255,255,0.08)',
                 color:      tab===t ? '#93c5fd' : '#71717a',
+                whiteSpace: 'nowrap'
               }}
-            >{ t === 'buoyancy' ? '⚗ Buoyancy Lab' : '💨 Wind Tunnel' }</button>
+            >{ t === 'buoyancy' ? '⚗ Buoyancy' : '💨 Wind Tunnel' }</button>
           ))}
         </div>
       </div>
 
       {/* ── Body ── */}
-      <div style={{ display:'flex', flex:1, overflow:'hidden' }}>
+      <div className="fluid-lab-body">
 
         {/* Canvas area */}
-        <div style={{ flex:1, position:'relative', display:'flex', alignItems:'center', justifyContent:'center', minWidth:0 }}>
+        <div style={{ flex:1, position:'relative', display:'flex', alignItems:'center', justifyContent:'center', minWidth:0, overflow: 'hidden' }}>
           <canvas ref={bCanvasRef}
             style={{ display: tab==='buoyancy'?'block':'none', maxWidth:'100%', maxHeight:'100%', cursor:'grab' }}
             onPointerDown={onBPointerDown}
@@ -1246,7 +1247,7 @@ export default function FluidSandboxPage({ onBack }) {
             onPointerUp={onBPointerUp}
             onPointerLeave={onBPointerUp}
           />
-                    <canvas ref={wCanvasRef}
+          <canvas ref={wCanvasRef}
             style={{ display: tab==='tunnel'?'block':'none', maxWidth:'100%', maxHeight:'100%', cursor:'crosshair' }}
             onMouseMove={e => {
               if(tab !== 'tunnel') return;
@@ -1259,8 +1260,8 @@ export default function FluidSandboxPage({ onBack }) {
           />
         </div>
 
-        {/* ── Right controls panel ── */}
-        <div style={{ width:220, flexShrink:0, borderLeft:'1px solid rgba(255,255,255,0.07)', background:'rgba(10,12,22,0.9)', overflowY:'auto', padding:14, display:'flex', flexDirection:'column', gap:14 }}>
+        {/* ── Right/Bottom controls panel ── */}
+        <div className="fluid-lab-controls">
 
           {tab === 'buoyancy' && (<>
             {/* Fluid selector */}

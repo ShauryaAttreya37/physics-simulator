@@ -7,10 +7,12 @@ export const useSandboxStore = create((set) => ({
   constraints: {},  // id -> { id, type, matterConstraint, props }
   gravity: { x: 0, y: 1 },
   activeTool: 'select',
+  showPropertiesPanel: true,
 
   setActiveTool: (tool) => set({ activeTool: tool, selectedId: null }),
   setRunning: (v) => set({ isRunning: v }),
   setSelectedId: (id) => set({ selectedId: id }),
+  togglePropertiesPanel: () => set((s) => ({ showPropertiesPanel: !s.showPropertiesPanel })),
 
   addBody: (id, data) => set((s) => ({ bodies: { ...s.bodies, [id]: data } })),
   removeBody: (id) => set((s) => {

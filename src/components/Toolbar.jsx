@@ -18,7 +18,8 @@ import {
   Wifi,
   Car,
   List,
-  MoreHorizontal
+  MoreHorizontal,
+  Settings2
 } from 'lucide-react';
 
 const tools = [
@@ -43,7 +44,7 @@ const systems = [
 ];
 
 export default function Toolbar({ onReset, onHome }) {
-  const { activeTool, setActiveTool, isRunning, setRunning } = useSandboxStore();
+  const { activeTool, setActiveTool, isRunning, setRunning, togglePropertiesPanel } = useSandboxStore();
 
   return (
     <aside className="left-sidebar">
@@ -69,16 +70,16 @@ export default function Toolbar({ onReset, onHome }) {
         </button>
       ))}
 
-      <div className="sidebar-sep" style={{ margin: '12px 0' }} />
+      <div className="sidebar-sep mobile-hide" style={{ margin: '12px 0' }} />
 
       {/* Systems section */}
-      <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', textAlign: 'center', fontWeight: '600' }}>Systems</div>
+      <div className="mobile-hide" style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', textAlign: 'center', fontWeight: '600' }}>Systems</div>
       {systems.map(s => (
         <button
           key={s.id}
           title={s.label}
           onClick={() => setActiveTool(s.id)}
-          className={`tool-btn${activeTool === s.id ? ' active' : ''}`}
+          className={`tool-btn${activeTool === s.id ? ' active' : ''} mobile-hide`}
         >
           {s.icon}
         </button>
@@ -87,6 +88,13 @@ export default function Toolbar({ onReset, onHome }) {
       {/* Push playback to bottom */}
       <div className="sidebar-actions">
         <div className="sidebar-sep" />
+        <button
+          title="Properties"
+          onClick={togglePropertiesPanel}
+          className="icon-btn mobile-only-flex"
+        >
+          <Settings2 size={17} />
+        </button>
         <button
           title={isRunning ? 'Pause' : 'Play'}
           onClick={() => setRunning(!isRunning)}
