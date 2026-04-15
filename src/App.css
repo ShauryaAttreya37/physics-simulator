@@ -1430,15 +1430,18 @@ select.form-input option {
 .data-readout {
   position: absolute;
   z-index: 25;
-  bottom: 20px;
-  right: 20px;
-  background: var(--readout-bg);
-  border: 1px solid var(--readout-border);
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(11, 15, 20, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--r-md);
   padding: 12px 16px;
   min-width: 220px;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   font-family: var(--font-mono);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
 }
 
 .data-readout-title {
@@ -1867,112 +1870,147 @@ select.form-input option {
   box-shadow: 0 0 6px rgba(255,255,255,0.2);
 }
 
-/* ── Jupyter Theory Notebook Styling ─────────────────────── */
-.theory-notebook {
+/* ── Chalkboard Theory Styling ─────────────────────── */
+.theory-chalkboard-wrapper {
   padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
   background-color: var(--bg);
   min-height: 100%;
 }
 
-.jupyter-cell {
+.theory-chalkboard {
+  background: #1e293b;
+  border: 10px solid #334155;
+  border-radius: var(--r-md);
+  padding: 24px;
+  box-shadow: inset 0 0 50px rgba(0,0,0,0.6), 0 8px 32px rgba(0,0,0,0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.theory-chalkboard::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 4px 4px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.chalkboard-main-title {
+  color: #fff;
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 24px;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 10px rgba(255,255,255,0.4);
+  position: relative;
+  z-index: 1;
+}
+
+.chalkboard-section {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 32px;
+}
+
+.chalkboard-section-title {
+  color: #fca5a5;
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  border-bottom: 2px dashed rgba(252, 165, 165, 0.4);
+  padding-bottom: 4px;
+  text-shadow: 0 0 8px rgba(252, 165, 165, 0.3);
+}
+
+.chalkboard-equation-block {
+  margin-bottom: 20px;
   display: flex;
+  flex-direction: column;
   gap: 12px;
-  font-family: var(--font-mono);
 }
 
-@media (max-width: 600px) {
-  .jupyter-prompt {
-    width: 32px;
-    font-size: 9px;
-  }
-}
-
-.jupyter-content {
-  flex: 1;
-  background: var(--bg-elevated);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--r-sm);
-  padding: 12px 14px;
-  font-family: var(--font);
-  font-size: 13px;
-  color: var(--text);
-  line-height: 1.5;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+.chalkboard-math {
+  background: rgba(0,0,0,0.25);
+  border-radius: 8px;
+  padding: 14px 10px;
+  text-align: center;
+  color: #22d3ee;
+  font-size: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  border: 1px solid rgba(34, 211, 238, 0.15);
   overflow-x: auto;
 }
 
-.jupyter-input .jupyter-content {
-  background: rgba(0, 0, 0, 0.3);
-  border-left: 3px solid var(--accent);
-  border-radius: 0 var(--r-sm) var(--r-sm) 0;
-  font-family: var(--font-mono);
-  color: var(--text);
+.chalkboard-math * {
+  text-shadow: 0 0 8px rgba(34, 211, 238, 0.4);
 }
 
-.jupyter-output .jupyter-content {
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  padding-top: 4px;
-  color: var(--text-sub);
+.chalkboard-note {
+  color: #e2e8f0;
   font-family: var(--font-serif);
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 0 8px;
+  text-shadow: 0 0 3px rgba(255,255,255,0.2);
 }
 
-.jupyter-markdown .jupyter-content {
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  padding: 4px 0;
+.chalkboard-note p {
+  margin-bottom: 10px;
 }
 
-.jupyter-empty .empty-input {
-  background: transparent;
-  border: 1px dashed var(--panel-border);
-  height: 28px;
-}
-
-.jupyter-content h1,
-.jupyter-content h2,
-.jupyter-content h3 {
-  color: var(--text);
-  font-family: var(--font-serif);
-  margin-top: 0;
-  margin-bottom: 12px;
-  font-weight: 600;
-}
-
-.jupyter-content h3 {
-  font-size: 16px;
-  color: var(--accent-hi);
-  margin-top: 16px;
-  padding-bottom: 4px;
-  border-bottom: 1px solid var(--panel-border);
-}
-
-.jupyter-content p {
-  margin-top: 0;
-  margin-bottom: 12px;
-}
-
-.jupyter-content ul {
-  padding-left: 20px;
-  margin-top: 4px;
-}
-
-.jupyter-content li {
-  margin-bottom: 4px;
-}
-
-.jupyter-content code {
+.chalkboard-note code {
+  color: #fde047;
   font-family: var(--font-mono);
-  background: rgba(255,255,255,0.1);
+  background: rgba(253, 224, 71, 0.15);
   padding: 2px 4px;
   border-radius: 4px;
   font-size: 0.9em;
-  color: var(--text);
+  font-weight: 600;
+}
+
+.chalkboard-variables {
+  margin-top: 16px;
+  background: rgba(255,255,255,0.04);
+  border-left: 3px solid #fde047;
+  padding: 12px;
+  border-radius: 0 8px 8px 0;
+}
+
+.chalkboard-variables-title {
+  color: #fde047;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.chalkboard-var-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.chalkboard-var-list li {
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
+.chalkboard-var-symbol {
+  color: #6ee7b7;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.chalkboard-var-desc {
+  font-family: var(--font-serif);
+  font-style: italic;
 }
 
 /* ── Phase space selector ─────────────────────────────────── */

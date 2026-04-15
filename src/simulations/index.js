@@ -8,8 +8,13 @@ import * as projectileMotion from './mechanics/projectileMotion';
 import * as atwoodsMachine from './mechanics/atwoodsMachine';
 import * as lorenzAttractor from './mechanics/lorenzAttractor';
 import * as dampedOscillator from './mechanics/dampedHarmonicOscillator';
+import * as springPendulum from './mechanics/springPendulum';
+import * as simplePendulum from './mechanics/simplePendulum';
+import * as workEnergyLab from './mechanics/workEnergyLab';
 
 import * as wavePool from './fluid/wavePool';
+import * as buoyancyLab from './fluid/buoyancyLab';
+import * as windTunnel from './fluid/windTunnel';
 import * as electricCharges from './electromagnetism/electricCharges';
 import * as electrostaticFields from './electromagnetism/electrostaticFields';
 
@@ -260,6 +265,53 @@ export const TOPICS = {
         guidedExperiments: tunedMassDamper.guidedExperiments,
         scenarios: tunedMassDamper.scenarios,
       },
+      {
+        id: 'spring-pendulum',
+        title: 'Spring Pendulum',
+        description: 'A pendulum where the rod is replaced by a spring. This system exhibits rich, often chaotic dynamics and complex energy exchange between radial and angular modes.',
+        tags: ['Chaotic Dynamics', 'Energy Exchange', 'RK4', 'Lagrangian'],
+        gradient: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+        accentColor: '#60a5fa',
+        method: 'rk4',
+        create: springPendulum.create,
+        controls: springPendulum.controls,
+        defaultParams: springPendulum.defaultParams,
+        equations: springPendulum.equations,
+        equationSections: springPendulum.equationSections,
+        graphParams: springPendulum.graphParams,
+        scenarios: springPendulum.scenarios,
+      },
+      {
+        id: 'simple-pendulum',
+        title: 'Simple Pendulum',
+        description: 'A single mass on a rigid rod. Accurate for large angles where the small-angle approximation fails. Explore the relationship between length, gravity, and period.',
+        tags: ['SHM', 'Large-Angle', 'Phase Space'],
+        gradient: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
+        accentColor: '#fb7185',
+        method: 'rk4',
+        create: simplePendulum.create,
+        controls: simplePendulum.controls,
+        defaultParams: simplePendulum.defaultParams,
+        equations: simplePendulum.equations,
+        equationSections: simplePendulum.equationSections,
+        graphParams: simplePendulum.graphParams,
+        scenarios: simplePendulum.scenarios,
+      },
+      {
+        id: 'work-energy-lab',
+        title: 'Work & Energy Lab',
+        description: 'Pull a block up an incline to explore the Work-Energy Theorem. Real-time tracking of Kinetic, Potential, and Thermal energy plus a Power gauge.',
+        tags: ['Work-Energy', 'Conservation', 'Friction'],
+        gradient: 'linear-gradient(135deg, #064e3b 0%, #065f46 100%)',
+        accentColor: '#4ade80',
+        method: 'euler',
+        create: workEnergyLab.create,
+        controls: workEnergyLab.controls,
+        defaultParams: workEnergyLab.defaultParams,
+        equations: workEnergyLab.equations,
+        equationSections: workEnergyLab.equationSections,
+        graphParams: workEnergyLab.graphParams,
+      },
     ],
   },
   fluid: {
@@ -279,6 +331,36 @@ export const TOPICS = {
         defaultParams: wavePool.defaultParams,
         equations: wavePool.equations,
         graphParams: wavePool.graphParams,
+      },
+      {
+        id: 'buoyancy-lab',
+        title: 'Buoyancy Lab',
+        description: 'Interact with blocks of varying densities in different fluids. Measure forces using the integrated Spring Scale and understand displacement.',
+        tags: ['Archimedes', 'Buoyancy', 'Fluids'],
+        gradient: 'linear-gradient(135deg, #0f172a 0%, #172554 100%)',
+        accentColor: '#3b82f6',
+        method: 'euler',
+        create: buoyancyLab.create,
+        controls: buoyancyLab.controls,
+        defaultParams: buoyancyLab.defaultParams,
+        equations: buoyancyLab.equations,
+        equationSections: buoyancyLab.equationSections,
+        graphParams: buoyancyLab.graphParams,
+      },
+      {
+        id: 'wind-tunnel',
+        title: 'Wind Tunnel',
+        description: 'Simulates fluid flow around various profiles like Airfoils and Cylinders. Visualises streamlines, drag crisis, and Reynolds-dependent vortex shedding.',
+        tags: ['Potential Flow', 'Aerodynamics', 'Drag'],
+        gradient: 'linear-gradient(135deg, #0f172a 0%, #064e3b 100%)',
+        accentColor: '#10b981',
+        method: 'analytical',
+        create: windTunnel.create,
+        controls: windTunnel.controls,
+        defaultParams: windTunnel.defaultParams,
+        equations: windTunnel.equations,
+        equationSections: windTunnel.equationSections,
+        graphParams: windTunnel.graphParams,
       },
     ],
   },

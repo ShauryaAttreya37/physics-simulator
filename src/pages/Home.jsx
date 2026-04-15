@@ -1,6 +1,6 @@
 import { FlaskConical, Waves } from 'lucide-react';
 
-export default function Home({ onSimulations, onFluidSandbox }) {
+export default function Home({ onSimulations }) {
   return (
     <div className="home-page page-fade-in">
       {/* Hero */}
@@ -21,24 +21,7 @@ export default function Home({ onSimulations, onFluidSandbox }) {
 
       {/* Three main cards */}
       <main className="home-cards">
-        <button className="home-card home-card--fluid" onClick={onFluidSandbox}>
-          <div className="home-card-bg" />
-          <div className="home-card-content">
-            <div className="home-card-icon">
-              <Waves size={28} />
-            </div>
-            <h2 className="home-card-title">Fluid Lab</h2>
-            <p className="home-card-desc">
-              Interactive fluid dynamics sandbox. Explore buoyancy with different materials and fluids, plus a mock wind tunnel with drag visualisation.
-            </p>
-            <ul className="home-card-features">
-              <li>Buoyancy &amp; Archimedes Principle</li>
-              <li>7 Fluids — Water, Mercury, Honey…</li>
-              <li>Wind Tunnel &amp; Drag Coefficients</li>
-            </ul>
-          </div>
-          <div className="home-card-arrow">Open →</div>
-        </button>
+
 
         <button className="home-card home-card--sims" onClick={onSimulations}>
           <div className="home-card-bg" />

@@ -3,7 +3,7 @@ import { ArrowLeft, Play, Pause, RotateCcw, LineChart as LineChartIcon, BookOpen
 import 'katex/dist/katex.min.css';
 import MakieGraph from './MakieGraph';
 import DataReadout from './DataReadout';
-import TheoryNotebook, { legacyToSections } from './TheoryNotebook';
+import TheoryChalkboard, { legacyToSections } from './TheoryChalkboard';
 import GuidedExperiment from './GuidedExperiment';
 import { inferControlTooltip } from '../constants/physicsTooltips';
 
@@ -210,7 +210,10 @@ export default function SimulationRunner({ sim, onBack }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = `${sim.id}_data.csv`;
-    a.click(); URL.revokeObjectURL(url);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
     setExportToast('Exported. Open in Sheets or Excel and plot velocity vs time to compare runs.');
   }, [graphData, sim.id]);
 
@@ -238,13 +241,35 @@ export default function SimulationRunner({ sim, onBack }) {
     }
 
     const stream = canvas.captureStream(30);
-    const preferredTypes = [
-      'video/webm;codecs=vp9',
-      'video/webm;codecs=vp8',
-      'video/webm',
-    ];
-    const mimeType = preferredTypes.find((type) => MediaRecorder.isTypeSupported(type)) || '';
-    const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+
+    // --- Audio Track Injection Hack ---
+    // MediaRecorder timeslicing on pure canvas streams often drops data or generates invalid WebM wrappers (0 duration).
+    // Injecting a completely silent dummy audio track provides the internal clock MediaRecorder needs.
+    let audioCtx = null;
+    try {
+      const AudioCtxConstructor = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtxConstructor) {
+        audioCtx = new AudioCtxConstructor();
+        const dest = audioCtx.createMediaStreamDestination();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        gain.gain.value = 0; // absolute silence
+        osc.connect(gain);
+        gain.connect(dest);
+        osc.start();
+        const dummyTrack = dest.stream.getAudioTracks()[0];
+        if (dummyTrack) stream.addTrack(dummyTrack);
+      }
+    } catch (err) {
+      console.warn("Could not instantiate dummy audio track:", err);
+    }
+
+    const options = { videoBitsPerSecond: 3000000 };
+    const preferredTypes = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+    const mimeType = preferredTypes.find((type) => MediaRecorder.isTypeSupported(type));
+    if (mimeType) options.mimeType = mimeType;
+
+    const recorder = new MediaRecorder(stream, options);
 
     recordedChunksRef.current = [];
     recordingStartedAtRef.current = Date.now();
@@ -262,6 +287,9 @@ export default function SimulationRunner({ sim, onBack }) {
 
     recorder.onstop = () => {
       stream.getTracks().forEach((track) => track.stop());
+      if (mediaRecorderRef.current_dummyAudioCtx) {
+        mediaRecorderRef.current_dummyAudioCtx.close().catch(() => {});
+      }
       const chunks = recordedChunksRef.current;
       mediaRecorderRef.current = null;
       setIsRecording(false);
@@ -279,13 +307,17 @@ export default function SimulationRunner({ sim, onBack }) {
       const a = document.createElement('a');
       a.href = url;
       a.download = filename;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
       setExportToast(`Video exported (${formatClock((Date.now() - recordingStartedAtRef.current) / 1000)}).`);
     };
 
-    recorder.start(250);
+    // Using a timeslice gives WebM its cluster timestamps so it properly plays with a correct duration format
+    recorder.start(100);
     mediaRecorderRef.current = recorder;
+    mediaRecorderRef.current_dummyAudioCtx = audioCtx;
     setIsRecording(true);
     setExportToast('Recording started. Press Stop Video when you are done.');
 
@@ -446,7 +478,7 @@ export default function SimulationRunner({ sim, onBack }) {
           <button
             className={`sim-side-tab ${sideTab === 'equations' ? 'active' : ''}`}
             onClick={() => setSideTab('equations')}
-            title="Theory Notebook"
+            title="Theory Chalkboard"
             style={{ flex: 0, padding: '0 16px' }}
           >
             <BookOpen size={16} />
@@ -558,8 +590,8 @@ export default function SimulationRunner({ sim, onBack }) {
 
           {/* ── Equations tab ───────────────────────────────── */}
           {sideTab === 'equations' && (
-            <div className="panel-content custom-scroll">
-              <TheoryNotebook sections={eqSections} title={sim.title} />
+            <div className="panel-content custom-scroll" style={{ padding: 0 }}>
+              <TheoryChalkboard sections={eqSections} title={sim.title} />
             </div>
           )}
 

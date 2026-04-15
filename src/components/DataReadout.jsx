@@ -2,10 +2,41 @@
  * DataReadout — Research instrument-style HUD overlay
  * Shows simulation telemetry: time, energy conservation, step count, method.
  */
+import { useState, useRef } from 'react';
 import { inferReadoutTooltip } from '../constants/physicsTooltips';
 
 export default function DataReadout({ data, method }) {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragRef = useRef({ startX: 0, startY: 0, initialX: 0, initialY: 0 });
+
   if (!data) return null;
+
+  const handlePointerDown = (e) => {
+    setIsDragging(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initialX: position.x,
+      initialY: position.y,
+    };
+  };
+
+  const handlePointerMove = (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+    setPosition({
+      x: dragRef.current.initialX + dx,
+      y: dragRef.current.initialY + dy,
+    });
+  };
+
+  const handlePointerUp = (e) => {
+    setIsDragging(false);
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  };
 
   const rows = [];
 
@@ -43,16 +74,27 @@ export default function DataReadout({ data, method }) {
   const methodBadge = METHOD_BADGES[method] || null;
 
   return (
-    <div className="data-readout">
-      <div className="data-readout-title">Simulation Telemetry</div>
+    <div 
+      className="data-readout"
+      style={{
+        transform: `translate(calc(-50% + ${position.x}px), ${position.y}px)`,
+        cursor: isDragging ? 'grabbing' : 'grab',
+        touchAction: 'none'
+      }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+    >
+      <div className="data-readout-title" style={{ cursor: 'inherit', pointerEvents: 'none' }}>Simulation Telemetry</div>
       {rows.map((row, i) => (
-        <div key={i} className="data-readout-row">
-          <span className="data-readout-label" title={inferReadoutTooltip(row.key, row.label)}>{row.label}</span>
-          <span className={`data-readout-value ${row.status}`} title={inferReadoutTooltip(row.key, row.label)}>{row.value}</span>
+        <div key={i} className="data-readout-row" style={{ pointerEvents: 'none' }}>
+          <span className="data-readout-label" title={inferReadoutTooltip(row.key, row.label)} style={{ pointerEvents: 'auto' }}>{row.label}</span>
+          <span className={`data-readout-value ${row.status}`} title={inferReadoutTooltip(row.key, row.label)} style={{ pointerEvents: 'auto' }}>{row.value}</span>
         </div>
       ))}
       {methodBadge && (
-        <div className="data-readout-method">
+        <div className="data-readout-method" style={{ pointerEvents: 'none' }}>
           <span className={`method-badge ${methodBadge.cls}`}>{methodBadge.label}</span>
         </div>
       )}

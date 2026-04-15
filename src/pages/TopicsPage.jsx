@@ -169,6 +169,30 @@ const ICONS = {
       <path d="M 50 25 Q 56 25 58 30" stroke="#4ade80" strokeWidth="2" fill="none" opacity="0.7" />
     </svg>
   ),
+  'spring-pendulum': (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      <circle cx="32" cy="10" r="4" fill="currentColor" opacity="0.6" />
+      <path d="M 32 10 L 36 18 L 28 26 L 36 34 L 28 42 L 32 50" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.8" />
+      <circle cx="32" cy="54" r="6" fill="#60a5fa" />
+    </svg>
+  ),
+  'simple-pendulum': (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      <circle cx="32" cy="10" r="4" fill="currentColor" opacity="0.6" />
+      <line x1="32" y1="10" x2="48" y2="38" stroke="currentColor" strokeWidth="2.5" opacity="0.8" />
+      <circle cx="48" cy="38" r="7" fill="#fb7185" />
+      <path d="M 16 38 Q 32 46 48 38" stroke="currentColor" strokeWidth="1" strokeDasharray="3 3" opacity="0.4" />
+    </svg>
+  ),
+  'work-energy-lab': (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      <path d="M 8 48 L 56 32" stroke="currentColor" strokeWidth="3" opacity="0.5" />
+      <rect x="24" y="28" width="12" height="12" transform="rotate(-15 30 34)" fill="#4ade80" />
+      <path d="M 36 32 L 50 28 L 46 24 M 50 28 L 46 32" stroke="#fb7185" strokeWidth="2" fill="none" />
+      <rect x="8" y="52" width="20" height="4" fill="#60a5fa" opacity="0.8" />
+      <rect x="8" y="58" width="12" height="4" fill="#f97316" opacity="0.8" />
+    </svg>
+  ),
   'atwoods-machine': (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
       <line x1="32" y1="4" x2="32" y2="16" stroke="currentColor" strokeWidth="2" opacity="0.5" />
