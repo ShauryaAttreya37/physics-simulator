@@ -193,6 +193,23 @@ const ICONS = {
       <rect x="8" y="58" width="12" height="4" fill="#f97316" opacity="0.8" />
     </svg>
   ),
+  'coriolis-effect': (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="1" opacity="0.3" fill="none" />
+      <path d="M 32 32 L 32 10" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
+      <path d="M 32 32 Q 45 32 50 20" stroke="#fb7185" strokeWidth="2" fill="none" />
+      <circle cx="50" cy="20" r="4" fill="#fb7185" />
+      <path d="M 40 10 Q 50 10 54 20" stroke="currentColor" strokeWidth="1" strokeDasharray="2 2" opacity="0.4" />
+    </svg>
+  ),
+  'maxwell-waves': (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      <path d="M 8 32 L 56 32" stroke="currentColor" strokeWidth="1" opacity="0.3" />
+      <path d="M 8 32 Q 20 12 32 32 Q 44 52 56 32" stroke="#60a5fa" strokeWidth="2" fill="none" />
+      <path d="M 8 32 Q 20 42 32 32 Q 44 22 56 32" stroke="#4ade80" strokeWidth="1.5" fill="none" opacity="0.7" />
+      <line x1="32" y1="20" x2="32" y2="44" stroke="currentColor" strokeWidth="1" opacity="0.2" />
+    </svg>
+  ),
   'atwoods-machine': (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
       <line x1="32" y1="4" x2="32" y2="16" stroke="currentColor" strokeWidth="2" opacity="0.5" />
@@ -294,6 +311,31 @@ const ICONS = {
       <circle cx="49" cy="42" r="2" fill="currentColor" opacity="0.6" />
       <circle cx="15" cy="22" r="2" fill="currentColor" opacity="0.6" />
       <circle cx="32" cy="12" r="2" fill="currentColor" opacity="0.6" />
+    </svg>
+  ),
+  'buoyancy-lab': (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      <rect x="12" y="16" width="40" height="38" rx="2" stroke="currentColor" strokeWidth="1.5" opacity="0.4" fill="none" />
+      <rect x="12" y="30" width="40" height="24" rx="0" fill="currentColor" opacity="0.15" />
+      <line x1="12" y1="30" x2="52" y2="30" stroke="currentColor" strokeWidth="1.5" opacity="0.6" />
+      <rect x="22" y="24" width="12" height="10" rx="2" fill="currentColor" opacity="0.8" />
+      <rect x="38" y="32" width="8" height="8" rx="2" fill="currentColor" opacity="0.5" />
+      <path d="M 28 44 L 28 38 M 24 38 L 32 38" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
+      <path d="M 28 44 L 28 50 M 24 50 L 32 50" stroke="#60a5fa" strokeWidth="1.5" opacity="0.7" />
+    </svg>
+  ),
+  'wind-tunnel': (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      <line x1="4" y1="16" x2="60" y2="16" stroke="currentColor" strokeWidth="1.5" opacity="0.3" />
+      <line x1="4" y1="48" x2="60" y2="48" stroke="currentColor" strokeWidth="1.5" opacity="0.3" />
+      <circle cx="28" cy="32" r="8" fill="currentColor" opacity="0.7" />
+      {[22, 27, 32, 37, 42].map((y, i) => (
+        <path key={i} d={`M 8 ${y} L 18 ${y}`} stroke="currentColor" strokeWidth="1" opacity="0.4" />
+      ))}
+      <path d="M 38 32 Q 44 26 52 28" stroke="currentColor" strokeWidth="1" opacity="0.5" />
+      <path d="M 38 32 Q 44 38 52 36" stroke="currentColor" strokeWidth="1" opacity="0.5" />
+      <path d="M 38 30 Q 48 30 56 32" stroke="currentColor" strokeWidth="1" opacity="0.3" />
+      <path d="M 38 34 Q 48 34 56 32" stroke="currentColor" strokeWidth="1" opacity="0.3" />
     </svg>
   ),
   'default': (

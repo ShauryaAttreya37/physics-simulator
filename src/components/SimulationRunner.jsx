@@ -24,6 +24,19 @@ function formatClock(seconds) {
 }
 
 function ParamControl({ control, value, onChange }) {
+  if (control.type === 'toggle') {
+    return (
+      <div className="form-group toggle-group">
+        <label style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>{control.label}</span>
+          <div className={`toggle-switch ${value ? 'active' : ''}`} onClick={() => onChange(!value)}>
+            <div className="toggle-handle" />
+          </div>
+        </label>
+      </div>
+    );
+  }
+
   const step = control.step ?? 0.01;
   const tooltip = control.tooltip ?? inferControlTooltip(control);
   const markers = control.markers ?? [];
@@ -81,6 +94,30 @@ function ParamControl({ control, value, onChange }) {
   );
 }
 
+function TileControl({ control, value, onChange }) {
+  const tiles = control.tiles ?? [];
+  return (
+    <div className="form-group">
+      <label><span>{control.label}</span></label>
+      <div className="tile-grid">
+        {tiles.map((tile) => (
+          <button
+            key={tile.value}
+            className={`tile-btn${value === tile.value ? ' active' : ''}`}
+            onClick={() => onChange(tile.value)}
+            title={tile.sub || tile.label}
+            style={tile.color ? { '--tile-accent': tile.color } : undefined}
+          >
+            {tile.color && <span className="tile-swatch" style={{ background: tile.color }} />}
+            <span className="tile-label">{tile.label}</span>
+            {tile.sub && <span className="tile-sub">{tile.sub}</span>}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function SimulationRunner({ sim, onBack }) {
   const canvasRef = useRef(null);
   const simRef = useRef(null);
@@ -129,7 +166,7 @@ export default function SimulationRunner({ sim, onBack }) {
     return () => clearTimeout(timer);
   }, [exportToast]);
 
-  // Instantiate simulation
+  // Instantiate simulation — only re-create when `sim` identity or reloadNonce changes
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -172,7 +209,15 @@ export default function SimulationRunner({ sim, onBack }) {
       window.removeEventListener('resize', onResize);
       destroyCurrent();
     };
-  }, [sim, params, reloadNonce]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sim, reloadNonce]);
+
+  // Push params to the live simulation instance *without* destroying it
+  useEffect(() => {
+    if (simRef.current?.setParams) {
+      simRef.current.setParams(params);
+    }
+  }, [params]);
 
   const togglePlay = useCallback(() => {
     const instance = simRef.current;
@@ -332,6 +377,9 @@ export default function SimulationRunner({ sim, onBack }) {
   const applyScenario = useCallback((scenario) => {
     if (scenario.params) {
       setParams(prev => ({ ...prev, ...scenario.params }));
+    }
+    if (scenario.setup && simRef.current) {
+      scenario.setup(simRef.current);
     }
   }, []);
 
@@ -510,12 +558,21 @@ export default function SimulationRunner({ sim, onBack }) {
               {controls.length > 0 ? (
                 <div className="property-section" style={{ paddingTop: 0, borderBottom: 'none' }}>
                   {controls.map(control => (
-                    <ParamControl
-                      key={control.key}
-                      control={control}
-                      value={params[control.key] ?? control.min ?? 0}
-                      onChange={(next) => setParams(prev => ({ ...prev, [control.key]: next }))}
-                    />
+                    control.type === 'tiles' ? (
+                      <TileControl
+                        key={control.key}
+                        control={control}
+                        value={params[control.key] ?? 0}
+                        onChange={(next) => setParams(prev => ({ ...prev, [control.key]: next }))}
+                      />
+                    ) : (
+                      <ParamControl
+                        key={control.key}
+                        control={control}
+                        value={params[control.key] ?? control.min ?? 0}
+                        onChange={(next) => setParams(prev => ({ ...prev, [control.key]: next }))}
+                      />
+                    )
                   ))}
                 </div>
               ) : (

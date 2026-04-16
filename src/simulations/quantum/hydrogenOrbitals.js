@@ -392,6 +392,7 @@ export function create(canvas, initParams = {}) {
       cachedN = -1; // force regen
       this.start(); 
     },
+    setParams(next) { Object.assign(p, next); render(); },
     destroy() { 
       this.stop(); 
       window.removeEventListener('mousemove', handleMove);

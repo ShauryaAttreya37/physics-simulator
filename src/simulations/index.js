@@ -11,12 +11,16 @@ import * as dampedOscillator from './mechanics/dampedHarmonicOscillator';
 import * as springPendulum from './mechanics/springPendulum';
 import * as simplePendulum from './mechanics/simplePendulum';
 import * as workEnergyLab from './mechanics/workEnergyLab';
+import * as coriolisEffect from './mechanics/coriolisEffect';
+import * as torqueAngularAccelerationLab from './mechanics/torqueAngularAccelerationLab';
+import * as gyroscopePrecession3d from './mechanics/gyroscopePrecession3d';
 
 import * as wavePool from './fluid/wavePool';
 import * as buoyancyLab from './fluid/buoyancyLab';
 import * as windTunnel from './fluid/windTunnel';
 import * as electricCharges from './electromagnetism/electricCharges';
 import * as electrostaticFields from './electromagnetism/electrostaticFields';
+import * as maxwellWaves from './electromagnetism/maxwellWaves';
 
 import * as particleInBox from './quantum/particleInBox';
 import * as harmonicOscillator from './quantum/harmonicOscillator';
@@ -106,6 +110,35 @@ const CONTROL_MARKERS = {
       { value: 1, label: 'Low ratio' },
       { value: 2.2, label: 'Near resonance' },
       { value: 4, label: 'High ratio' },
+    ],
+  },
+  'torque-angular-acceleration-lab': {
+    force: [
+      { value: 15, label: 'Light push' },
+      { value: 40, label: 'Medium push' },
+      { value: 70, label: 'Hard push' },
+    ],
+    radius: [
+      { value: 0.3, label: 'Short arm' },
+      { value: 1, label: 'Standard' },
+      { value: 1.8, label: 'Long arm' },
+    ],
+    inertia: [
+      { value: 0.6, label: 'Low inertia' },
+      { value: 3, label: 'Medium' },
+      { value: 8, label: 'High inertia' },
+    ],
+  },
+  'gyroscope-precession-3d': {
+    spinRate: [
+      { value: 40, label: 'Low spin' },
+      { value: 140, label: 'Nominal' },
+      { value: 260, label: 'High spin' },
+    ],
+    gravity: [
+      { value: 1.62, label: 'Moon' },
+      { value: 9.81, label: 'Earth' },
+      { value: 15, label: 'High-g' },
     ],
   },
 };
@@ -298,6 +331,22 @@ export const TOPICS = {
         scenarios: simplePendulum.scenarios,
       },
       {
+        id: 'coriolis-effect',
+        title: 'Rotating Frames (Coriolis)',
+        description: 'Observe the apparent deflection of particles on a rotating disk. Compare Inertial (Fixed) and Non-Inertial (Rotating) reference frames to see Coriolis and Centrifugal forces emerge.',
+        tags: ['Reference Frames', 'Coriolis', 'Inertial'],
+        gradient: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
+        accentColor: '#60a5fa',
+        method: 'analytical',
+        create: coriolisEffect.create,
+        controls: coriolisEffect.controls,
+        defaultParams: coriolisEffect.defaultParams,
+        equations: coriolisEffect.equations,
+        equationSections: coriolisEffect.equationSections,
+        graphParams: coriolisEffect.graphParams,
+        scenarios: coriolisEffect.scenarios,
+      },
+      {
         id: 'work-energy-lab',
         title: 'Work & Energy Lab',
         description: 'Pull a block up an incline to explore the Work-Energy Theorem. Real-time tracking of Kinetic, Potential, and Thermal energy plus a Power gauge.',
@@ -311,6 +360,36 @@ export const TOPICS = {
         equations: workEnergyLab.equations,
         equationSections: workEnergyLab.equationSections,
         graphParams: workEnergyLab.graphParams,
+      },
+      {
+        id: 'torque-angular-acceleration-lab',
+        title: 'Torque vs Angular Acceleration Lab',
+        description: 'A rotary dynamics bench where you vary tangential force, lever arm radius, and moment of inertia to directly test tau = I alpha.',
+        tags: ['Rotational Dynamics', 'Torque', 'Moment of Inertia'],
+        gradient: 'linear-gradient(135deg, #0a1f38 0%, #0f3b5f 100%)',
+        accentColor: '#38bdf8',
+        method: 'euler',
+        create: torqueAngularAccelerationLab.create,
+        controls: torqueAngularAccelerationLab.controls,
+        defaultParams: torqueAngularAccelerationLab.defaultParams,
+        equations: torqueAngularAccelerationLab.equations,
+        equationSections: torqueAngularAccelerationLab.equationSections,
+        graphParams: torqueAngularAccelerationLab.graphParams,
+      },
+      {
+        id: 'gyroscope-precession-3d',
+        title: 'Gyroscope & Precession (3D)',
+        description: 'Interactive 3D gyroscope with gravity-driven torque, spin angular momentum, steady precession, and speed-dependent stability.',
+        tags: ['Gyroscope', 'Precession', '3D Rigid Body'],
+        gradient: 'linear-gradient(135deg, #090b18 0%, #132449 100%)',
+        accentColor: '#60a5fa',
+        method: 'euler',
+        create: gyroscopePrecession3d.create,
+        controls: gyroscopePrecession3d.controls,
+        defaultParams: gyroscopePrecession3d.defaultParams,
+        equations: gyroscopePrecession3d.equations,
+        equationSections: gyroscopePrecession3d.equationSections,
+        graphParams: gyroscopePrecession3d.graphParams,
       },
     ],
   },
@@ -396,6 +475,21 @@ export const TOPICS = {
         equations: electrostaticFields.equations,
         equationSections: electrostaticFields.equationSections,
         graphParams: electrostaticFields.graphParams,
+      },
+      {
+        id: 'maxwell-waves',
+        title: 'Maxwell Wave Emergence',
+        description: 'Visualize the birth of an electromagnetic wave. See how a time-varying electric field induces a magnetic field, creating a self-propagating wave based on Maxwell’s equations.',
+        tags: ['Maxwell', 'EM Waves', 'Induction'],
+        gradient: 'linear-gradient(135deg, #0f172a 0%, #030617 100%)',
+        accentColor: '#22d3ee',
+        method: 'analytical',
+        create: maxwellWaves.create,
+        controls: maxwellWaves.controls,
+        defaultParams: maxwellWaves.defaultParams,
+        equations: maxwellWaves.equations,
+        equationSections: maxwellWaves.equationSections,
+        graphParams: maxwellWaves.graphParams,
       },
     ],
   },

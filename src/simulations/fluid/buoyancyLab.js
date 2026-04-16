@@ -63,8 +63,18 @@ export const defaultParams = {
 };
 
 export const controls = [
-  { key: 'fluidIdx', label: 'Tank Fluid', min: 0, max: 6, step: 1, markers: FLUIDS.map((f,i)=>({value:i, label:f.name})) },
-  { key: 'matIdx', label: 'Drop Material', min: 0, max: 8, step: 1, markers: MATERIALS.map((m,i)=>({value:i, label:m.name})) },
+  {
+    key: 'fluidIdx',
+    label: 'Tank Fluid',
+    type: 'tiles',
+    tiles: FLUIDS.map((f, i) => ({ value: i, label: f.name, sub: `ρ ${f.density}`, color: f.color })),
+  },
+  {
+    key: 'matIdx',
+    label: 'Drop Material (click canvas to spawn)',
+    type: 'tiles',
+    tiles: MATERIALS.map((m, i) => ({ value: i, label: m.name, sub: `ρ ${m.density}`, color: m.color })),
+  },
 ];
 
 export const equationSections = [
@@ -75,6 +85,8 @@ export const equationSections = [
     ]
   }
 ];
+
+export const equations = [];
 
 export const graphParams = [
   { key: 'weight', label: 'Object Weight (in air)', color: '#FF6B6B' },

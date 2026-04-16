@@ -346,6 +346,7 @@ export function create(canvas, initParams = {}) {
     },
     stop() { running = false; cancelAnimationFrame(rafId); },
     reset() { this.stop(); initState(); render(); this.start(); },
+    setParams(next) { Object.assign(p, next); render(); },
     destroy() { this.stop(); },
     getData() {
       const e = computeEnergy(q, v, p.g);

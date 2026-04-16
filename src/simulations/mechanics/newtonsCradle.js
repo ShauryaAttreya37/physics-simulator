@@ -256,6 +256,7 @@ export function create(canvas, initParams = {}) {
       render();
       this.start();
     },
+    setParams(next) { Object.assign(p, next); render(); },
     destroy() {
       this.stop();
       Matter.Composite.clear(engine.world, false);

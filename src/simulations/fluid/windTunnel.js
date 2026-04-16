@@ -112,11 +112,28 @@ export const defaultParams = {
 };
 
 export const controls = [
-  { key: 'windSpeed', label: 'Wind Speed', min: 20, max: 500, step: 10 },
-  { key: 'shapeIdx', label: 'Object Profile', min: 0, max: 4, step: 1, markers: SHAPES.map((s,i)=>({value:i, label:s.name})) },
-  { key: 'showPressure', label: 'Heatmap', min: 0, max: 1, step: 1 },
-  { key: 'showStreamlines', label: 'Streamlines', min: 0, max: 1, step: 1 },
+  { key: 'windSpeed', label: 'Wind Speed (px/s)', min: 20, max: 500, step: 10 },
+  {
+    key: 'shapeIdx',
+    label: 'Object Profile',
+    type: 'tiles',
+    tiles: SHAPES.map((s, i) => ({ value: i, label: s.name, sub: `Cd ${s.cd}` })),
+  },
+  {
+    key: 'showPressure',
+    label: 'Velocity Heatmap',
+    type: 'tiles',
+    tiles: [{ value: 0, label: 'Off' }, { value: 1, label: 'On' }],
+  },
+  {
+    key: 'showStreamlines',
+    label: 'Streamlines',
+    type: 'tiles',
+    tiles: [{ value: 0, label: 'Off' }, { value: 1, label: 'On' }],
+  },
 ];
+
+export const equations = [];
 
 export const equationSections = [
   {

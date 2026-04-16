@@ -580,6 +580,7 @@ export function create(canvas, initParams = {}) {
       yaw = 0.3; pitch = 0.2;
       this.start();
     },
+    setParams(next) { Object.assign(p, next); render(); },
     destroy() {
       this.stop();
       window.removeEventListener('mousemove', onMove);

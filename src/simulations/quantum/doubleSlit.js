@@ -505,6 +505,7 @@ export function create(canvas, initParams = {}) {
       simTime = 0; particles = []; histogram = new Float64Array(200); p.numParticles = 0;
       render(); this.start();
     },
+    setParams(next) { Object.assign(p, next); render(); },
     destroy() { this.stop(); },
     getData() {
       const fringeSpacing = p.wavelength * p.screenDist / p.slitSeparation;

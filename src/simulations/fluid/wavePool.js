@@ -197,6 +197,7 @@ export function create(canvas, initParams = {}) {
       render();
       this.start();
     },
+    setParams(next) { Object.assign(p, next); render(); },
     destroy() {
       this.stop();
       canvas.removeEventListener('pointerdown', onPointer);

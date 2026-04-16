@@ -538,6 +538,64 @@ html, body, #root {
   white-space: nowrap;
 }
 
+/* ─── Tile Controls ──────────────────────────────────────────────── */
+.tile-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.tile-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-sub);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.tile-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--text);
+}
+
+.tile-btn.active {
+  background: color-mix(in srgb, var(--tile-accent, var(--accent)) 15%, transparent);
+  border-color: color-mix(in srgb, var(--tile-accent, var(--accent)) 50%, transparent);
+  color: var(--text);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--tile-accent, var(--accent)) 25%, transparent);
+}
+
+.tile-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.tile-label {
+  line-height: 1.2;
+}
+
+.tile-sub {
+  font-size: 9px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  margin-left: auto;
+  padding-left: 4px;
+}
+
 /* ─── Slider ──────────────────────────────────────────────────────── */
 .slider-input { flex: 1; min-width: 0; }
 
@@ -2550,3 +2608,48 @@ input[type="range"]::-webkit-slider-thumb:hover {
     border-top: 1px solid rgba(255,255,255,0.07);
   }
 }
+
+/* --- Toggle Switch ------------------------------------------------- */
+.toggle-switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.toggle-switch:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.toggle-switch.active {
+  background: var(--accent-dim);
+  border-color: rgba(79, 195, 247, 0.4);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.toggle-handle {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle-switch.active .toggle-handle {
+  transform: translateX(16px);
+  background: var(--accent-hi);
+  box-shadow: 0 0 6px var(--accent-glow);
+}
+
+.toggle-group {
+  margin-bottom: 4px;
+}
+
