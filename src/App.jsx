@@ -4,13 +4,15 @@ import SandboxCanvas from './components/SandboxCanvas';
 import PropertiesPanel from './components/PropertiesPanel';
 import Home from './pages/Home';
 import TopicsPage from './pages/TopicsPage';
+import DocsPage from './pages/DocsPage';
+import IntegratorsPage from './pages/IntegratorsPage';
 import { useSandboxStore } from './store/sandboxStore';
 import { resetEngine } from './physics/engine';
 import Matter from 'matter-js';
 import './App.css';
 
 export default function App() {
-  const [page, setPage] = useState('home'); // 'home' | 'sandbox' | 'topics'
+  const [page, setPage] = useState('home'); // 'home' | 'sandbox' | 'topics' | 'docs' | 'integrators'
   const engineRef = useRef(null);
   const { setRunning } = useSandboxStore();
 
@@ -29,15 +31,19 @@ export default function App() {
   }
 
   if (page === 'home') {
-    return (
-      <Home
-        onSimulations={() => setPage('topics')}
-      />
-    );
+    return <Home onNavigate={setPage} />;
   }
 
   if (page === 'topics') {
     return <TopicsPage onBack={() => setPage('home')} />;
+  }
+
+  if (page === 'docs') {
+    return <DocsPage onBack={() => setPage('home')} />;
+  }
+
+  if (page === 'integrators') {
+    return <IntegratorsPage onBack={() => setPage('home')} />;
   }
 
   // Sandbox

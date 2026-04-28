@@ -1,51 +1,77 @@
-import { FlaskConical, Waves } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import './Home.css';
 
-export default function Home({ onSimulations }) {
+export default function Home({ onNavigate }) {
+  const containerRef = useRef(null);
+  const [isExiting, setIsExiting] = useState(false);
+
+  const handleNavigate = (page) => {
+    setIsExiting(true);
+    setTimeout(() => {
+      onNavigate(page);
+    }, 400); // matches the 0.4s animation duration in App.css
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!containerRef.current) return;
+      const x = (e.clientX / window.innerWidth - 0.5) * 2;
+      const y = (e.clientY / window.innerHeight - 0.5) * 2;
+      
+      containerRef.current.style.setProperty('--mouse-x', x);
+      containerRef.current.style.setProperty('--mouse-y', y);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
   return (
-    <div className="home-page page-fade-in">
-      {/* Hero */}
-      <header className="home-hero">
-        <div className="home-hero-brand" />
-        <h1 className="home-hero-title" style={{ fontFamily: 'var(--font-serif)' }}>
-          PHYSICS<span>SIMULATOR</span>
-        </h1>
-        <p className="home-hero-sub">
-          Research-grade physics simulations — adaptive integrators, symplectic methods, and publication-quality visualization.
-        </p>
-        <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
-          <span className="method-badge rk45">RK45</span>
-          <span className="method-badge symplectic">Yoshida⁴</span>
-          <span className="method-badge fdm">FDM</span>
+    <div className={`home-wrapper ${isExiting ? 'page-fade-out' : 'page-fade-in'}`} ref={containerRef}>
+      <div className="home-container">
+        {/* Dynamic Abstract Lighting */}
+        <div className="bg-mesh">
+          <div className="orb orb-1"></div>
+          <div className="orb orb-2"></div>
         </div>
-      </header>
 
-      {/* Three main cards */}
-      <main className="home-cards">
-
-
-        <button className="home-card home-card--sims" onClick={onSimulations}>
-          <div className="home-card-bg" />
-          <div className="home-card-content">
-            <div className="home-card-icon">
-              <FlaskConical size={28} />
-            </div>
-            <h2 className="home-card-title">Simulations</h2>
-            <p className="home-card-desc">
-              Research-grade simulations with adaptive integrators, energy conservation tracking, and Makie-inspired visualization.
-            </p>
-            <ul className="home-card-features">
-              <li>Lorenz Attractor &amp; Chaos Theory</li>
-              <li>Symplectic N-Body Gravity</li>
-              <li>Phase Space &amp; Publication Graphs</li>
-            </ul>
+        {/* Floating Glass Navbar */}
+        <nav className="glass-nav">
+          <div className="nav-brand">
+            <img src="/favicon.svg" alt="Physics Simulator" className="logo-mark-img" />
+            <span className="logo-text">physics simulator</span>
           </div>
-          <div className="home-card-arrow">Explore →</div>
-        </button>
-      </main>
+          <div className="nav-links">
+            <button className="nav-link-btn" onClick={() => handleNavigate('topics')}>Laboratory</button>
+            <button className="nav-link-btn" onClick={() => handleNavigate('integrators')}>Integrators</button>
+            <button className="nav-link-btn" onClick={() => handleNavigate('docs')}>Docs</button>
+          </div>
+          <button className="nav-btn" onClick={() => handleNavigate('topics')}>Launch Lab</button>
+        </nav>
 
-      <footer className="home-footer" style={{ fontFamily: 'var(--font-mono)', fontSize: 11 }}>
-        Powered by RK45 Adaptive · Yoshida⁴ Symplectic · Custom Physics Engines
-      </footer>
+        {/* Thin Grid Overlay */}
+        <div className="grid-overlay parallax-back"></div>
+        <div className="horizontal-axis parallax-back"></div>
+        <div className="vertical-axis parallax-back"></div>
+
+        {/* Hero Content */}
+        <main className="hero-content parallax-front">
+          <h1 className="hero-title parallax-title">
+            Transform your understanding.<br />
+            Elevate your research.
+          </h1>
+          
+          <p className="hero-sub parallax-sub">
+            Physics Simulator adapts to dynamic physical systems<br/>
+            in real time — revealing chaos, conserving energy,<br/>
+            and helping you visualize the mechanics of the universe.
+          </p>
+
+          <button className="primary-btn parallax-btn" onClick={() => handleNavigate('topics')}>
+            Enter Laboratory
+          </button>
+        </main>
+      </div>
     </div>
   );
 }

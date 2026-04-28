@@ -69,6 +69,8 @@ export const graphParams = [
   { key: 'E', label: 'Field |E|' },
 ];
 
+export const equations = [];
+
 export const method = '3D integral superposition';
 
 export function create(canvas, initParams = {}) {
@@ -117,25 +119,25 @@ export function create(canvas, initParams = {}) {
         baseCharges.push({ xw: -L / 2 + (L * i) / (N - 1), yw: 0, zw: 0, q: qBase / N });
       }
     } else if (s === 3) {
-      // Ring
+      // Ring (XY plane so it's face-on in default view)
       const N = 80;
       const R = 90;
       for (let i = 0; i < N; i++) {
         const th = (i / N) * 2 * Math.PI;
-        baseCharges.push({ xw: R * Math.cos(th), yw: 0, zw: R * Math.sin(th), q: qBase / N });
+        baseCharges.push({ xw: R * Math.cos(th), yw: R * Math.sin(th), zw: 0, q: qBase / N });
       }
     } else if (s === 4) {
-      // Parallel Plates (Two 2D grids separated in Z)
+      // Parallel Plates (Two 2D grids separated in X so field points X)
       const gridSize = 10;
       const W = 160;
       const gap = 60;
       const step = W / (gridSize - 1);
       for (let i = 0; i < gridSize; i++) {
         for (let j = 0; j < gridSize; j++) {
-          const px = -W / 2 + i * step;
-          const py = -W / 2 + j * step;
-          baseCharges.push({ xw: px, yw: py, zw: -gap / 2, q: qBase / (gridSize * gridSize) });
-          baseCharges.push({ xw: px, yw: py, zw: gap / 2, q: -qBase / (gridSize * gridSize) });
+          const py = -W / 2 + i * step;
+          const pz = -W / 2 + j * step;
+          baseCharges.push({ xw: -gap / 2, yw: py, zw: pz, q: qBase / (gridSize * gridSize) });
+          baseCharges.push({ xw: gap / 2, yw: py, zw: pz, q: -qBase / (gridSize * gridSize) });
         }
       }
     } else if (s === 5) {
@@ -260,25 +262,24 @@ export function create(canvas, initParams = {}) {
     if (camCharges.length === 0 || p.chargeDensity === 0) return;
 
     const step = 4;
-    const maxSteps = 400;
+    const maxSteps = 250;
     const sign = p.chargeDensity > 0 ? 1 : -1;
-    const { w, h, cX, cY } = dims();
+    const { cX, cY } = dims();
 
     // To prevent total chaos, we seed lines uniformly across the screen
     const seeds = [];
     if (baseCharges.length < 5) {
       for (const c of camCharges) {
-        for (let i = 0; i < 20; i++) {
-          seeds.push({ x: c.cx + 10 * Math.cos(i), y: c.cy + 10 * Math.sin(i) });
+        for (let i = 0; i < 16; i++) {
+          const th = i * Math.PI / 8;
+          seeds.push({ x: c.cx + 10 * Math.cos(th), y: c.cy + 10 * Math.sin(th) });
         }
       }
     } else {
       // Grid seeding for uniform coverage
-      for (let x = -cX; x < cX; x += 35) {
-        for (let y = -cY; y < cY; y += 35) {
-          const f = getField(x, y);
-          const m = Math.sqrt(f.Ex*f.Ex + f.Ey*f.Ey);
-          if (m > 0.05) seeds.push({ x, y });
+      for (let x = -cX + 20; x < cX; x += 40) {
+        for (let y = -cY + 20; y < cY; y += 40) {
+          seeds.push({ x, y });
         }
       }
     }
@@ -289,20 +290,20 @@ export function create(canvas, initParams = {}) {
       
       // Prevent rendering lines born deeply inside solid objects (low E field magnitude generally)
       const f0 = getField(px, py);
-      if (Math.abs(f0.V) < 0.2) continue;
+      if (Math.abs(f0.V) < 0.1) continue;
 
       const path = [{ x: px, y: py }];
 
       for (let s = 0; s < maxSteps; s++) {
         const f1 = getField(px, py);
         const m1 = Math.sqrt(f1.Ex * f1.Ex + f1.Ey * f1.Ey); // 2D path!
-        if (m1 < 0.02) break;
+        if (m1 < 0.01) break;
         const dx1 = sign * step * (f1.Ex / m1);
         const dy1 = sign * step * (f1.Ey / m1);
 
         const f2 = getField(px + dx1 * 0.5, py + dy1 * 0.5);
         const m2 = Math.sqrt(f2.Ex * f2.Ex + f2.Ey * f2.Ey);
-        if (m2 < 0.02) break;
+        if (m2 < 0.01) break;
 
         px += sign * step * (f2.Ex / m2);
         py += sign * step * (f2.Ey / m2);
@@ -431,13 +432,10 @@ export function create(canvas, initParams = {}) {
     if (!isOrbiting && animTimer > 60) {
       yaw += 0.002;
       rotateAndProject();
-      if (animTimer % 15 === 0) computeFieldLines(); // periodic update for flow
-    } else if (isOrbiting) {
-       // Only recompute field lines continuously when orbiting stops to save CPU
-       fieldLines = [];
-    } else if (fieldLines.length === 0) {
-       computeFieldLines();
     }
+    
+    // Always compute field lines to avoid jitter, it is optimized enough
+    computeFieldLines();
 
     // BG
     ctx.fillStyle = '#020512';
@@ -580,7 +578,7 @@ export function create(canvas, initParams = {}) {
       yaw = 0.3; pitch = 0.2;
       this.start();
     },
-    setParams(next) { Object.assign(p, next); render(); },
+    setParams(next) { Object.assign(p, next); },
     destroy() {
       this.stop();
       window.removeEventListener('mousemove', onMove);
