@@ -1854,6 +1854,14 @@ select.form-input option {
   display: block;
 }
 
+.recording-export-canvas {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .sim-runner-research .sim-bottom-bar {
   display: flex;
   align-items: center;
@@ -2148,19 +2156,38 @@ select.form-input option {
   background: rgba(33,145,140,0.1);
   border-radius: 5px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: color var(--trans-base), background var(--trans-base), border-color var(--trans-base), box-shadow var(--trans-base), transform var(--trans-base);
   font-family: var(--font-mono);
   letter-spacing: 0.04em;
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
 }
 
 .btn-export:hover {
   background: rgba(33,145,140,0.2);
   border-color: rgba(33,145,140,0.5);
+  transform: scale(1.05);
+  box-shadow: 0 10px 24px rgba(33,145,140,0.22), inset 0 1px 0 rgba(255,255,255,0.12);
 }
 
 .export-actions {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
+}
+
+.graph-export-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+.graph-export-actions .btn-export {
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 6px;
 }
 
@@ -2225,12 +2252,12 @@ select.form-input option {
 ══════════════════════════════════════════════════════════════════════ */
 
 /* Tool & Icon Buttons - Add springy scale & glowing hover */
-.tool-btn, .icon-btn, .btn {
-  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+.tool-btn, .icon-btn, .btn, .btn-export {
+  transition: color var(--trans-base), background var(--trans-base), border-color var(--trans-base), box-shadow var(--trans-base), transform var(--trans-base);
 }
 
 .tool-btn:hover, .btn:hover {
-  transform: translateY(-2px) scale(1.05);
+  transform: scale(1.05);
   box-shadow: 0 4px 15px rgba(79, 195, 247, 0.3);
   background: rgba(79, 195, 247, 0.1);
   border-color: rgba(79, 195, 247, 0.5);
@@ -2239,13 +2266,15 @@ select.form-input option {
 
 /* Allow icon-btn to have its own color hover, but keep scale */
 .icon-btn:hover {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+  box-shadow: 0 10px 24px rgba(255, 255, 255, 0.12), inset 0 1px 0 rgba(255,255,255,0.14);
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
 }
 
-.tool-btn:active, .icon-btn:active, .btn:active {
-  transform: translateY(1px) scale(0.92) !important;
-  transition: all 0.05s ease !important;
+.tool-btn:active, .icon-btn:active, .btn:active, .btn-export:active {
+  transform: scale(0.95) !important;
+  transition: transform var(--trans-fast), box-shadow var(--trans-fast) !important;
   box-shadow: 0 2px 5px rgba(79, 195, 247, 0.2) !important;
 }
 
@@ -2256,23 +2285,23 @@ select.form-input option {
 
 /* Play / Pause button enhancements */
 .icon-btn.play-btn {
-  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: color var(--trans-base), background var(--trans-base), border-color var(--trans-base), box-shadow var(--trans-base), transform var(--trans-base);
 }
 .icon-btn.play-btn:hover {
   background: #ffffff;
   color: var(--bg);
   box-shadow: 0 0 20px rgba(255,255,255,0.4);
-  transform: translateY(-2px) scale(1.08);
+  transform: scale(1.05);
 }
 .icon-btn.pause-btn {
-  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: color var(--trans-base), background var(--trans-base), border-color var(--trans-base), box-shadow var(--trans-base), transform var(--trans-base);
 }
 .icon-btn.pause-btn:hover {
   background: rgba(255, 107, 107, 0.2) !important;
   color: var(--danger) !important;
   border-color: var(--danger) !important;
   box-shadow: 0 0 20px rgba(255, 107, 107, 0.4) !important;
-  transform: translateY(-2px) scale(1.08) !important;
+  transform: scale(1.05) !important;
 }
 
 /* Form Inputs Focus States */
@@ -2283,11 +2312,20 @@ select.form-input option {
 
 /* Range sliders */
 input[type="range"]::-webkit-slider-thumb {
-  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s;
+  transition: transform var(--trans-base), box-shadow var(--trans-base);
 }
 input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.4);
+  transform: scale(1.25);
   box-shadow: 0 0 15px rgba(79, 195, 247, 0.6);
+}
+
+.slider-input {
+  transition: filter var(--trans-base), transform var(--trans-base);
+}
+
+.slider-input:hover {
+  filter: drop-shadow(0 0 10px rgba(79, 195, 247, 0.26));
+  transform: scale(1.01);
 }
 
 /* Home Cards - Hyper interactive hover */
@@ -2561,6 +2599,79 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 .sim-runner-top-bar::-webkit-scrollbar { display: none; }
 
+.sim-runner-top-bar .icon-btn {
+  width: 48px;
+  height: 44px;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.025));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 28px rgba(0,0,0,0.18);
+}
+
+.sim-runner-top-bar .icon-btn.play-btn,
+.sim-runner-top-bar .icon-btn.pause-btn {
+  color: #fb7185;
+  border-color: rgba(251, 113, 133, 0.34);
+  background: linear-gradient(180deg, rgba(127, 29, 29, 0.42), rgba(76, 5, 25, 0.28));
+}
+
+.sim-runner-top-bar .icon-btn:hover,
+.sim-runner-top-bar .btn-export:hover,
+.sim-runner-top-bar .speed-select:hover {
+  transform: scale(1.05);
+}
+
+.sim-runner-top-bar .icon-btn:active,
+.sim-runner-top-bar .btn-export:active,
+.sim-runner-top-bar .speed-select:active {
+  transform: scale(0.95) !important;
+}
+
+.sim-runner-top-bar .export-actions {
+  gap: 8px;
+}
+
+.sim-runner-top-bar .btn-export {
+  min-width: 74px;
+  height: 38px;
+  padding: 0 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 7px;
+  line-height: 1;
+  white-space: nowrap;
+  background: linear-gradient(180deg, rgba(20, 184, 166, 0.16), rgba(15, 118, 110, 0.08));
+  border-color: rgba(45, 212, 191, 0.36);
+  color: #2dd4bf;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 28px rgba(0,0,0,0.16);
+}
+
+.sim-runner-top-bar .btn-export svg {
+  flex: 0 0 auto;
+}
+
+.sim-runner-top-bar .btn-record {
+  min-width: 82px;
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, 0.5);
+  background: linear-gradient(180deg, rgba(190, 18, 60, 0.32), rgba(127, 29, 29, 0.18));
+}
+
+.sim-runner-top-bar .btn-record.active {
+  color: #fff1f2;
+  border-color: rgba(251, 113, 133, 0.82);
+  background: linear-gradient(180deg, rgba(225, 29, 72, 0.62), rgba(159, 18, 57, 0.36));
+  box-shadow: 0 0 0 1px rgba(251,113,133,0.18), 0 0 22px rgba(225,29,72,0.35);
+}
+
+.sim-runner-top-bar .speed-select {
+  height: 38px;
+  border-radius: 7px;
+  transition: color var(--trans-base), background-color var(--trans-base), border-color var(--trans-base), box-shadow var(--trans-base), transform var(--trans-base);
+}
+
 @media (max-width: 768px) {
   .sim-runner-top-bar {
     padding: 8px;
@@ -2642,13 +2753,21 @@ input[type="range"]::-webkit-slider-thumb:hover {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background var(--trans-base), border-color var(--trans-base), box-shadow var(--trans-base), transform var(--trans-base);
   border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
 }
 
 .toggle-switch:hover {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(79, 195, 247, 0.16);
+}
+
+.toggle-switch:active {
+  transform: scale(0.95);
 }
 
 .toggle-switch.active {
@@ -2665,7 +2784,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   height: 14px;
   background: var(--text-muted);
   border-radius: 50%;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background var(--trans-base), box-shadow var(--trans-base), transform var(--trans-base);
 }
 
 .toggle-switch.active .toggle-handle {

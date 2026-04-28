@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useState } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { sampleColormap, colormapPalette } from '../utils/colormaps';
 
 /**
@@ -34,24 +34,64 @@ export default function MakieGraph({
   showMinorGrid = true,
 }) {
   const canvasRef = useRef(null);
-  const [hoveredPoint, setHoveredPoint] = useState(null);
-
-  // Color palette for series
-  const colors = series.length > 0
-    ? series.map((s, i) => s.color || colormapPalette(colormap, series.length)[i])
-    : [];
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || data.length < 2) return;
+    drawMakieGraph(canvas, {
+      data,
+      series,
+      xKey,
+      xLabel,
+      yLabel,
+      title,
+      width,
+      height,
+      colormap,
+      phaseSpace,
+      showLegend,
+      showMinorGrid,
+      dpr: window.devicePixelRatio || 1,
+    });
+  }, [data, series, xKey, xLabel, yLabel, title, width, height, colormap, phaseSpace, showLegend, showMinorGrid]);
+
+  useEffect(() => {
+    draw();
+  }, [draw]);
+
+  return (
+    <div className="makie-graph-container" style={{ width, height }}>
+      <canvas ref={canvasRef} className="makie-graph-canvas" />
+    </div>
+  );
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function drawMakieGraph(canvas, {
+  data = [],
+  series = [],
+  xKey = 'time',
+  xLabel = 't [s]',
+  yLabel = '',
+  title = '',
+  width = 500,
+  height = 300,
+  colormap = 'viridis',
+  phaseSpace = false,
+  showLegend = true,
+  showMinorGrid = true,
+  dpr = 1,
+} = {}) {
+    if (!canvas || data.length < 2) return false;
     const ctx = canvas.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
+    const colors = series.length > 0
+      ? series.map((s, i) => s.color || colormapPalette(colormap, series.length)[i])
+      : [];
 
     canvas.width = width * dpr;
     canvas.height = height * dpr;
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
-    ctx.scale(dpr, dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     // Layout margins (Makie-style: generous for labels)
     const ml = 65, mr = 20, mt = title ? 42 : 22, mb = 50;
@@ -68,12 +108,12 @@ export default function MakieGraph({
     if (phaseSpace && series.length >= 2) {
       const xs = data.map(d => d[series[0].key]).filter(Number.isFinite);
       const ys = data.map(d => d[series[1].key]).filter(Number.isFinite);
-      if (xs.length === 0 || ys.length === 0) return;
+      if (xs.length === 0 || ys.length === 0) return false;
       xMin = Math.min(...xs); xMax = Math.max(...xs);
       yMin = Math.min(...ys); yMax = Math.max(...ys);
     } else {
       const xs = data.map(d => d[xKey]).filter(Number.isFinite);
-      if (xs.length === 0) return;
+      if (xs.length === 0) return false;
       xMin = Math.min(...xs); xMax = Math.max(...xs);
       yMin = Infinity; yMax = -Infinity;
       for (const s of series) {
@@ -320,15 +360,5 @@ export default function MakieGraph({
         ctx.fillText(series[i].label, lx - lw + 34, ey);
       }
     }
-  }, [data, series, xKey, xLabel, yLabel, title, width, height, colormap, phaseSpace, showLegend, showMinorGrid, colors]);
-
-  useEffect(() => {
-    draw();
-  }, [draw]);
-
-  return (
-    <div className="makie-graph-container" style={{ width, height }}>
-      <canvas ref={canvasRef} className="makie-graph-canvas" />
-    </div>
-  );
+    return true;
 }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { ArrowLeft, Play, Pause, RotateCcw, LineChart as LineChartIcon, BookOpen, Sliders, Download, Crosshair, Gauge, FlaskConical, Layers, Video, Square } from 'lucide-react';
 import 'katex/dist/katex.min.css';
-import MakieGraph from './MakieGraph';
+import MakieGraph, { drawMakieGraph } from './MakieGraph';
 import DataReadout from './DataReadout';
 import TheoryChalkboard, { legacyToSections } from './TheoryChalkboard';
 import GuidedExperiment from './GuidedExperiment';
@@ -118,6 +118,106 @@ function TileControl({ control, value, onChange }) {
   );
 }
 
+function formatOverlayValue(value) {
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) return '-';
+    const abs = Math.abs(value);
+    if (abs !== 0 && (abs >= 10000 || abs < 0.001)) return value.toExponential(2);
+    return Math.abs(value) >= 100 ? value.toFixed(1) : value.toFixed(3);
+  }
+  if (typeof value === 'boolean') return value ? 'On' : 'Off';
+  if (value === undefined || value === null) return '-';
+  return String(value);
+}
+
+function drawExportOverlayFrame({ targetCanvas, sourceCanvas, sim, controls, params, readoutData, speed }) {
+  if (!targetCanvas || !sourceCanvas) return;
+  const ctx = targetCanvas.getContext('2d');
+  const width = 1280;
+  const height = 720;
+  const panelWidth = 360;
+  const simWidth = width - panelWidth;
+  targetCanvas.width = width;
+  targetCanvas.height = height;
+
+  ctx.fillStyle = '#070b10';
+  ctx.fillRect(0, 0, width, height);
+
+  const srcW = sourceCanvas.width || sourceCanvas.clientWidth || simWidth;
+  const srcH = sourceCanvas.height || sourceCanvas.clientHeight || height;
+  const scale = Math.min(simWidth / srcW, height / srcH);
+  const drawW = srcW * scale;
+  const drawH = srcH * scale;
+  const dx = (simWidth - drawW) / 2;
+  const dy = (height - drawH) / 2;
+  ctx.drawImage(sourceCanvas, dx, dy, drawW, drawH);
+
+  const panelX = simWidth;
+  ctx.fillStyle = 'rgba(8, 13, 20, 0.96)';
+  ctx.fillRect(panelX, 0, panelWidth, height);
+  const grad = ctx.createLinearGradient(panelX, 0, width, height);
+  grad.addColorStop(0, 'rgba(79, 195, 247, 0.08)');
+  grad.addColorStop(1, 'rgba(251, 113, 133, 0.06)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(panelX, 0, panelWidth, height);
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.beginPath();
+  ctx.moveTo(panelX + 0.5, 0);
+  ctx.lineTo(panelX + 0.5, height);
+  ctx.stroke();
+
+  const x = panelX + 28;
+  let y = 42;
+  ctx.fillStyle = '#E6EDF3';
+  ctx.font = '700 24px Inter, system-ui, sans-serif';
+  ctx.fillText(sim.title, x, y);
+  y += 26;
+  ctx.fillStyle = 'rgba(230,237,243,0.58)';
+  ctx.font = '600 12px JetBrains Mono, monospace';
+  ctx.fillText(`METHOD ${String(sim.method || 'rk4').toUpperCase()}   SPEED ${speed}x`, x, y);
+
+  const section = (label) => {
+    y += 38;
+    ctx.fillStyle = '#81D4FA';
+    ctx.font = '800 12px Inter, system-ui, sans-serif';
+    ctx.fillText(label.toUpperCase(), x, y);
+    y += 14;
+    ctx.strokeStyle = 'rgba(129,212,250,0.22)';
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(width - 28, y);
+    ctx.stroke();
+    y += 18;
+  };
+
+  const row = (label, value, color = '#E6EDF3') => {
+    if (y > height - 38) return;
+    ctx.fillStyle = 'rgba(230,237,243,0.62)';
+    ctx.font = '500 13px Inter, system-ui, sans-serif';
+    ctx.fillText(label, x, y);
+    ctx.fillStyle = color;
+    ctx.font = '700 13px JetBrains Mono, monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(formatOverlayValue(value), width - 28, y);
+    ctx.textAlign = 'left';
+    y += 22;
+  };
+
+  section('Parameters');
+  const visibleControls = controls.length ? controls : Object.keys(params).map((key) => ({ key, label: key }));
+  visibleControls.slice(0, 12).forEach((control) => {
+    row(control.label || control.key, params[control.key]);
+  });
+
+  section('Stats');
+  const entries = readoutData
+    ? Object.entries(readoutData).filter(([, value]) => typeof value === 'number' && Number.isFinite(value))
+    : [];
+  entries.slice(0, 12).forEach(([key, value]) => {
+    row(key, value, key.toLowerCase().includes('error') ? '#FFD166' : '#7dd3a8');
+  });
+}
+
 export default function SimulationRunner({ sim, onBack }) {
   const canvasRef = useRef(null);
   const simRef = useRef(null);
@@ -125,6 +225,8 @@ export default function SimulationRunner({ sim, onBack }) {
   const mediaRecorderRef = useRef(null);
   const recordedChunksRef = useRef([]);
   const recordingStartedAtRef = useRef(0);
+  const recordingFrameTimerRef = useRef(null);
+  const recordingCanvasRef = useRef(null);
 
   const [running, setRunning] = useState(false);
   const [params, setParams] = useState(() => ({ ...(sim.defaultParams ?? {}) }));
@@ -140,6 +242,15 @@ export default function SimulationRunner({ sim, onBack }) {
   const [isRecording, setIsRecording] = useState(false);
 
   const controls = useMemo(() => sim.controls ?? [], [sim.controls]);
+  const paramsRef = useRef(params);
+  const readoutDataRef = useRef(readoutData);
+  const controlsRef = useRef(controls);
+  const speedRef = useRef(speed);
+
+  useEffect(() => { paramsRef.current = params; }, [params]);
+  useEffect(() => { readoutDataRef.current = readoutData; }, [readoutData]);
+  useEffect(() => { controlsRef.current = controls; }, [controls]);
+  useEffect(() => { speedRef.current = speed; }, [speed]);
 
   // Collect graph data
   useEffect(() => {
@@ -176,12 +287,20 @@ export default function SimulationRunner({ sim, onBack }) {
       if (simRef.current) { simRef.current.destroy(); simRef.current = null; }
     };
 
+    const resizeCanvas = () => {
+      const wrapper = canvas.parentElement;
+      if (!wrapper) return false;
+      const nextWidth = wrapper.offsetWidth;
+      const nextHeight = wrapper.offsetHeight;
+      if (canvas.width === nextWidth && canvas.height === nextHeight) return false;
+      canvas.width = nextWidth;
+      canvas.height = nextHeight;
+      return true;
+    };
+
     const instantiate = () => {
       try {
-        const wrapper = canvas.parentElement;
-        if (!wrapper) return;
-        canvas.width = wrapper.offsetWidth;
-        canvas.height = wrapper.offsetHeight;
+        if (!resizeCanvas() && simRef.current) return;
         destroyCurrent();
         const instance = sim.create(canvas, params);
         simRef.current = instance;
@@ -201,7 +320,12 @@ export default function SimulationRunner({ sim, onBack }) {
 
     function onResize() {
       if (resizeRaf !== null) cancelAnimationFrame(resizeRaf);
-      resizeRaf = requestAnimationFrame(instantiate);
+      resizeRaf = requestAnimationFrame(() => {
+        resizeRaf = null;
+        if (!resizeCanvas()) return;
+        // Canvas resize clears pixels; ask paused simulations to redraw without resetting state.
+        simRef.current?.setParams?.({});
+      });
     }
     window.addEventListener('resize', onResize);
     return () => {
@@ -262,11 +386,101 @@ export default function SimulationRunner({ sim, onBack }) {
     setExportToast('Exported. Open in Sheets or Excel and plot velocity vs time to compare runs.');
   }, [graphData, sim.id]);
 
+  const downloadGraphPlot = useCallback(({ series, title, xLabel = 't [s]', yLabel, phaseSpace = false, filename }) => {
+    if (graphData.length < 2) {
+      setExportToast('No graph data yet. Press Play for a few seconds, then export again.');
+      return false;
+    }
+    const canvas = document.createElement('canvas');
+    const ok = drawMakieGraph(canvas, {
+      data: graphData,
+      series,
+      xKey: 'time',
+      xLabel,
+      yLabel,
+      title,
+      width: 960,
+      height: phaseSpace ? 960 : 600,
+      colormap: phaseSpace ? 'plasma' : 'viridis',
+      phaseSpace,
+      showLegend: !phaseSpace && series.length > 1,
+      dpr: 2,
+    });
+    if (!ok) {
+      setExportToast('Could not render that graph from the current data.');
+      return false;
+    }
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    return true;
+  }, [graphData]);
+
+  const exportCurrentGraphPlot = useCallback(() => {
+    const gp = sim.graphParams?.find((item) => item.key === graphKey);
+    if (!gp) return;
+    const ok = downloadGraphPlot({
+      series: [{ key: gp.key, label: gp.label }],
+      title: `${sim.title} - ${gp.label}`,
+      yLabel: gp.label,
+      filename: `${sim.id}_${gp.key}_plot.png`,
+    });
+    if (ok) setExportToast('Graph plot downloaded.');
+  }, [downloadGraphPlot, graphKey, sim]);
+
+  const exportAllGraphPlots = useCallback(() => {
+    const plots = sim.graphParams ?? [];
+    if (!plots.length) return;
+    let count = 0;
+    plots.forEach((gp) => {
+      if (downloadGraphPlot({
+        series: [{ key: gp.key, label: gp.label }],
+        title: `${sim.title} - ${gp.label}`,
+        yLabel: gp.label,
+        filename: `${sim.id}_${gp.key}_plot.png`,
+      })) {
+        count += 1;
+      }
+    });
+    if (count > 0) setExportToast(`Downloaded ${count} graph plot${count === 1 ? '' : 's'}.`);
+  }, [downloadGraphPlot, sim]);
+
+
+  const clearRecordingFrameTimer = useCallback(() => {
+    if (recordingFrameTimerRef.current !== null) {
+      window.clearInterval(recordingFrameTimerRef.current);
+      recordingFrameTimerRef.current = null;
+    }
+  }, []);
+
+  const drawRecordingFrame = useCallback(() => {
+    drawExportOverlayFrame({
+      targetCanvas: recordingCanvasRef.current,
+      sourceCanvas: canvasRef.current,
+      sim,
+      controls: controlsRef.current,
+      params: paramsRef.current,
+      readoutData: readoutDataRef.current || simRef.current?.getData?.(),
+      speed: speedRef.current,
+    });
+  }, [sim]);
+
   const stopRecording = useCallback(() => {
     const recorder = mediaRecorderRef.current;
     if (!recorder) return;
-    if (recorder.state !== 'inactive') recorder.stop();
-  }, []);
+    if (recorder.state === 'inactive') return;
+    drawRecordingFrame();
+    const [videoTrack] = recorder.stream?.getVideoTracks?.() ?? [];
+    videoTrack?.requestFrame?.();
+    recorder.requestData?.();
+    setExportToast('Finalizing video...');
+    window.setTimeout(() => {
+      if (recorder.state !== 'inactive') recorder.stop();
+    }, 80);
+  }, [drawRecordingFrame]);
 
   const startRecording = useCallback(() => {
     if (runnerError) {
@@ -285,20 +499,30 @@ export default function SimulationRunner({ sim, onBack }) {
       return;
     }
 
-    const stream = canvas.captureStream(30);
+    const recordingCanvas = recordingCanvasRef.current;
+    if (!recordingCanvas || typeof recordingCanvas.captureStream !== 'function') {
+      setExportToast('Composited video export is not supported in this browser.');
+      return;
+    }
 
-    // --- Audio Track Injection Hack ---
-    // MediaRecorder timeslicing on pure canvas streams often drops data or generates invalid WebM wrappers (0 duration).
-    // Injecting a completely silent dummy audio track provides the internal clock MediaRecorder needs.
+    drawRecordingFrame();
+    const stream = recordingCanvas.captureStream(30);
+    const cleanupStream = () => {
+      stream.getTracks().forEach((track) => track.stop());
+    };
+
     let audioCtx = null;
     try {
       const AudioCtxConstructor = window.AudioContext || window.webkitAudioContext;
       if (AudioCtxConstructor) {
         audioCtx = new AudioCtxConstructor();
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume().catch(() => {});
+        }
         const dest = audioCtx.createMediaStreamDestination();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        gain.gain.value = 0; // absolute silence
+        gain.gain.value = 0;
         osc.connect(gain);
         gain.connect(dest);
         osc.start();
@@ -306,15 +530,24 @@ export default function SimulationRunner({ sim, onBack }) {
         if (dummyTrack) stream.addTrack(dummyTrack);
       }
     } catch (err) {
-      console.warn("Could not instantiate dummy audio track:", err);
+      audioCtx = null;
+      console.warn('Video export continuing without silent audio track:', err);
     }
 
-    const options = { videoBitsPerSecond: 3000000 };
-    const preferredTypes = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+    const preferredTypes = ['video/webm', 'video/mp4'];
     const mimeType = preferredTypes.find((type) => MediaRecorder.isTypeSupported(type));
-    if (mimeType) options.mimeType = mimeType;
+    const options = mimeType ? { mimeType, videoBitsPerSecond: 3000000 } : { videoBitsPerSecond: 3000000 };
 
-    const recorder = new MediaRecorder(stream, options);
+    let recorder;
+    try {
+      recorder = new MediaRecorder(stream, options);
+    } catch (err) {
+      cleanupStream();
+      audioCtx?.close?.().catch(() => {});
+      setExportToast('Could not start video recording in this browser.');
+      console.warn('MediaRecorder initialization failed:', err);
+      return;
+    }
 
     recordedChunksRef.current = [];
     recordingStartedAtRef.current = Date.now();
@@ -326,15 +559,16 @@ export default function SimulationRunner({ sim, onBack }) {
     recorder.onerror = () => {
       setExportToast('Recording failed. Please try again.');
       setIsRecording(false);
+      clearRecordingFrameTimer();
       mediaRecorderRef.current = null;
-      stream.getTracks().forEach((track) => track.stop());
+      cleanupStream();
+      audioCtx?.close?.().catch(() => {});
     };
 
     recorder.onstop = () => {
-      stream.getTracks().forEach((track) => track.stop());
-      if (mediaRecorderRef.current_dummyAudioCtx) {
-        mediaRecorderRef.current_dummyAudioCtx.close().catch(() => {});
-      }
+      clearRecordingFrameTimer();
+      cleanupStream();
+      audioCtx?.close?.().catch(() => {});
       const chunks = recordedChunksRef.current;
       mediaRecorderRef.current = null;
       setIsRecording(false);
@@ -347,7 +581,8 @@ export default function SimulationRunner({ sim, onBack }) {
       const blobType = mimeType || 'video/webm';
       const blob = new Blob(chunks, { type: blobType });
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const filename = `${sim.id}_${timestamp}.webm`;
+      const extension = blobType.includes('mp4') ? 'mp4' : 'webm';
+      const filename = `${sim.id}_${timestamp}.${extension}`;
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -359,19 +594,34 @@ export default function SimulationRunner({ sim, onBack }) {
       setExportToast(`Video exported (${formatClock((Date.now() - recordingStartedAtRef.current) / 1000)}).`);
     };
 
-    // Using a timeslice gives WebM its cluster timestamps so it properly plays with a correct duration format
-    recorder.start(100);
-    mediaRecorderRef.current = recorder;
-    mediaRecorderRef.current_dummyAudioCtx = audioCtx;
-    setIsRecording(true);
-    setExportToast('Recording started. Press Stop Video when you are done.');
-
     if (!runningRef.current && simRef.current) {
       simRef.current.start?.();
       runningRef.current = true;
       setRunning(true);
     }
-  }, [runnerError, sim.id]);
+
+    const [videoTrack] = stream.getVideoTracks();
+    recordingFrameTimerRef.current = window.setInterval(() => {
+      drawRecordingFrame();
+      videoTrack?.requestFrame?.();
+    }, 1000 / 30);
+
+    try {
+      // Using a timeslice gives WebM its cluster timestamps so it properly plays with a correct duration format.
+      recorder.start(100);
+      mediaRecorderRef.current = recorder;
+    } catch (err) {
+      clearRecordingFrameTimer();
+      cleanupStream();
+      audioCtx?.close?.().catch(() => {});
+      setExportToast('Could not start video recording in this browser.');
+      console.warn('MediaRecorder start failed:', err);
+      return;
+    }
+
+    setIsRecording(true);
+    setExportToast('Recording started. Press Stop Video when you are done.');
+  }, [clearRecordingFrameTimer, drawRecordingFrame, runnerError, sim.id]);
 
   // Apply scenario preset
   const applyScenario = useCallback((scenario) => {
@@ -392,12 +642,16 @@ export default function SimulationRunner({ sim, onBack }) {
     return () => {
       const recorder = mediaRecorderRef.current;
       if (recorder && recorder.state !== 'inactive') recorder.stop();
+      clearRecordingFrameTimer();
     };
-  }, []);
+  }, [clearRecordingFrameTimer]);
 
   useEffect(() => {
-    if (isRecording) stopRecording();
-  }, [sim.id, isRecording, stopRecording]);
+    return () => {
+      const recorder = mediaRecorderRef.current;
+      if (recorder && recorder.state !== 'inactive') recorder.stop();
+    };
+  }, [sim.id]);
 
   // Build graph series from graphParams
   const graphSeries = useMemo(() => {
@@ -410,6 +664,19 @@ export default function SimulationRunner({ sim, onBack }) {
     }
     return [];
   }, [sim.graphParams, graphKey, sideTab]);
+
+  const exportPhasePlot = useCallback(() => {
+    if (graphSeries.length < 2) return;
+    const ok = downloadGraphPlot({
+      series: graphSeries,
+      title: `${sim.title} - ${graphSeries[0].label} vs ${graphSeries[1].label}`,
+      xLabel: graphSeries[0].label,
+      yLabel: graphSeries[1].label,
+      phaseSpace: true,
+      filename: `${sim.id}_phase_plot.png`,
+    });
+    if (ok) setExportToast('Phase plot downloaded.');
+  }, [downloadGraphPlot, graphSeries, sim]);
 
   // Equation sections
   const eqSections = useMemo(() => {
@@ -459,10 +726,10 @@ export default function SimulationRunner({ sim, onBack }) {
             <button
               className={`btn-export btn-record${isRecording ? ' active' : ''}`}
               onClick={isRecording ? stopRecording : startRecording}
-              title={isRecording ? 'Stop video recording' : 'Export video'}
+              title={isRecording ? 'Stop video recording' : 'Start video recording'}
             >
               {isRecording ? <Square size={11} /> : <Video size={12} />}
-              {isRecording ? 'Video' : 'Video'}
+              {isRecording ? 'Stop' : 'Video'}
             </button>
           </div>
           {/* Speed control */}
@@ -488,6 +755,7 @@ export default function SimulationRunner({ sim, onBack }) {
         {/* Canvas with figure frame */}
         <div className="sim-canvas-wrapper">
           <canvas ref={canvasRef} className="sim-runner-canvas" />
+          <canvas ref={recordingCanvasRef} className="recording-export-canvas" aria-hidden="true" />
           {runnerError && (
             <div className="sim-runner-error">
               <div className="sim-runner-error-title">Simulation paused</div>
@@ -604,6 +872,14 @@ export default function SimulationRunner({ sim, onBack }) {
                   ))}
                 </select>
               </div>
+              <div className="graph-export-actions">
+                <button className="btn-export" onClick={exportCurrentGraphPlot} title="Download selected plot">
+                  <Download size={12} /> Plot PNG
+                </button>
+                <button className="btn-export" onClick={exportAllGraphPlots} title="Download one plot for each graph variable">
+                  <Download size={12} /> All Plots
+                </button>
+              </div>
               <MakieGraph
                 data={graphData}
                 series={graphSeries}
@@ -629,6 +905,11 @@ export default function SimulationRunner({ sim, onBack }) {
             <div style={{ padding: '14px 12px' }}>
               <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--text-muted)', marginBottom: 8 }}>
                 Phase Space Plot
+              </div>
+              <div className="graph-export-actions">
+                <button className="btn-export" onClick={exportPhasePlot} title="Download phase plot">
+                  <Download size={12} /> Phase PNG
+                </button>
               </div>
               <MakieGraph
                 data={graphData}
