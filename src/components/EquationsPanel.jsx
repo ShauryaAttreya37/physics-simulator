@@ -1,5 +1,7 @@
-import { BlockMath } from 'react-katex';
+import ReactKatex from 'react-katex';
 import 'katex/dist/katex.min.css';
+
+const { BlockMath } = ReactKatex;
 
 /**
  * EquationsPanel — Textbook-style equation display with derivation steps,
@@ -47,16 +49,4 @@ export default function EquationsPanel({ sections = [], title = 'Governing Equat
       ))}
     </div>
   );
-}
-
-/**
- * Helper to convert the existing flat equation arrays into the new section format.
- * For backwards compatibility with simulations that export `equations: [string, ...]`
- */
-export function legacyToSections(equations, simTitle) {
-  if (!equations || equations.length === 0) return [];
-  return [{
-    title: simTitle || 'Equations of Motion',
-    equations: equations.map(eq => typeof eq === 'string' ? { latex: eq } : eq),
-  }];
 }
