@@ -1,8 +1,6 @@
 import { ArrowLeft } from 'lucide-react';
-import ReactKatex from 'react-katex';
+import { BlockMath, InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
-
-const { BlockMath, InlineMath } = ReactKatex;
 
 export default function DocsPage({ onBack }) {
   return (
