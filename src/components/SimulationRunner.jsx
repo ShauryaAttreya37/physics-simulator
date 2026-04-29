@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { ArrowLeft, Play, Pause, RotateCcw, LineChart as LineChartIcon, BookOpen, Sliders, Download, Crosshair, Gauge, FlaskConical, Layers, Video, Square } from 'lucide-react';
-import 'katex/dist/katex.min.css';
 import MakieGraph, { drawMakieGraph } from './MakieGraph';
 import DataReadout from './DataReadout';
 import TheoryChalkboard, { legacyToSections } from './TheoryChalkboard';

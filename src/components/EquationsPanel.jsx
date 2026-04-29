@@ -1,7 +1,4 @@
-import ReactKatex from 'react-katex';
-import 'katex/dist/katex.min.css';
-
-const { BlockMath } = ReactKatex;
+import { BlockMath } from './KaTeX';
 
 /**
  * EquationsPanel — Textbook-style equation display with derivation steps,
