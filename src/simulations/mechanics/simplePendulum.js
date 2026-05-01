@@ -1,3 +1,5 @@
+import { rk4 } from '../../physics/solvers';
+
 /**
  * Simple Pendulum (Nonlinear)
  * 
@@ -106,18 +108,10 @@ export function create(canvas, initParams = {}) {
     trail = [];
   }
 
-  function derivs(state) {
+  function derivs(state, p) {
     const [th, om] = state;
     const dom = -(p.gravity / p.length) * Math.sin(th) - (p.damping / (p.mass * p.length * p.length)) * om;
     return [om, dom];
-  }
-
-  function rk4Step(state, h) {
-    const k1 = derivs(state);
-    const k2 = derivs(state.map((v, i) => v + k1[i] * h / 2));
-    const k3 = derivs(state.map((v, i) => v + k2[i] * h / 2));
-    const k4 = derivs(state.map((v, i) => v + k3[i] * h));
-    return state.map((v, i) => v + (h / 6) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]));
   }
 
   function tick(dt) {
@@ -125,7 +119,7 @@ export function create(canvas, initParams = {}) {
     const h = dt / steps;
     let state = [theta, omega];
     for (let i = 0; i < steps; i++) {
-      state = rk4Step(state, h);
+      state = rk4(state, h, derivs, p);
     }
     [theta, omega] = state;
     simTime += dt;

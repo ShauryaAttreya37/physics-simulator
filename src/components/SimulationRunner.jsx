@@ -5,6 +5,7 @@ import DataReadout from './DataReadout';
 import TheoryChalkboard, { legacyToSections } from './TheoryChalkboard';
 import GuidedExperiment from './GuidedExperiment';
 import { inferControlTooltip } from '../constants/physicsTooltips';
+import { usePhysicsEngine } from '../hooks/usePhysicsEngine';
 
 function formatValue(value, step) {
   if (typeof value !== 'number') return String(value);
@@ -240,6 +241,9 @@ export default function SimulationRunner({ sim, onBack }) {
   const [exportToast, setExportToast] = useState('');
   const [isRecording, setIsRecording] = useState(false);
 
+  const isModern = !!(sim.init && sim.update);
+  const engine = usePhysicsEngine(isModern ? sim : null, params, canvasRef);
+
   const controls = useMemo(() => sim.controls ?? [], [sim.controls]);
   const paramsRef = useRef(params);
   const readoutDataRef = useRef(readoutData);
@@ -253,22 +257,34 @@ export default function SimulationRunner({ sim, onBack }) {
 
   // Collect graph data
   useEffect(() => {
-    let timer;
-    if (running) {
-      timer = setInterval(() => {
-        if (!simRef.current || !simRef.current.getData) return;
-        const d = simRef.current.getData();
-        if (!d) return;
+    if (isModern) {
+      if (engine.state) {
+        const d = sim.getData ? sim.getData(engine.state, params) : engine.state;
         setReadoutData(d);
         setGraphData(prev => {
           const next = [...prev, d];
           if (next.length > 300) next.shift();
           return next;
         });
-      }, 40);
+      }
+    } else {
+      let timer;
+      if (running) {
+        timer = setInterval(() => {
+          if (!simRef.current || !simRef.current.getData) return;
+          const d = simRef.current.getData();
+          if (!d) return;
+          setReadoutData(d);
+          setGraphData(prev => {
+            const next = [...prev, d];
+            if (next.length > 300) next.shift();
+            return next;
+          });
+        }, 40);
+      }
+      return () => clearInterval(timer);
     }
-    return () => clearInterval(timer);
-  }, [running]);
+  }, [running, engine.state, isModern, sim, params]);
 
   useEffect(() => {
     if (!exportToast) return undefined;
@@ -298,10 +314,15 @@ export default function SimulationRunner({ sim, onBack }) {
     };
 
     const instantiate = () => {
+      if (isModern) return;
       try {
         if (!resizeCanvas() && simRef.current) return;
         destroyCurrent();
-        const instance = sim.create(canvas, params);
+        const instance = sim.create(canvas, params, {
+          onParamChange: (newParams) => {
+            setParams((prev) => ({ ...prev, ...newParams }));
+          },
+        });
         simRef.current = instance;
         if (instance.setSpeed) instance.setSpeed(speed);
         if (runningRef.current) instance.start();
@@ -343,6 +364,12 @@ export default function SimulationRunner({ sim, onBack }) {
   }, [params]);
 
   const togglePlay = useCallback(() => {
+    if (isModern) {
+      if (engine.running) engine.stop();
+      else engine.start();
+      setRunning(!engine.running);
+      return;
+    }
     const instance = simRef.current;
     if (!instance) return;
     if (runningRef.current) {
@@ -350,16 +377,24 @@ export default function SimulationRunner({ sim, onBack }) {
     } else {
       instance.start(); runningRef.current = true; setRunning(true);
     }
-  }, []);
+  }, [isModern, engine, running]);
 
   const reset = useCallback(() => {
+    if (isModern) {
+      engine.reset();
+      setRunning(true);
+      setGraphData([]);
+      setSpeed(1);
+      engine.setSpeed(1);
+      return;
+    }
     simRef.current?.reset();
     runningRef.current = true;
     setRunning(true);
     setGraphData([]);
     setSpeed(1);
     if (simRef.current?.setSpeed) simRef.current.setSpeed(1);
-  }, []);
+  }, [isModern, engine]);
 
   const resetParams = useCallback(() => {
     setParams({ ...(sim.defaultParams ?? {}) });

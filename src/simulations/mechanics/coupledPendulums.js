@@ -1,3 +1,6 @@
+import { rk4 } from '../../physics/solvers';
+import { drawTrail } from '../../utils/canvas';
+
 const DEFAULTS = {
   length: 170,
   mass: 1,
@@ -59,10 +62,10 @@ function getAnchorSep(canvasWidth) {
   return Math.min(300, canvasWidth * 0.36);
 }
 
-function deriv(state, p, anchorSep) {
+function deriv(state, params) {
   const [t1, t2, w1, w2] = state;
-
-  const half = anchorSep * 0.5;
+  const { anchorSep } = params;
+  const p = params;
   const L = p.length;
 
   const x1 = -half + L * Math.sin(t1);
@@ -95,16 +98,6 @@ function deriv(state, p, anchorSep) {
   return [w1, w2, a1, a2];
 }
 
-function rk4(state, h, p, anchorSep) {
-  const k1 = deriv(state, p, anchorSep);
-  const s2 = state.map((v, i) => v + 0.5 * h * k1[i]);
-  const k2 = deriv(s2, p, anchorSep);
-  const s3 = state.map((v, i) => v + 0.5 * h * k2[i]);
-  const k3 = deriv(s3, p, anchorSep);
-  const s4 = state.map((v, i) => v + h * k3[i]);
-  const k4 = deriv(s4, p, anchorSep);
-  return state.map((v, i) => v + (h / 6) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]));
-}
 
 export function create(canvas, initParams = {}) {
   const ctx = canvas.getContext('2d');
@@ -145,7 +138,10 @@ export function create(canvas, initParams = {}) {
     const sub = 12;
     const h = dt / sub;
     const anchorSep = getAnchorSep(canvas.width);
-    for (let i = 0; i < sub; i++) state = rk4(state, h, p, anchorSep);
+    const solverParams = { ...p, anchorSep };
+    for (let i = 0; i < sub; i++) {
+      state = rk4(state, h, deriv, solverParams);
+    }
 
     const { x1, y1, x2, y2 } = positions();
     trail1.push([x1, y1]);
@@ -155,18 +151,6 @@ export function create(canvas, initParams = {}) {
     if (trail2.length > cap) trail2.shift();
   }
 
-  function drawTrail(points, colorPrefix) {
-    if (points.length < 2) return;
-    for (let i = 1; i < points.length; i++) {
-      const alpha = i / points.length;
-      ctx.beginPath();
-      ctx.moveTo(points[i - 1][0], points[i - 1][1]);
-      ctx.lineTo(points[i][0], points[i][1]);
-      ctx.strokeStyle = `${colorPrefix}${Math.max(0.04, alpha * 0.8)})`;
-      ctx.lineWidth = 1 + alpha * 1.5;
-      ctx.stroke();
-    }
-  }
 
   function drawSpring(x1, y1, x2, y2) {
     const dx = x2 - x1;
@@ -197,8 +181,8 @@ export function create(canvas, initParams = {}) {
 
     const { ax1, ay1, ax2, ay2, x1, y1, x2, y2 } = positions();
 
-    drawTrail(trail1, 'rgba(96,165,250,');
-    drawTrail(trail2, 'rgba(74,222,128,');
+    drawTrail(ctx, trail1, { color: 'rgba(96,165,250,1)', maxAlpha: 0.8 });
+    drawTrail(ctx, trail2, { color: 'rgba(74,222,128,1)', maxAlpha: 0.8 });
 
     drawSpring(x1, y1, x2, y2);
 

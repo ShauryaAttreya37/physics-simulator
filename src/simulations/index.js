@@ -26,6 +26,7 @@ import * as particleInBox from './quantum/particleInBox';
 import * as harmonicOscillator from './quantum/harmonicOscillator';
 import * as doubleSlit from './quantum/doubleSlit';
 import * as hydrogenOrbitals from './quantum/hydrogenOrbitals';
+import * as rayOptics from './optics/rayOptics';
 import { inferControlTooltip } from '../constants/physicsTooltips';
 
 const CONTROL_MARKERS = {
@@ -490,6 +491,28 @@ export const TOPICS = {
         equations: maxwellWaves.equations,
         equationSections: maxwellWaves.equationSections,
         graphParams: maxwellWaves.graphParams,
+      },
+    ],
+  },
+  optics: {
+    label: 'Optics',
+    sims: [
+      {
+        id: 'ray-optics',
+        title: 'Ray Optics Bench',
+        description: 'Trace paraxial rays through lenses, mirrors, and a glass slab. Explore real and virtual images, magnification, focal points, and Snell-law lateral shift.',
+        tags: ['Thin Lens', 'Snell', 'Virtual Images'],
+        gradient: 'linear-gradient(135deg, #03111f 0%, #082f49 100%)',
+        accentColor: '#38bdf8',
+        method: 'analytical',
+        create: rayOptics.create,
+        controls: rayOptics.controls,
+        defaultParams: rayOptics.defaultParams,
+        equations: rayOptics.equations,
+        equationSections: rayOptics.equationSections,
+        graphParams: rayOptics.graphParams,
+        guidedExperiments: rayOptics.guidedExperiments,
+        scenarios: rayOptics.scenarios,
       },
     ],
   },

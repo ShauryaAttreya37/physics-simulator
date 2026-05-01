@@ -1,3 +1,6 @@
+import { yoshida4Step } from '../../physics/solvers';
+import { drawTrail, hexToRgb } from '../../utils/canvas';
+
 /**
  * Orbital Gravity — Research-Grade N-Body Simulation
  * 
@@ -109,7 +112,8 @@ const STARS = Array.from({ length: 180 }, () => ({
 }));
 
 // ── Acceleration computation ────────────────────────────────────────────────
-function accel(bodies, g) {
+function accel(bodies, params) {
+  const { g } = params;
   const a = bodies.map(() => [0, 0]);
   for (let i = 0; i < bodies.length; i++) {
     for (let j = i + 1; j < bodies.length; j++) {
@@ -123,33 +127,6 @@ function accel(bodies, g) {
     }
   }
   return a;
-}
-
-// ── Yoshida 4th-order symplectic integrator ─────────────────────────────────
-const CBRT2 = Math.cbrt(2);
-const W0 = -CBRT2 / (2 - CBRT2);
-const W1 = 1 / (2 - CBRT2);
-const YOSHIDA_C = [W1 / 2, (W0 + W1) / 2, (W0 + W1) / 2, W1 / 2];
-const YOSHIDA_D = [W1, W0, W1, 0];
-
-function yoshidaStep(q, v, h, g) {
-  for (let s = 0; s < 4; s++) {
-    // Drift
-    const c = YOSHIDA_C[s] * h;
-    for (let i = 0; i < 3; i++) {
-      q[i][0] += c * v[i][0];
-      q[i][1] += c * v[i][1];
-    }
-    // Kick
-    if (YOSHIDA_D[s] !== 0) {
-      const d = YOSHIDA_D[s] * h;
-      const a = accel(q, g);
-      for (let i = 0; i < 3; i++) {
-        v[i][0] += d * a[i][0];
-        v[i][1] += d * a[i][1];
-      }
-    }
-  }
 }
 
 // ── Energy and angular momentum ─────────────────────────────────────────────
@@ -241,87 +218,130 @@ export const guidedExperiments = [
   },
 ];
 
+// ── Modern Decoupled API ───────────────────────────────────────────────────
+
+export function init(p) {
+  const q = IC.q.map(r => [...r]);
+  const v = IC.v.map(r => [r[0] * p.velocityScale, r[1] * p.velocityScale]);
+  return {
+    q,
+    v,
+    trails: [[], [], []],
+    simTime: 0,
+    stepCount: 0,
+    E0: computeEnergy(q, v, p.g).total,
+  };
+}
+
+export function update(state, dt, p) {
+  const { q, v, trails, stepCount } = state;
+  const sub = Math.max(1, Math.floor(p.substeps));
+  const h = dt / sub;
+
+  let nextStepCount = stepCount;
+  for (let s = 0; s < sub; s++) {
+    yoshida4Step(q, v, h, accel, p);
+    nextStepCount++;
+  }
+
+  // Periodic COM correction
+  if (nextStepCount % 100 === 0) {
+    correctCOM(q, v);
+  }
+
+  const trailCap = Math.max(50, Math.floor(p.trailMax));
+  const nextTrails = trails.map((t, i) => {
+    const nt = [...t, [q[i][0], q[i][1]]];
+    if (nt.length > trailCap) nt.shift();
+    return nt;
+  });
+
+  return {
+    ...state,
+    q, v,
+    trails: nextTrails,
+    simTime: state.simTime + dt,
+    stepCount: nextStepCount,
+  };
+}
+
+export function render(ctx, state, p, canvas) {
+  const W = canvas.width, H = canvas.height;
+  ctx.fillStyle = '#02020d';
+  ctx.fillRect(0, 0, W, H);
+
+  // Stars
+  for (const { x, y, a, s } of STARS) {
+    ctx.fillStyle = `rgba(255,255,255,${a})`;
+    ctx.fillRect(x * W, y * H, s, s);
+  }
+
+  const toScreen = (x, y) => ({
+    sx: W / 2 + x * p.scale,
+    sy: H / 2 + y * p.scale,
+  });
+
+  // Trails
+  for (let i = 0; i < 3; i++) {
+    const t = state.trails[i];
+    if (t.length < 2) continue;
+    const points = t.map(pos => {
+      const { sx, sy } = toScreen(pos[0], pos[1]);
+      return [sx, sy];
+    });
+    drawTrail(ctx, points, {
+      color: `rgba(${hexToRgb(BODY_COLORS[i])}, 1)`,
+      maxAlpha: 0.75,
+      lineWidth: 1.5,
+    });
+  }
+
+  // Bodies
+  for (let i = 0; i < 3; i++) {
+    const { sx, sy } = toScreen(state.q[i][0], state.q[i][1]);
+    ctx.save();
+    ctx.shadowBlur = 28;
+    ctx.shadowColor = GLOW_COLORS[i];
+    ctx.beginPath();
+    ctx.arc(sx, sy, BODY_RADIUS, 0, Math.PI * 2);
+    ctx.fillStyle = BODY_COLORS[i];
+    ctx.fill();
+    ctx.restore();
+
+    ctx.beginPath();
+    ctx.arc(sx, sy, BODY_RADIUS * 0.45, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.fill();
+  }
+}
+
+export function getData(state, p) {
+  const e = computeEnergy(state.q, state.v, p.g);
+  const L = computeAngularMomentum(state.q, state.v);
+  return {
+    time: state.simTime,
+    kineticE: e.ke,
+    potentialE: e.pe,
+    totalE: e.total,
+    totalEnergy: e.total,
+    angularMomentum: L,
+    energyError: state.E0 !== 0 ? (e.total - state.E0) / Math.abs(state.E0) : 0,
+    steps: state.stepCount,
+  };
+}
+
+// ── Legacy Compatibility Layer ──────────────────────────────────────────────
 export function create(canvas, initParams = {}) {
   const ctx = canvas.getContext('2d');
-  const p = { ...DEFAULTS, ...initParams };
-
-  let q, v, trails, simTime, stepCount, E0;
-
-  function initState() {
-    q = IC.q.map(r => [...r]);
-    v = IC.v.map(r => [r[0] * p.velocityScale, r[1] * p.velocityScale]);
-    trails = [[], [], []];
-    simTime = 0; stepCount = 0;
-    E0 = computeEnergy(q, v, p.g).total;
-  }
-
-  function toScreen(x, y) {
-    return {
-      sx: canvas.width / 2 + x * p.scale,
-      sy: canvas.height / 2 + y * p.scale,
-    };
-  }
+  let p = { ...DEFAULTS, ...initParams };
+  let state = init(p);
 
   function tick(dt) {
-    const sub = Math.max(1, Math.floor(p.substeps));
-    const h = dt / sub;
-
-    for (let s = 0; s < sub; s++) {
-      yoshidaStep(q, v, h, p.g);
-      stepCount++;
-    }
-
-    // Periodic COM correction to prevent drift
-    if (stepCount % 100 === 0) {
-      correctCOM(q, v);
-    }
-
-    simTime += dt;
-
-    const trailCap = Math.max(50, Math.floor(p.trailMax));
-    for (let i = 0; i < 3; i++) {
-      trails[i].push([q[i][0], q[i][1]]);
-      if (trails[i].length > trailCap) trails[i].shift();
-    }
+    state = update(state, dt, p);
   }
 
-  function render() {
-    const W = canvas.width, H = canvas.height;
-    ctx.fillStyle = '#02020d';
-    ctx.fillRect(0, 0, W, H);
-
-    // Stars
-    for (const { x, y, a, s } of STARS) {
-      ctx.fillStyle = `rgba(255,255,255,${a})`;
-      ctx.fillRect(x * W, y * H, s, s);
-    }
-
-    // Trails
-    for (let i = 0; i < 3; i++) {
-      const t = trails[i];
-      if (t.length < 2) continue;
-      for (let j = 1; j < t.length; j++) {
-        const alpha = j / t.length;
-        const { sx: x1, sy: y1 } = toScreen(t[j-1][0], t[j-1][1]);
-        const { sx: x2, sy: y2 } = toScreen(t[j][0], t[j][1]);
-        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
-        const rgb = hexToRgb(BODY_COLORS[i]);
-        ctx.strokeStyle = `rgba(${rgb},${alpha * 0.75})`;
-        ctx.lineWidth = 1 + alpha * 1.5;
-        ctx.stroke();
-      }
-    }
-
-    // Bodies
-    for (let i = 0; i < 3; i++) {
-      const { sx, sy } = toScreen(q[i][0], q[i][1]);
-      ctx.shadowBlur = 28; ctx.shadowColor = GLOW_COLORS[i];
-      ctx.beginPath(); ctx.arc(sx, sy, BODY_RADIUS, 0, Math.PI * 2);
-      ctx.fillStyle = BODY_COLORS[i]; ctx.fill();
-      ctx.shadowBlur = 0;
-      ctx.beginPath(); ctx.arc(sx, sy, BODY_RADIUS * 0.45, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fill();
-    }
+  function draw() {
+    render(ctx, state, p, canvas);
   }
 
   let rafId, lastTs, running = false;
@@ -331,12 +351,11 @@ export function create(canvas, initParams = {}) {
     const dt = lastTs === undefined ? 1/60 : Math.min((ts - lastTs) / 1000, 1/20);
     lastTs = ts;
     tick(dt);
-    render();
+    draw();
     rafId = requestAnimationFrame(loop);
   }
 
-  initState();
-  render();
+  draw();
 
   return {
     start() {
@@ -345,27 +364,16 @@ export function create(canvas, initParams = {}) {
       rafId = requestAnimationFrame(loop);
     },
     stop() { running = false; cancelAnimationFrame(rafId); },
-    reset() { this.stop(); initState(); render(); this.start(); },
-    setParams(next) { Object.assign(p, next); render(); },
+    reset() { this.stop(); state = init(p); draw(); this.start(); },
+    setParams(next) { Object.assign(p, next); draw(); },
     destroy() { this.stop(); },
     getData() {
-      const e = computeEnergy(q, v, p.g);
-      const L = computeAngularMomentum(q, v);
-      return {
-        time: simTime,
-        kineticE: e.ke,
-        potentialE: e.pe,
-        totalE: e.total,
-        totalEnergy: e.total,
-        angularMomentum: L,
-        energyError: E0 !== 0 ? (e.total - E0) / Math.abs(E0) : 0,
-        steps: stepCount,
-      };
+      return getData(state, p);
     },
   };
 }
 
-function hexToRgb(hex) {
+function unusedHexToRgb(hex) {
   const n = Number.parseInt(hex.slice(1), 16);
   return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
 }

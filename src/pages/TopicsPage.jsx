@@ -52,6 +52,8 @@ export default function TopicsPage({ onBack }) {
             ? 'Classical mechanics & dynamical systems — from chaotic pendulums to strange attractors.'
             : activeTopic === 'quantum'
             ? 'Quantum mechanics — wavefunctions, probability densities, and phase-space distributions.'
+            : activeTopic === 'optics'
+            ? 'Optics — ray tracing, image formation, refraction, and focal geometry.'
             : activeTopic === 'electromagnetism'
             ? 'Electromagnetism — charge interactions and vector fields.'
             : 'Fluid dynamics — wave propagation and particle-based simulation.'}
@@ -311,6 +313,18 @@ const ICONS = {
       <circle cx="49" cy="42" r="2" fill="currentColor" opacity="0.6" />
       <circle cx="15" cy="22" r="2" fill="currentColor" opacity="0.6" />
       <circle cx="32" cy="12" r="2" fill="currentColor" opacity="0.6" />
+    </svg>
+  ),
+  'ray-optics': (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      <line x1="6" y1="32" x2="58" y2="32" stroke="currentColor" strokeWidth="1" opacity="0.3" />
+      <path d="M 31 8 C 40 20 40 44 31 56 C 24 44 24 20 31 8 Z" fill="currentColor" opacity="0.16" />
+      <path d="M 31 8 C 40 20 40 44 31 56 C 24 44 24 20 31 8 Z" stroke="currentColor" strokeWidth="2" />
+      <path d="M 6 20 L 31 28 L 58 12" stroke="#fde047" strokeWidth="1.6" opacity="0.9" />
+      <path d="M 6 32 L 31 32 L 58 32" stroke="#fde047" strokeWidth="1.6" opacity="0.75" />
+      <path d="M 6 44 L 31 36 L 58 52" stroke="#fde047" strokeWidth="1.6" opacity="0.9" />
+      <line x1="46" y1="18" x2="46" y2="46" stroke="#4ade80" strokeWidth="2" opacity="0.8" />
+      <path d="M 46 18 L 41 27 L 51 27 Z" fill="#4ade80" opacity="0.8" />
     </svg>
   ),
   'buoyancy-lab': (

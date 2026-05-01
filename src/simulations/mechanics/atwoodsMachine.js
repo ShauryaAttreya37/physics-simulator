@@ -11,6 +11,8 @@
  *              energy bar, data readout with Montserrat font.
  */
 
+import { drawArrow } from '../../utils/canvas';
+
 const DEFAULTS = {
   m1: 2.0,       // kg (lighter mass, left side)
   m2: 5.0,       // kg (heavier mass, right side)
@@ -319,14 +321,13 @@ export function create(canvas, initParams = {}) {
 
       // Tension (upward on both masses)
       const tLen = Math.min(Math.abs(T) * vecPixScale, 80);
-      drawArrow(ctx, m1X, m1Y - 2, m1X, m1Y - 2 - tLen, '#fde047', 2, 7);
-      drawArrow(ctx, m2X, m2Y - 2, m2X, m2Y - 2 - tLen, '#fde047', 2, 7);
+      drawArrow(ctx, m1X, m1Y - 2, m1X, m1Y - 2 - tLen, { color: '#fde047', lineWidth: 2, headLength: 7 });
+      drawArrow(ctx, m2X, m2Y - 2, m2X, m2Y - 2 - tLen, { color: '#fde047', lineWidth: 2, headLength: 7 });
 
       // Weight (downward)
       const w1Len = Math.min(p.m1 * p.gravity * vecPixScale, 80);
       const w2Len = Math.min(p.m2 * p.gravity * vecPixScale, 80);
-      drawArrow(ctx, m1X, m1Y + massBlockH1 + 3, m1X, m1Y + massBlockH1 + 3 + w1Len, '#a78bfa', 2, 7);
-      drawArrow(ctx, m2X, m2Y + massBlockH2 + 3, m2X, m2Y + massBlockH2 + 3 + w2Len, '#a78bfa', 2, 7);
+      drawArrow(ctx, m2X, m2Y + massBlockH2 + 3, m2X, m2Y + massBlockH2 + 3 + w2Len, { color: '#a78bfa', lineWidth: 2, headLength: 7 });
 
       // Net acceleration arrows
       if (Math.abs(a) > 0.1) {
@@ -336,10 +337,10 @@ export function create(canvas, initParams = {}) {
         const m2Dir = a > 0 ? 1 : -1;
         drawArrow(ctx, m1X - 28, m1Y + massBlockH1 / 2,
                   m1X - 28, m1Y + massBlockH1 / 2 + m1Dir * aLen,
-                  '#34d399', 2.5, 8);
+                  { color: '#34d399', lineWidth: 2.5, headLength: 8 });
         drawArrow(ctx, m2X + 28, m2Y + massBlockH2 / 2,
                   m2X + 28, m2Y + massBlockH2 / 2 + m2Dir * aLen,
-                  '#34d399', 2.5, 8);
+                  { color: '#34d399', lineWidth: 2.5, headLength: 8 });
         // Labels
         ctx.fillStyle = '#34d399';
         ctx.font = 'bold 8px "Montserrat", sans-serif';
@@ -680,27 +681,6 @@ export function create(canvas, initParams = {}) {
     }
   }
 
-  function drawArrow(c, x1, y1, x2, y2, color, lineW, headLen) {
-    const dx = x2 - x1, dy = y2 - y1;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    if (len < 2) return;
-    const angle = Math.atan2(dy, dx);
-
-    c.beginPath();
-    c.moveTo(x1, y1);
-    c.lineTo(x2, y2);
-    c.strokeStyle = color;
-    c.lineWidth = lineW;
-    c.stroke();
-
-    c.beginPath();
-    c.moveTo(x2, y2);
-    c.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 7), y2 - headLen * Math.sin(angle - Math.PI / 7));
-    c.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 7), y2 - headLen * Math.sin(angle + Math.PI / 7));
-    c.closePath();
-    c.fillStyle = color;
-    c.fill();
-  }
 
   let rafId, lastTs, running = false;
   let speedScale = 1.0;

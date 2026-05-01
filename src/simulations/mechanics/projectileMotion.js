@@ -1,3 +1,6 @@
+import { rk4 } from '../../physics/solvers';
+import { drawArrow } from '../../utils/canvas';
+
 /**
  * Projectile Motion with Air Drag — Research-Grade Implementation
  * 
@@ -177,7 +180,7 @@ export function create(canvas, initParams = {}) {
   }
 
   // State derivatives: [dx, dy, dvx, dvy]
-  function derivs(state) {
+  function derivs(state, p) {
     const [, , cvx, cvy] = state;
     const speed = Math.sqrt(cvx * cvx + cvy * cvy);
     const ax = -p.dragCoeff * speed * cvx;
@@ -198,18 +201,8 @@ export function create(canvas, initParams = {}) {
       if (landed) break;
 
       const s0 = [x, y, vx, vy];
-      const k1 = derivs(s0);
-      const s1 = s0.map((v, idx) => v + k1[idx] * h / 2);
-      const k2 = derivs(s1);
-      const s2 = s0.map((v, idx) => v + k2[idx] * h / 2);
-      const k3 = derivs(s2);
-      const s3 = s0.map((v, idx) => v + k3[idx] * h);
-      const k4 = derivs(s3);
-
-      const newX = x + h * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]) / 6;
-      const newY = y + h * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]) / 6;
-      const newVx = vx + h * (k1[2] + 2 * k2[2] + 2 * k3[2] + k4[2]) / 6;
-      const newVy = vy + h * (k1[3] + 2 * k2[3] + 2 * k3[3] + k4[3]) / 6;
+      const nextState = rk4(s0, h, derivs, p);
+      const [newX, newY, newVx, newVy] = nextState;
 
       // Check ground intersection (linear interpolation for exact landing)
       if (newY < 0 && simTime > 0.01) {
@@ -487,12 +480,12 @@ export function create(canvas, initParams = {}) {
 
       // Velocity vector (blue)
       drawArrow(ctx, px, py, px + vx * vecScale * 0.06, py - vy * vecScale * 0.06,
-        '#60a5fa', 2, 8);
+        { color: '#60a5fa', lineWidth: 2, headLength: 8 });
 
       // Gravity vector (purple, always down)
       const gVecLen = Math.min(p.gravity * vecScale * 0.15, 50);
       drawArrow(ctx, px, py, px, py + gVecLen,
-        '#a78bfa', 2, 7);
+        { color: '#a78bfa', lineWidth: 2, headLength: 7 });
 
       // Drag vector (yellow, opposes velocity)
       if (p.dragCoeff > 0 && speed > 0.1) {
@@ -502,7 +495,7 @@ export function create(canvas, initParams = {}) {
         const dragEndX = px + dragAx * dragScale * 0.06;
         const dragEndY = py - dragAy * dragScale * 0.06;
         drawArrow(ctx, px, py, dragEndX, dragEndY,
-          '#fde047', 2, 7);
+          { color: '#fde047', lineWidth: 2, headLength: 7 });
       }
     }
 
@@ -671,28 +664,6 @@ export function create(canvas, initParams = {}) {
   }
 
   // --- Utility: draw arrow with arrowhead ---
-  function drawArrow(c, x1, y1, x2, y2, color, lineW, headLen) {
-    const dx = x2 - x1, dy = y2 - y1;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    if (len < 2) return;
-    const angle = Math.atan2(dy, dx);
-
-    c.beginPath();
-    c.moveTo(x1, y1);
-    c.lineTo(x2, y2);
-    c.strokeStyle = color;
-    c.lineWidth = lineW;
-    c.stroke();
-
-    // Arrowhead
-    c.beginPath();
-    c.moveTo(x2, y2);
-    c.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 7), y2 - headLen * Math.sin(angle - Math.PI / 7));
-    c.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 7), y2 - headLen * Math.sin(angle + Math.PI / 7));
-    c.closePath();
-    c.fillStyle = color;
-    c.fill();
-  }
 
   // --- Utility: compute nice grid step ---
   function niceStep(range, targetSteps) {

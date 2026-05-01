@@ -1,3 +1,5 @@
+import { drawArrow } from '../../utils/canvas';
+
 const DEFAULTS = {
   force: 35,
   radius: 1.1,
@@ -98,30 +100,6 @@ export function create(canvas, initParams = {}) {
     }
   }
 
-  function drawArrow(x1, y1, x2, y2, color) {
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const len = Math.hypot(dx, dy);
-    if (len < 1e-6) return;
-    const ux = dx / len;
-    const uy = dy / len;
-    const head = 10;
-
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(x2, y2);
-    ctx.lineTo(x2 - ux * head - uy * 6, y2 - uy * head + ux * 6);
-    ctx.lineTo(x2 - ux * head + uy * 6, y2 - uy * head - ux * 6);
-    ctx.closePath();
-    ctx.fill();
-  }
 
   function render() {
     const W = canvas.width;
@@ -172,21 +150,23 @@ export function create(canvas, initParams = {}) {
     const forceScale = Math.min(90, Math.abs(p.force) * 1.5);
     const sign = p.force >= 0 ? 1 : -1;
     drawArrow(
+      ctx,
       handleX,
       handleY,
       handleX + tangentX * sign * forceScale,
       handleY + tangentY * sign * forceScale,
-      '#f59e0b'
+      { color: '#f59e0b', lineWidth: 3 }
     );
 
     const currentTorque = p.force * p.radius - p.damping * omega;
     const omegaScale = Math.min(52, Math.abs(omega) * 4);
     drawArrow(
+      ctx,
       cx - diskR - 20,
       cy,
       cx - diskR - 20,
       cy - (omega >= 0 ? 1 : -1) * omegaScale,
-      '#22d3ee'
+      { color: '#22d3ee', lineWidth: 3 }
     );
 
     ctx.fillStyle = 'rgba(10,15,30,0.8)';

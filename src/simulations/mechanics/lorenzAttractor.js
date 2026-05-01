@@ -11,6 +11,7 @@
  */
 
 import { sampleColormap } from '../../utils/colormaps';
+import { rk4 } from '../../physics/solvers';
 
 const DEFAULTS = {
   sigma: 10,
@@ -89,23 +90,12 @@ export const controls = [
 export const method = 'rk4';
 
 // ── Lorenz derivatives ─────────────────────────────────────────────────────
-function lorenzDerivs(x, y, z, p) {
+function lorenzDerivs(state, p) {
+  const [x, y, z] = state;
   return [
     p.sigma * (y - x),
     x * (p.rho - z) - y,
     x * y - p.beta * z,
-  ];
-}
-
-function rk4Step(x, y, z, h, p) {
-  const [k1x, k1y, k1z] = lorenzDerivs(x, y, z, p);
-  const [k2x, k2y, k2z] = lorenzDerivs(x + k1x * h / 2, y + k1y * h / 2, z + k1z * h / 2, p);
-  const [k3x, k3y, k3z] = lorenzDerivs(x + k2x * h / 2, y + k2y * h / 2, z + k2z * h / 2, p);
-  const [k4x, k4y, k4z] = lorenzDerivs(x + k3x * h, y + k3y * h, z + k3z * h, p);
-  return [
-    x + h * (k1x + 2 * k2x + 2 * k3x + k4x) / 6,
-    y + h * (k1y + 2 * k2y + 2 * k3y + k4y) / 6,
-    z + h * (k1z + 2 * k2z + 2 * k3z + k4z) / 6,
   ];
 }
 
@@ -184,7 +174,7 @@ export function create(canvas, initParams = {}) {
     const h = p.dt;
 
     for (let i = 0; i < steps; i++) {
-      [x, y, z] = rk4Step(x, y, z, h, p);
+      [x, y, z] = rk4([x, y, z], h, lorenzDerivs, p);
       simTime += h;
       stepCount++;
     }

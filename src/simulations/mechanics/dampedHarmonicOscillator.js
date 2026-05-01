@@ -1,3 +1,5 @@
+import { rk4 } from '../../physics/solvers';
+
 /**
  * Damped Harmonic Oscillator — Analytical vs Numerical Comparison
  * 
@@ -208,26 +210,16 @@ export function create(canvas, initParams = {}) {
   }
 
   // RK4
-  function derivs(x, v) {
-    return [v, -(p.damping / p.mass) * v - (p.springK / p.mass) * x];
-  }
-
-  function rk4Step(x, v, h) {
-    const [k1x, k1v] = derivs(x, v);
-    const [k2x, k2v] = derivs(x + k1x*h/2, v + k1v*h/2);
-    const [k3x, k3v] = derivs(x + k2x*h/2, v + k2v*h/2);
-    const [k4x, k4v] = derivs(x + k3x*h, v + k3v*h);
-    return [
-      x + h*(k1x + 2*k2x + 2*k3x + k4x)/6,
-      v + h*(k1v + 2*k2v + 2*k3v + k4v)/6,
-    ];
+  function derivs(state, p) {
+    const [cx, cv] = state;
+    return [cv, -(p.damping / p.mass) * cv - (p.springK / p.mass) * cx];
   }
 
   function tick(dt) {
     const steps = 20;
     const h = dt / steps;
     for (let i = 0; i < steps; i++) {
-      [x, v] = rk4Step(x, v, h);
+      [x, v] = rk4([x, v], h, derivs, p);
       simTime += h;
       stepCount++;
     }
