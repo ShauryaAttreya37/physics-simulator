@@ -391,8 +391,8 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
       const bulge = element.focalSign > 0 ? 25 : -25;
       ctx.beginPath();
       ctx.moveTo(x, L.axisY - aperturePx / 2);
-      ctx.bezierCurveTo(x + bulge, L.axisY - aperturePx / 3, x + bulge, L.axisY + aperturePx / 3, x, L.axisY + aperturePx / 2);
-      ctx.bezierCurveTo(x - bulge, L.axisY + aperturePx / 3, x - bulge, L.axisY - aperturePx / 3, x, L.axisY - aperturePx / 2);
+      ctx.quadraticCurveTo(x - bulge * 2, L.axisY, x, L.axisY + aperturePx / 2);
+      ctx.quadraticCurveTo(x + bulge * 2, L.axisY, x, L.axisY - aperturePx / 2);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
@@ -400,7 +400,7 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
       const curve = element.focalSign > 0 ? 35 : -35;
       ctx.beginPath();
       ctx.moveTo(x, L.axisY - aperturePx / 2);
-      ctx.quadraticCurveTo(x + curve, L.axisY, x, L.axisY + aperturePx / 2);
+      ctx.quadraticCurveTo(x + curve * 2, L.axisY, x, L.axisY + aperturePx / 2);
       ctx.stroke();
       ctx.shadowBlur = 0;
       ctx.strokeStyle = 'rgba(255,255,255,0.2)';
@@ -408,8 +408,9 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
       const hashDir = element.focalSign > 0 ? 1 : -1;
       for (let y = -aperturePx / 2; y <= aperturePx / 2; y += 20) {
         ctx.beginPath(); 
-        ctx.moveTo(x + (curve * (1 - (y/(aperturePx/2))**2)) * 0.5, L.axisY + y); 
-        ctx.lineTo(x + (curve * (1 - (y/(aperturePx/2))**2)) * 0.5 + 12, L.axisY + y + 8); 
+        const curveX = x + curve * (1 - (y/(aperturePx/2))**2);
+        ctx.moveTo(curveX, L.axisY + y); 
+        ctx.lineTo(curveX + 12 * hashDir, L.axisY + y + 8); 
         ctx.stroke();
       }
     }
