@@ -448,6 +448,7 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
     const imageWorldX = isLens ? di : -di;
     const imageX = Number.isFinite(di) ? xWorldToScreen(imageWorldX, L) : null;
     const imageY = Number.isFinite(di) ? yWorldToScreen(optics.imageHeight, L) : null;
+    const virtual = di < 0;
     const surfaces = getElementSurfaces(L, element);
     
     const count = Math.max(1, Math.round(p.rayCount));
@@ -472,7 +473,6 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
         continue;
       }
 
-      const virtual = di < 0;
       const img = { x: imageX, y: imageY };
 
       if (isLens) {
