@@ -21,23 +21,27 @@ export const defaultParams = { ...DEFAULTS };
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'A damped harmonic oscillator is a mass on a spring with friction (damping). Without damping, it oscillates forever. With damping, it slows down and stops. This models many real systems like car suspensions, guitar strings, or pendulum clocks. The damping ratio determines if it oscillates or not.',
+  },
+  {
     title: 'Equation of Motion',
     equations: [
       {
         latex: String.raw`m\ddot{x} + c\dot{x} + kx = 0`,
-        description: 'Second-order linear ODE for a mass-spring-damper system.',
+        description: 'Newton\'s law: mass times acceleration equals the forces. Spring pulls back (kx), damping resists motion (c times velocity), no external forces.',
       },
       {
         latex: String.raw`\ddot{x} + 2\zeta\omega_n\dot{x} + \omega_n^2 x = 0, \quad \omega_n = \sqrt{k/m}, \quad \zeta = \frac{c}{2\sqrt{mk}}`,
-        description: 'Standard form with damping ratio ζ and natural frequency ωₙ.',
+        description: 'Normalized form. ωₙ is the natural frequency (how fast it would oscillate without damping). ζ (zeta) is damping ratio - less than 1 oscillates, equal 1 critical, greater 1 no oscillation.',
       },
     ],
     variables: [
-      { symbol: 'm', description: 'Mass' },
-      { symbol: 'k', description: 'Spring constant' },
-      { symbol: 'c', description: 'Damping coefficient' },
-      { symbol: 'ζ', description: 'Damping ratio (ζ<1 underdamped, ζ=1 critical, ζ>1 overdamped)' },
-      { symbol: 'ωₙ', description: 'Natural frequency' },
+      { symbol: 'm', description: 'Mass of the oscillator (kg)' },
+      { symbol: 'k', description: 'Spring stiffness (N/m)' },
+      { symbol: 'c', description: 'Damping coefficient (friction)' },
+      { symbol: 'ζ', description: 'Damping ratio - determines behavior (dimensionless)' },
+      { symbol: 'ωₙ', description: 'Natural angular frequency (rad/s)' },
     ],
   },
   {
@@ -45,15 +49,15 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\zeta < 1: \quad x(t) = A e^{-\zeta\omega_n t}\cos(\omega_d t + \phi), \quad \omega_d = \omega_n\sqrt{1-\zeta^2}`,
-        description: 'Underdamped: oscillatory decay with damped frequency ωd.',
+        description: 'Underdamped case: oscillates while decaying. The amplitude decreases exponentially, frequency ωd is less than natural frequency.',
       },
       {
         latex: String.raw`\zeta = 1: \quad x(t) = (A + Bt)e^{-\omega_n t}`,
-        description: 'Critically damped: fastest non-oscillatory return to equilibrium.',
+        description: 'Critical damping: returns to equilibrium as fast as possible without oscillating. Used in doors that close smoothly.',
       },
       {
         latex: String.raw`\zeta > 1: \quad x(t) = A e^{r_1 t} + B e^{r_2 t}, \quad r_{1,2} = -\zeta\omega_n \pm \omega_n\sqrt{\zeta^2-1}`,
-        description: 'Overdamped: slow exponential decay, no oscillation.',
+        description: 'Overdamped: slow decay without oscillation. Like a heavy door that closes very slowly.',
       },
     ],
   },
@@ -62,9 +66,17 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`E(t) = \frac{1}{2}m\dot{x}^2 + \frac{1}{2}kx^2, \quad \frac{dE}{dt} = -c\dot{x}^2 \leq 0`,
-        description: 'Total mechanical energy; dissipated by damping at rate c·v².',
+        description: 'Total energy decreases over time due to damping. The rate of energy loss is proportional to velocity squared. This is why damped systems eventually stop.',
       },
     ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Adjust mass m and spring constant k to change natural frequency.\n2. Increase damping c to see different behaviors.\n3. Try ζ < 1 for oscillation, ζ = 1 for critical, ζ > 1 for no oscillation.\n4. Set initial displacement and velocity.\n5. Watch position, velocity, and energy graphs over time.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Start with low damping to see clear oscillations. Increase damping gradually and watch the transition from underdamped to overdamped. Notice energy decreases due to damping. Try different initial conditions - velocity affects the phase. Look at the phase space plot (position vs velocity).',
   },
 ];
 

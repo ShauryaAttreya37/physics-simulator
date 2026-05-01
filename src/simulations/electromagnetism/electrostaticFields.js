@@ -28,20 +28,29 @@ export const defaultParams = { ...DEFAULTS };
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'Electric fields exist around any charged object. This simulation shows how fields vary with shape and charge distribution. You can explore different geometries: spheres, cylinders, plates. The field lines show force direction, and you can probe the field strength at different points. Understanding field patterns is crucial for capacitors, particle accelerators, and electronic devices.',
+  },
+  {
     title: "Gauss's Law & Internal Fields",
     equations: [
       {
         latex: String.raw`\oint \mathbf{E} \cdot d\mathbf{A} = \frac{Q_{\text{enc}}}{\varepsilon_0}`,
-        description: "Gauss's Law: The flux out of any closed surface depends strictly on the charge inside.",
+        description: "Gauss's Law: The total electric flux through a closed surface equals the charge inside divided by ε₀. This makes field calculations much easier for symmetric charge distributions.",
       },
       {
         latex: String.raw`E_{\text{hollow}} = \begin{cases} 0 & r < R \\[4pt] \dfrac{Q}{4\pi\varepsilon_0 r^2} & r > R \end{cases}`,
-        description: "Inside a Hollow Sphere, opposed fields perfectly cancel (Faraday cage effect).",
+        description: "For a hollow sphere, field inside is zero (like a Faraday cage - charges on surface cancel internal field). Outside, it's like a point charge.",
       },
       {
         latex: String.raw`E_{\text{solid}} = \begin{cases} \dfrac{Q r}{4\pi\varepsilon_0 R^3} & r < R \\[4pt] \dfrac{Q}{4\pi\varepsilon_0 r^2} & r > R \end{cases}`,
-        description: "Inside a uniform Solid Sphere, the enclosed charge grows as r³, so the field grows linearly.",
+        description: "For a solid uniform sphere, field inside increases linearly with r (because enclosed charge ∝ r³). Outside, same as point charge.",
       },
+    ],
+    variables: [
+      { symbol: 'ε₀', description: 'Permittivity of free space (8.85 × 10^{-12} F/m)' },
+      { symbol: 'Q_enc', description: 'Total charge enclosed by the Gaussian surface' },
+      { symbol: 'R', description: 'Radius of the sphere' },
     ],
   },
   {
@@ -49,13 +58,21 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`r_{3D} = \sqrt{(\Delta x)^2 + (\Delta y)^2 + (\Delta z)^2}`,
-        description: 'While the probe visually moves in 2D space (Z=0), it rigorously evaluates the full 3D distance to all thousands of rotated micro-charges.',
+        description: 'The simulation calculates full 3D distances to all charge elements, even though you see a 2D cross-section.',
       },
       {
         latex: String.raw`\mathbf{E}_{2D} = \langle E_x, E_y \rangle, \quad |\mathbf{E}| = \sqrt{E_x^2 + E_y^2 + E_z^2}`,
-        description: 'The glowing streamlines trace the cross-sectional projected field, while the graph tracks true 3D magnitude.',
+        description: 'Field lines show the 2D projection, but the magnitude includes the z-component. Move the probe to see how field varies in 3D.',
       },
     ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Select different geometries (sphere, cylinder, plate, etc.) from the shape control.\n2. Adjust charge density - positive for attraction, negative for repulsion.\n3. Move the probe (yellow dot) around to see field strength and potential at different points.\n4. Watch field lines - they point from positive to negative charge.\n5. Try hollow vs solid spheres - notice the field inside hollow ones is zero.\n6. Look at the graphs for potential V and field magnitude |E|.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Field lines never cross - they show force direction on a positive test charge. Closer lines mean stronger fields. Conductors have zero field inside (Faraday cage effect). The potential is like electric "height" - work is needed to move against the field.',
   },
 ];
 

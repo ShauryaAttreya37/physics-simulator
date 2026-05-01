@@ -18,16 +18,25 @@ export const defaultParams = { ...DEFAULTS };
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'Electromagnetic waves are oscillating electric and magnetic fields that travel through space. Light is an EM wave! This simulation shows a plane wave propagating in 3D space. The electric and magnetic fields oscillate perpendicular to each other and to the direction of travel. You can see how frequency, wavelength, and amplitude affect the wave.',
+  },
+  {
     title: "Maxwell's Equations (Vacuum)",
     equations: [
       {
         latex: String.raw`\nabla \times \vec{E} = -\frac{\partial \vec{B}}{\partial t}`,
-        description: "Faraday's Law: A changing magnetic field induces a circulating electric field.",
+        description: "Faraday's Law: A changing magnetic field creates a circulating electric field. This is how generators work.",
       },
       {
         latex: String.raw`\nabla \times \vec{B} = \mu_0 \epsilon_0 \frac{\partial \vec{E}}{\partial t}`,
-        description: "Ampère-Maxwell Law: A changing electric field induces a circulating magnetic field.",
+        description: "Ampère-Maxwell Law: A changing electric field creates a circulating magnetic field. Maxwell added the displacement current term.",
       },
+    ],
+    variables: [
+      { symbol: '∇ × E', description: 'Curl of electric field - measures field circulation' },
+      { symbol: '∂B/∂t', description: 'Rate of change of magnetic field' },
+      { symbol: 'μ₀, ε₀', description: 'Permeability and permittivity of free space' },
     ],
   },
   {
@@ -35,13 +44,43 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`E(z,t) = E_0 \cos(kz - \omega t)`,
-        description: 'Planar electric field oscillating in the x-direction.',
+        description: 'Electric field oscillates in the x-direction as the wave moves in z-direction. k is wavenumber (2π/λ), ω is angular frequency (2πf).',
       },
       {
         latex: String.raw`B(z,t) = B_0 \cos(kz - \omega t)`,
-        description: 'Planar magnetic field oscillating in the y-direction (orthogonal to E).',
+        description: 'Magnetic field oscillates in y-direction, perpendicular to E. The ratio E/B = c (speed of light).',
+      },
+      {
+        latex: String.raw`c = \frac{1}{\sqrt{\mu_0 \epsilon_0}} = 3 \times 10^8 \text{ m/s}`,
+        description: 'Speed of light in vacuum. EM waves always travel at this speed.',
       },
     ],
+    variables: [
+      { symbol: 'E₀, B₀', description: 'Amplitudes of electric and magnetic fields' },
+      { symbol: 'k = 2π/λ', description: 'Wave number - higher k means shorter wavelength' },
+      { symbol: 'ω = 2πf', description: 'Angular frequency - higher ω means faster oscillation' },
+    ],
+  },
+  {
+    title: 'EM Wave Properties',
+    equations: [
+      {
+        latex: String.raw`\vec{E} \perp \vec{B} \perp \vec{k}`,
+        description: 'Electric field, magnetic field, and direction of propagation are all mutually perpendicular.',
+      },
+      {
+        latex: String.raw`c = f \lambda`,
+        description: 'Speed equals frequency times wavelength. All EM waves obey this.',
+      },
+    ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Adjust frequency f - higher frequency means more oscillations per second.\n2. Change wavelength λ - shorter wavelength means higher frequency (since c = fλ).\n3. Modify amplitude A - controls how strong the fields are.\n4. Toggle vector field to see field directions at each point.\n5. Watch the wave propagate - notice E and B are in phase but perpendicular.\n6. Look at the graphs showing E and B vs time at a fixed point.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'All electromagnetic waves (radio, microwave, infrared, visible light, UV, X-rays, gamma rays) follow these same equations. They only differ in frequency/wavelength. The wave carries energy - higher amplitude means more energy. Polarization is the direction of E-field oscillation.',
   },
 ];
 

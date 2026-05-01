@@ -21,22 +21,26 @@ export const defaultParams = { ...DEFAULTS };
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'The double-slit experiment is one of the most famous demonstrations of quantum mechanics. It shows that particles like electrons and photons behave like waves. When you send particles through two slits, they create an interference pattern on a screen, just like water waves. But if you try to detect which slit each particle goes through, the pattern disappears! This reveals the wave-particle duality of quantum objects.',
+  },
+  {
     title: 'Double Slit Intensity',
     equations: [
       {
         latex: String.raw`I(\theta) = I_0 \cos^2\!\left(\frac{\pi d \sin\theta}{\lambda}\right)\,\mathrm{sinc}^2\!\left(\frac{\pi a \sin\theta}{\lambda}\right)`,
-        description: 'Combined interference (cos²) and single-slit diffraction (sinc²) envelope.',
+        description: 'This equation combines two effects: interference between the two slits (the cos² term) and diffraction through each slit (the sinc² term). The result is bright and dark fringes.',
       },
       {
         latex: String.raw`y_m = \frac{m\lambda L}{d}, \quad m = 0, \pm 1, \pm 2, \ldots`,
-        description: 'Positions of constructive interference maxima on the screen.',
+        description: 'The positions of the bright fringes on the screen. m=0 is the center, m=±1 are the first side fringes, etc. Closer slits or longer wavelengths make wider spacing.',
       },
     ],
     variables: [
-      { symbol: 'd', description: 'Slit separation' },
-      { symbol: 'a', description: 'Slit width' },
-      { symbol: 'λ', description: 'Wavelength' },
-      { symbol: 'L', description: 'Screen distance' },
+      { symbol: 'd', description: 'Distance between the centers of the two slits - wider separation means narrower fringes' },
+      { symbol: 'a', description: 'Width of each slit - narrower slits cause more diffraction (wider envelope)' },
+      { symbol: 'λ', description: 'Wavelength of the particles - shorter wavelengths make finer patterns' },
+      { symbol: 'L', description: 'Distance from slits to screen - farther screen spreads out the pattern' },
     ],
   },
   {
@@ -44,13 +48,21 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`p = \frac{h}{\lambda} = \frac{2\pi\hbar}{\lambda}`,
-        description: 'de Broglie relation — every quantum particle has an associated wavelength.',
+        description: 'Every particle has a wavelength related to its momentum. This is the de Broglie relation - it connects particle and wave properties.',
       },
       {
         latex: String.raw`|\psi|^2 \propto I(\theta) \quad \text{(Born rule: probability ∝ intensity)}`,
-        description: 'Individual photon/electron detections build up the interference pattern statistically.',
+        description: 'The interference pattern emerges statistically. Each particle hits randomly, but over many particles, the pattern matches the wave intensity. This shows quantum probability.',
       },
     ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Start with default settings and watch particles build up the interference pattern.\n2. Adjust slit separation (d) - see how fringe spacing changes.\n3. Change wavelength (λ) - shorter wavelengths make finer patterns.\n4. Make slits narrower (smaller a) - notice the diffraction envelope widens.\n5. Increase particle rate to see the pattern emerge faster.\n6. Look at the intensity graph to understand the theoretical pattern.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'The pattern only appears when you don\'t know which slit the particle went through. If you could detect the slit, the pattern would disappear. This shows measurement affects quantum systems. Try different wavelengths - light behaves this way too! The central maximum is always brightest.',
   },
 ];
 

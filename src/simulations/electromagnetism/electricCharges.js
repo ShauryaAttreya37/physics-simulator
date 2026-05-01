@@ -21,25 +21,29 @@ export const defaultParams = { ...DEFAULTS };
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'Electric charges create forces and fields around them. Like charges repel, opposite charges attract. This simulation shows two charges interacting: one fixed, one moving. You can see the electric field lines, equipotential surfaces, and how the moving charge\'s path curves due to the Coulomb force. It\'s like gravitational orbits but with electrical forces.',
+  },
+  {
     title: "Coulomb's Law & Electric Field",
     equations: [
       {
         latex: String.raw`\vec{F}_{12} = k_e \frac{q_1 q_2}{|\mathbf{r}_{12}|^2} \hat{r}_{12}`,
-        description: 'The force between two point charges. Positive product → repulsion; negative → attraction.',
+        description: 'The force between two point charges. Like charges (same sign) repel, opposite charges attract. Force gets weaker with distance squared.',
       },
       {
         latex: String.raw`\vec{E}(\mathbf{r}) = \sum_i k_e \frac{q_i}{|\mathbf{r} - \mathbf{r}_i|^2} \hat{r}_i`,
-        description: 'The electric field at any point is the vector superposition over all source charges.',
+        description: 'Electric field shows the force per unit charge at each point. Field lines point away from positive charges, toward negative ones.',
       },
       {
         latex: String.raw`V(\mathbf{r}) = k_e \sum_i \frac{q_i}{|\mathbf{r} - \mathbf{r}_i|}`,
-        description: 'The scalar electric potential. Equipotential contours are drawn where V = const.',
+        description: 'Electric potential - the energy per unit charge. Equipotential lines are where potential is constant (no work needed to move along them).',
       },
     ],
     variables: [
-      { symbol: 'k_e', description: 'Coulomb constant (8.99 × 10⁹ N·m²/C²)' },
-      { symbol: 'q', description: 'Electric charge (Coulombs)' },
-      { symbol: 'r', description: 'Separation distance' },
+      { symbol: 'k_e', description: 'Coulomb constant (8.99 × 10⁹ N·m²/C²) - strength of electric force' },
+      { symbol: 'q', description: 'Electric charge - positive or negative amount of charge' },
+      { symbol: 'r', description: 'Distance between charges - force decreases as 1/r²' },
     ],
   },
   {
@@ -47,9 +51,17 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`U = k_e \frac{q_1 q_2}{r}, \quad K = \tfrac{1}{2}m v^2, \quad E = K + U`,
-        description: 'Total mechanical energy is conserved in the Coulomb potential. Kinetic and potential energy exchange as the charges interact.',
+        description: 'Total energy (kinetic + potential) is conserved. As charges get closer, potential energy decreases and kinetic energy increases.',
       },
     ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Set charges q1 and q2 - try same signs (repulsion) vs opposite (attraction).\n2. Adjust initial velocity of the moving charge (q2).\n3. Change impact parameter b - how far the moving charge starts from the line between centers.\n4. Watch the trajectory - straight line for like charges, curved for opposite.\n5. Observe field lines and equipotentials - they show the "landscape" the charge moves through.\n6. Check energy conservation over time.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Electric forces are much stronger than gravity. The field lines show force direction. Equipotentials are like contour lines on a map. For head-on collisions (b=0), charges may scatter or orbit. Rutherford used similar ideas to discover the atomic nucleus!',
   },
 ];
 

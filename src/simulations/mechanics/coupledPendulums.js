@@ -31,6 +31,41 @@ export const defaultParams = {
   trail: 500,
 };
 
+export const equationSections = [
+  {
+    title: 'Introduction',
+    content: 'Coupled pendulums are two pendulums connected by a spring. They can transfer energy back and forth, showing wave-like behavior and normal modes. This demonstrates coupled oscillators, important in physics, engineering, and even music.',
+  },
+  {
+    title: 'Equations of Motion',
+    equations: [
+      {
+        latex: String.raw`mL^2 \ddot{\theta}_1 + c \dot{\theta}_1 + mgL\sin\theta_1 = -k(x_2-x_1)L\cos\theta_1`,
+        description: 'Motion of first pendulum. Includes gravity, damping, and spring coupling to the second pendulum.',
+      },
+      {
+        latex: String.raw`mL^2 \ddot{\theta}_2 + c \dot{\theta}_2 + mgL\sin\theta_2 = k(x_2-x_1)L\cos\theta_2`,
+        description: 'Motion of second pendulum. Symmetric to the first, but with opposite spring force.',
+      },
+    ],
+    variables: [
+      { symbol: 'θ₁, θ₂', description: 'Angles of the two pendulums' },
+      { symbol: 'L', description: 'Pendulum length' },
+      { symbol: 'm', description: 'Bob mass' },
+      { symbol: 'k', description: 'Spring constant' },
+      { symbol: 'c', description: 'Damping coefficient' },
+    ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Adjust spring strength k - stronger coupling means more interaction.\n2. Set different initial angles for θ₁ and θ₂.\n3. Change rest length scale to see different equilibrium positions.\n4. Add damping to see energy dissipation.\n5. Watch how energy transfers between pendulums.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Start with one pendulum displaced, other at rest. See energy transfer. Try equal displacements - they oscillate in phase. Look for normal modes where both move together or opposite. Experiment with different masses or lengths.',
+  },
+];
+
 export const equations = [
   String.raw`mL^2 \ddot{\theta}_1 + c \dot{\theta}_1 + mgL\sin\theta_1 = -k(x_2-x_1)L\cos\theta_1`,
   String.raw`mL^2 \ddot{\theta}_2 + c \dot{\theta}_2 + mgL\sin\theta_2 = k(x_2-x_1)L\cos\theta_2`
@@ -114,12 +149,13 @@ export function create(canvas, initParams = {}) {
   }
 
   function anchors() {
-    const y = canvas.height * 0.23;
+    const y = canvas.height * 0.23 + (p.panY || 0);
     const sep = getAnchorSep(canvas.width);
+    const panX = p.panX || 0;
     return {
-      ax1: canvas.width * 0.5 - sep * 0.5,
+      ax1: canvas.width * 0.5 - sep * 0.5 + panX,
       ay1: y,
-      ax2: canvas.width * 0.5 + sep * 0.5,
+      ax2: canvas.width * 0.5 + sep * 0.5 + panX,
       ay2: y,
       sep,
     };

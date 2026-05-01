@@ -19,16 +19,20 @@ export const defaultParams = { ...DEFAULTS };
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'Hydrogen orbitals describe the quantum states of an electron around a proton. Unlike classical orbits, quantum electrons exist in "clouds" of probability. The orbitals are labeled by three quantum numbers: n (energy level), l (shape), and m (orientation). This determines the electron\'s energy and where it\'s likely to be found. The simulation shows these 3D probability distributions.',
+  },
+  {
     title: '3D Schrödinger Equation',
     equations: [
       {
         latex: String.raw`-\frac{\hbar^2}{2\mu}\nabla^2\psi + V(r)\psi = E\psi, \quad V(r) = -\frac{e^2}{4\pi\epsilon_0 r}`,
-        description: 'The time-independent equation for a central Coulomb potential.',
+        description: 'The quantum equation for the electron in hydrogen. The potential V(r) is the attractive force between proton and electron. ∇² is the 3D version of d²/dx².',
       },
     ],
     variables: [
-      { symbol: '∇²', description: 'Laplacian operator (3D spatial derivative)' },
-      { symbol: 'V(r)', description: 'Coulomb potential' },
+      { symbol: '∇²', description: 'Laplacian operator - measures curvature in 3D space' },
+      { symbol: 'V(r)', description: 'Electric potential - gets stronger closer to the nucleus' },
     ],
   },
   {
@@ -36,22 +40,39 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\psi_{nlm}(r, \theta, \phi) = R_{nl}(r)\,Y_l^m(\theta, \phi)`,
-        description: 'The wavefunction separates into a radial component R(r) and angular component Y(θ,φ).',
+        description: 'The wavefunction splits into radial part (distance from nucleus) and angular part (direction). This makes the math solvable.',
       },
       {
         latex: String.raw`R_{nl}(r) = N_{nl} e^{-\rho/2} \rho^l L_{n-l-1}^{2l+1}(\rho), \quad \rho = \frac{2r}{n a_0}`,
-        description: 'Radial part, defined by generalized Laguerre polynomials L.',
+        description: 'The radial wavefunction. It describes how probability varies with distance. Higher n means electron can be farther out.',
       },
       {
         latex: String.raw`Y_l^{m}(\theta, \phi) = (-1)^m \sqrt{\frac{2l+1}{4\pi}\frac{(l-m)!}{(l+m)!}}\, P_l^m(\cos\theta)\,e^{i m\phi}`,
-        description: 'Complex Spherical Harmonics. Real orbitals (px, dxy) use linear combinations of these.',
+        description: 'Angular part using spherical harmonics. These determine the orbital shapes: s (spherical), p (dumbbell), d (clover), etc.',
       },
     ],
     variables: [
-      { symbol: 'n', description: 'Principal quantum number (shell distance)' },
-      { symbol: 'l', description: 'Azimuthal number (subshell shape: s, p, d, f)' },
-      { symbol: 'm', description: 'Magnetic number (spatial orientation)' },
+      { symbol: 'n', description: 'Principal quantum number - determines energy level and average distance from nucleus' },
+      { symbol: 'l', description: 'Azimuthal quantum number - determines orbital shape (0=s, 1=p, 2=d, 3=f)' },
+      { symbol: 'm', description: 'Magnetic quantum number - determines orientation in space' },
     ],
+  },
+  {
+    title: 'Energy Levels',
+    equations: [
+      {
+        latex: String.raw`E_n = -\frac{13.6 \text{ eV}}{n^2}`,
+        description: 'Electron energies decrease with n². n=1 is most bound (-13.6 eV), n=2 is -3.4 eV, etc. All states with same n have same energy.',
+      },
+    ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Start with n=1, l=0, m=0 - this is the 1s orbital, spherical cloud around nucleus.\n2. Try n=2, l=0, m=0 - 2s orbital, still spherical but larger with a node (zero probability ring).\n3. Set n=2, l=1, m=0 - 2p_z orbital, dumbbell shape along z-axis.\n4. Change m for p orbitals to see different orientations.\n5. Try d orbitals (l=2) - more complex shapes like clover leaves.\n6. Notice how higher n means more nodes and larger orbitals.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Orbitals show where electrons are likely to be, not fixed paths. s orbitals are spherical, p orbitals have lobes, d orbitals are more complex. The number of nodes increases with quantum numbers. Real atoms have multiple electrons, but hydrogen shows the basic quantum structure.',
   },
 ];
 

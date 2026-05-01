@@ -1704,6 +1704,14 @@ select.form-input option {
   letter-spacing: 0.02em;
 }
 
+.equations-section-content {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
 .eq-numbered {
   display: flex;
   align-items: flex-start;

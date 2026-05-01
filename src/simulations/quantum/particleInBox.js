@@ -22,22 +22,26 @@ export const defaultParams = { ...DEFAULTS };
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'The particle in a box is a fundamental quantum mechanics problem. Imagine a tiny particle, like an electron, trapped inside an infinitely high box (walls it can\'t escape). In classical physics, the particle could have any energy and be anywhere. But quantum mechanics says it can only have specific energies, and the probability of finding it follows wave patterns. This simulation shows how quantum states combine and evolve over time, creating interesting interference effects.',
+  },
+  {
     title: 'Schrödinger Equation (Time-Independent)',
     equations: [
       {
         latex: String.raw`-\frac{\hbar^2}{2m}\frac{d^2\psi}{dx^2} = E\psi, \quad V(x) = \begin{cases} 0 & 0 < x < L \\ \infty & \text{otherwise} \end{cases}`,
-        description: 'Inside the well, the particle is free. Infinite walls enforce ψ(0)=ψ(L)=0.',
+        description: 'This is the quantum equation for the particle. Inside the box (V=0), it\'s like a free particle. The infinite walls mean the wavefunction must be zero at the edges, creating standing waves.',
       },
       {
         latex: String.raw`\psi_n(x) = \sqrt{\frac{2}{L}}\sin\!\left(\frac{n\pi x}{L}\right), \quad E_n = \frac{n^2\pi^2\hbar^2}{2mL^2}`,
-        description: 'Normalised eigenstates and quantised energy levels.',
+        description: 'These are the allowed wavefunctions and energies. n=1 is the lowest energy state (ground state), n=2 is excited, etc. Higher n means more "bumps" in the wave and higher energy.',
       },
     ],
     variables: [
-      { symbol: 'n', description: 'Principal quantum number (n = 1, 2, 3, …)' },
-      { symbol: 'L', description: 'Box length' },
-      { symbol: 'ℏ', description: 'Reduced Planck constant' },
-      { symbol: 'm', description: 'Particle mass' },
+      { symbol: 'n', description: 'Energy level number (n = 1, 2, 3, …) - like floors in a building' },
+      { symbol: 'L', description: 'Length of the box - longer box means closer energy levels' },
+      { symbol: 'ℏ', description: 'Quantum constant (very small number, about 1.0545718 × 10^{-34} J⋅s)' },
+      { symbol: 'm', description: 'Mass of the particle - heavier particles have lower energies' },
     ],
   },
   {
@@ -45,11 +49,11 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\Psi(x,t) = \sum_n c_n\,\psi_n(x)\,e^{-iE_n t/\hbar}`,
-        description: 'The full wavefunction is a superposition of energy eigenstates with time-dependent phases.',
+        description: 'When you mix different energy states, the total wavefunction changes with time. Each state oscillates at its own frequency, creating beating patterns.',
       },
       {
         latex: String.raw`|\Psi(x,t)|^2 = \text{probability density — oscillates due to beating between modes}`,
-        description: 'Born rule: the measurement probability density at position x and time t.',
+        description: 'This is what you would measure: the probability of finding the particle at position x at time t. It moves around as the waves interfere.',
       },
     ],
   },
@@ -58,9 +62,17 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\langle x \rangle = \int_0^L x|\Psi|^2\,dx, \quad \langle p \rangle = -i\hbar\int_0^L \Psi^*\frac{\partial\Psi}{\partial x}\,dx`,
-        description: 'Expected position and momentum from quantum averages.',
+        description: 'These are quantum averages. ⟨x⟩ is the average position, ⟨p⟩ is average momentum. They show how the particle behaves on average.',
       },
     ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Start with just n=1 amplitude = 1, others = 0. This is the ground state - particle most likely in center.\n2. Add some n=2 amplitude. See how the wave oscillates between states.\n3. Try equal amplitudes for n=1 and n=2. Watch the probability density move back and forth.\n4. Look at ⟨x⟩ and ⟨p⟩ graphs - they show average position and momentum over time.\n5. Experiment with different combinations to see interference patterns.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Think of energy levels like rungs on a ladder - you can only stand on specific rungs. The wavefunction shows where you\'re likely to be found. When states mix, the particle seems to "tunnel" between positions. This is quantum superposition in action!',
   },
 ];
 

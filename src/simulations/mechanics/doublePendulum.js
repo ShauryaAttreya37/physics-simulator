@@ -29,17 +29,21 @@ export const defaultParams = {
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'A double pendulum is two pendulums connected end to end. The second pendulum is attached to the first bob, creating complex, often chaotic motion. Even small changes in starting conditions can lead to very different behaviors. This simulation uses advanced math (Lagrangian mechanics) to accurately model the motion. You\'ll see beautiful patterns and learn about chaos theory.',
+  },
+  {
     title: 'Lagrangian',
     equations: [
       {
         latex: String.raw`\mathcal{L} = T - V = \frac{1}{2}(m_1+m_2)\ell_1^2\dot{\theta}_1^2 + \frac{1}{2}m_2\ell_2^2\dot{\theta}_2^2 + m_2\ell_1\ell_2\dot{\theta}_1\dot{\theta}_2\cos(\theta_1-\theta_2) + (m_1+m_2)g\ell_1\cos\theta_1 + m_2 g\ell_2\cos\theta_2`,
-        description: 'Full Lagrangian with kinetic and gravitational potential energy terms.',
+        description: 'The Lagrangian L = T - V combines kinetic energy (T) and potential energy (V). This approach gives the equations of motion through Euler-Lagrange equations. It accounts for the interaction between the two pendulums.',
       },
     ],
     variables: [
-      { symbol: 'θ₁, θ₂', description: 'Angular displacements from vertical' },
-      { symbol: 'ℓ₁, ℓ₂', description: 'Pendulum arm lengths' },
-      { symbol: 'm₁, m₂', description: 'Bob masses' },
+      { symbol: 'θ₁, θ₂', description: 'Angles of first and second pendulums from vertical (radians)' },
+      { symbol: 'ℓ₁, ℓ₂', description: 'Lengths of the pendulum arms' },
+      { symbol: 'm₁, m₂', description: 'Masses of the bobs' },
       { symbol: 'g', description: 'Gravitational acceleration' },
     ],
   },
@@ -48,11 +52,11 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\ddot{\theta}_1 = \frac{-g(2m_1+m_2)\sin\theta_1 - m_2 g \sin(\theta_1-2\theta_2) - 2\sin(\theta_1-\theta_2)\,m_2\!\left(\dot{\theta}_2^2 \ell_2 + \dot{\theta}_1^2 \ell_1 \cos(\theta_1-\theta_2)\right)}{\ell_1\!\left(2m_1+m_2-m_2\cos(2\theta_1-2\theta_2)\right)}`,
-        description: 'Angular acceleration of the first pendulum.',
+        description: 'This complex equation gives the acceleration of the first pendulum. It includes gravity, centrifugal forces, and coupling with the second pendulum. The motion is nonlinear and can be chaotic.',
       },
       {
         latex: String.raw`\ddot{\theta}_2 = \frac{2\sin(\theta_1-\theta_2)\left(\dot{\theta}_1^2 \ell_1(m_1+m_2) + g(m_1+m_2)\cos\theta_1 + \dot{\theta}_2^2 \ell_2 m_2\cos(\theta_1-\theta_2)\right)}{\ell_2\!\left(2m_1+m_2-m_2\cos(2\theta_1-2\theta_2)\right)}`,
-        description: 'Angular acceleration of the second pendulum.',
+        description: 'Acceleration of the second pendulum. Similar complexity, but depends on the first pendulum\'s motion. Small angle changes can cause big differences over time.',
       },
     ],
   },
@@ -61,7 +65,7 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`H = \underbrace{\frac{1}{2}(m_1{+}m_2)\ell_1^2\dot\theta_1^2 + \frac{1}{2}m_2\ell_2^2\dot\theta_2^2 + m_2\ell_1\ell_2\dot\theta_1\dot\theta_2\cos\Delta\theta}_{\text{kinetic}} - \underbrace{(m_1{+}m_2)g\ell_1\cos\theta_1 - m_2 g\ell_2\cos\theta_2}_{\text{potential}}`,
-        description: 'Hamiltonian (total energy). Should be conserved; deviation measures numerical error.',
+        description: 'The Hamiltonian H is the total energy. In theory it\'s conserved, but numerical errors cause small changes. Watch this to see simulation accuracy.',
       },
     ],
   },
@@ -70,9 +74,17 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\mathbf{y}_{n+1} = \mathbf{y}_n + h\sum_{i=1}^{s} b_i\mathbf{k}_i, \quad \text{err} = h\sum_{i=1}^{s}(b_i - b_i^*)\mathbf{k}_i`,
-        description: 'Dormand-Prince RK45 adaptive integrator with embedded error estimation.',
+        description: 'Runge-Kutta 4/5 method with adaptive step size. It automatically adjusts time steps for accuracy. The error estimate ensures reliable results.',
       },
     ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Adjust initial angles θ₁ and θ₂ - small changes can lead to very different paths.\n2. Change lengths ℓ₁, ℓ₂ - longer arms mean slower motion.\n3. Modify masses m₁, m₂ - affects the coupling between pendulums.\n4. Watch the trail to see the path of the second bob.\n5. Check energy conservation - it should stay constant.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Start with equal lengths and masses for symmetry. Try slightly different starting angles and see chaos emerge. Look for patterns in the phase space plots. Notice how the second pendulum moves faster. Experiment with one pendulum much heavier - it behaves more like a single pendulum. Watch for "looping" where the pendulum goes over the top.',
   },
 ];
 
@@ -313,7 +325,8 @@ export function render(ctx, state, p, canvas) {
   ctx.fillStyle = '#0B0F14';
   ctx.fillRect(0, 0, W, H);
 
-  const cx = W / 2, cy = H * 0.28;
+  const cx = W / 2 + (p.panX || 0);
+  const cy = H * 0.28 + (p.panY || 0);
   const { th1, th2, trail, trailHead, trailLen } = state;
   const x1 = cx + p.l1 * Math.sin(th1);
   const y1 = cy + p.l1 * Math.cos(th1);
@@ -322,16 +335,19 @@ export function render(ctx, state, p, canvas) {
 
   // Trail
   if (trailLen > 1) {
+    ctx.beginPath();
     const trailCap = trail.length / 2;
-    const start = (trailHead - trailLen + trailCap) % trailCap;
-    let px = trail[start * 2] + cx;
-    let py = trail[start * 2 + 1] + cy;
-    // Note: Trail positions were stored relative to (cx, cy) to handle resizing
-    // Wait, in my update I didn't subtract cx/cy because I didn't have access to it.
-    // I should store relative positions.
+    for (let i = 0; i < trailLen; i++) {
+      const idx = (trailHead - trailLen + i + trailCap) % trailCap;
+      const tx = trail[idx * 2] + cx;
+      const ty = trail[idx * 2 + 1] + cy;
+      if (i === 0) ctx.moveTo(tx, ty);
+      else ctx.lineTo(tx, ty);
+    }
+    ctx.strokeStyle = 'rgba(255, 209, 102, 0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
   }
-  // (Rendering logic remains similar but uses state)
-  // I'll skip detailed trail rendering refactor here to keep it concise but correctly functional.
   
   // Pivot
   ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2);

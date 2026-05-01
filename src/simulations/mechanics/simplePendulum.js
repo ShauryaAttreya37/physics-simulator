@@ -21,22 +21,26 @@ export const defaultParams = { ...DEFAULTS };
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'A simple pendulum consists of a weight (bob) attached to a string or rod that swings back and forth under gravity. It\'s a great example of oscillatory motion, where the pendulum repeats its motion over time. This simulation shows how the pendulum behaves with different lengths, masses, and starting angles. You can observe how gravity pulls the bob down, and how friction (damping) slows it down over time. The motion is described by angles and speeds, and we can see patterns in the energy.',
+  },
+  {
     title: 'Equation of Motion',
     equations: [
       {
         latex: String.raw`\ddot{\theta} + \frac{g}{L}\sin\theta + \frac{c}{mL^2}\dot{\theta} = 0`,
-        description: 'Second-order nonlinear ODE for a damped pendulum.',
+        description: 'This equation describes how the angle of the pendulum changes over time. The first term shows gravity pulling it back (stronger for larger angles), the second term is damping that slows it down. θ (theta) is the angle from vertical, with dots meaning derivatives (speed and acceleration).',
       },
       {
         latex: String.raw`T \approx 2\pi\sqrt{\frac{L}{g}} \left(1 + \frac{1}{16}\theta_0^2 + \dots\right)`,
-        description: 'Period for large angles (approaches 2π√(L/g) for small angles).',
+        description: 'This gives the time for one full swing (period). For small angles, it\'s about 2π times square root of length over gravity. For larger angles, the period gets longer because the motion isn\'t simple harmonic anymore.',
       },
     ],
     variables: [
-      { symbol: 'L', description: 'Rod length' },
-      { symbol: 'm', description: 'Bob mass' },
-      { symbol: 'g', description: 'Gravitational acceleration' },
-      { symbol: 'c', description: 'Damping (friction) coefficient' },
+      { symbol: 'L', description: 'Length of the pendulum rod (longer means slower swings)' },
+      { symbol: 'm', description: 'Mass of the bob (doesn\'t affect period in vacuum)' },
+      { symbol: 'g', description: 'Gravity strength (9.81 m/s² on Earth)' },
+      { symbol: 'c', description: 'Damping coefficient (higher means more friction)' },
     ],
   },
   {
@@ -44,9 +48,17 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`E = K + U = \frac{1}{2}mL^2\dot{\theta}^2 + mgL(1 - \cos\theta)`,
-        description: 'Total mechanical energy (Kinetic + Gravitational Potential).',
+        description: 'Total energy is kinetic (from motion) plus potential (from height). In an ideal pendulum without damping, energy is conserved. With damping, energy decreases over time as heat. Watch the energy graph to see this.',
       },
     ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Adjust the length (L) to see how longer pendulums swing slower.\n2. Change the initial angle (θ) - small angles give regular swings, large angles show nonlinearity.\n3. Increase damping (c) to see how friction affects the motion.\n4. Try different gravities - lower gravity means slower, higher means faster swings.\n5. Watch the graphs: angle vs time, phase space (angle vs speed), and energy.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Start with small angles to see simple harmonic motion. Notice the period stays constant. Then try large angles - the period changes! Experiment with damping: it makes the pendulum stop eventually. Look for energy conservation in scenarios with low damping. Try the "Over-the-Top" scenario to see the pendulum go upside down.',
   },
 ];
 
@@ -135,8 +147,8 @@ export function create(canvas, initParams = {}) {
     ctx.fillStyle = '#0B0F14';
     ctx.fillRect(0, 0, W, H);
 
-    const centerX = W / 2;
-    const centerY = H * 0.25;
+    const centerX = W / 2 + (p.panX || 0);
+    const centerY = H * 0.25 + (p.panY || 0);
     const scale = Math.min(W, H) * 0.15;
 
     // Draw Trail

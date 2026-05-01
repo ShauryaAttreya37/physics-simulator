@@ -20,6 +20,53 @@ export const defaultParams = {
   forcingFreq: 1.4,
 };
 
+export const equationSections = [
+  {
+    title: 'Introduction',
+    content: 'A tuned mass damper (TMD) is a secondary mass attached to a primary structure to reduce vibrations. Tall buildings, bridges, and machines use TMDs to dampen oscillations from wind, earthquakes, or mechanical forces. The key is tuning the secondary mass and spring to absorb the primary structure\'s vibrations.',
+  },
+  {
+    title: 'System Equations',
+    equations: [
+      {
+        latex: String.raw`m_1 \ddot{x}_1 + c_1 \dot{x}_1 + k_1 x_1 = F_0 \sin(\omega t) + c_2(\dot{x}_2 - \dot{x}_1) + k_2(x_2 - x_1)`,
+        description: 'Primary structure: external force, primary damping/spring, plus coupling forces from the secondary mass.',
+      },
+      {
+        latex: String.raw`m_2 \ddot{x}_2 + c_2(\dot{x}_2 - \dot{x}_1) + k_2(x_2 - x_1) = 0`,
+        description: 'Secondary damper: no external force, only coupling with primary structure.',
+      },
+    ],
+    variables: [
+      { symbol: 'm₁, m₂', description: 'Primary and secondary masses' },
+      { symbol: 'k₁, k₂', description: 'Primary and secondary spring stiffnesses' },
+      { symbol: 'c₁, c₂', description: 'Primary and secondary damping coefficients' },
+      { symbol: 'F₀ sin(ωt)', description: 'Forcing function on primary structure' },
+    ],
+  },
+  {
+    title: 'Tuning Condition',
+    equations: [
+      {
+        latex: String.raw`\omega_{TMD} = \omega_{primary} = \sqrt{k_2/m_2} = \sqrt{k_1/m_1}`,
+        description: 'Optimal tuning: the TMD natural frequency matches the primary frequency for maximum energy transfer.',
+      },
+      {
+        latex: String.raw`m_2/m_1 = 0.01 \text{ to } 0.1`,
+        description: 'Typical mass ratio: secondary mass is 1-10% of primary mass.',
+      },
+    ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Set the primary mass m₁ and stiffness k₁ (determines natural frequency).\n2. Set secondary mass m₂ (usually smaller than m₁).\n3. Adjust secondary stiffness k₂ to tune the TMD frequency.\n4. Set damping c₂ for the damper - balances energy absorption vs stability.\n5. Apply forcing and watch x₁ and x₂ graphs.\n6. Try to minimize x₁ amplitude by tuning.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Start with "Optimal TMD" scenario to see full suppression. Then switch to "No Damper" to see resonance without TMD. Understand that the damper reduces primary amplitude by amplifying secondary displacement. Tuning is critical - slightly off-tune can reduce effectiveness. Many real-world structures use TMDs.',
+  },
+];
+
 export const equations = [
   String.raw`m_1 \ddot{x}_1 + c_1 \dot{x}_1 + k_1 x_1 = F_0 \sin(\omega t) + c_2(\dot{x}_2 - \dot{x}_1) + k_2(x_2 - x_1)`,
   String.raw`m_2 \ddot{x}_2 + c_2(\dot{x}_2 - \dot{x}_1) + k_2(x_2 - x_1) = 0`

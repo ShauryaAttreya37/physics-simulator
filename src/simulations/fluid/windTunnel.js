@@ -137,14 +137,40 @@ export const equations = [];
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'A wind tunnel simulates airflow around objects to study aerodynamics. This helps engineers design airplanes, cars, and buildings. The simulation shows how air particles flow around different shapes, creating drag (resistance) and lift (upward force). You can see pressure differences and vortex shedding.',
+  },
+  {
     title: 'Aerodynamic Equations',
     equations: [
-      { latex: String.raw`F_D = \frac{1}{2} \rho v^2 C_D A`, description: 'Drag force equation.' },
-      { latex: String.raw`F_L = \frac{1}{2} \rho v^2 C_L A`, description: 'Lift force equation.' },
-      { latex: String.raw`Re = \frac{\rho v D}{\mu}`, description: 'Reynolds number.' },
-      { latex: String.raw`St = \frac{f D}{U}`, description: 'Strouhal number (vortex shedding).' },
-    ]
-  }
+      { latex: String.raw`F_D = \frac{1}{2} \rho v^2 C_D A`, description: 'Drag force - the resistance force opposing motion. Depends on air density ρ, speed v, drag coefficient C_D, and frontal area A.' },
+      { latex: String.raw`F_L = \frac{1}{2} \rho v^2 C_L A`, description: 'Lift force - the upward force perpendicular to flow. C_L is lift coefficient, higher for streamlined shapes.' },
+      { latex: String.raw`Re = \frac{\rho v D}{\mu}`, description: 'Reynolds number - dimensionless number comparing inertial to viscous forces. High Re means turbulent flow.' },
+      { latex: String.raw`St = \frac{f D}{U}`, description: 'Strouhal number - characterizes vortex shedding frequency. f is shedding frequency, D is diameter, U is flow speed.' },
+    ],
+    variables: [
+      { symbol: 'ρ', description: 'Air density (mass per volume)' },
+      { symbol: 'v', description: 'Flow velocity (wind speed)' },
+      { symbol: 'C_D, C_L', description: 'Drag and lift coefficients (depend on shape)' },
+      { symbol: 'A', description: 'Reference area (usually frontal area)' },
+      { symbol: 'μ', description: 'Dynamic viscosity of air' },
+    ],
+  },
+  {
+    title: 'Flow Regimes',
+    equations: [
+      { latex: String.raw`Re < 10^3`, description: 'Laminar flow - smooth, predictable streamlines.' },
+      { latex: String.raw`Re > 10^5`, description: 'Turbulent flow - chaotic, with eddies and mixing.' },
+    ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Select different object shapes (circle, square, airfoil) to see how shape affects drag and lift.\n2. Adjust wind speed - higher speeds increase forces quadratically.\n3. Change object size - larger objects experience more force.\n4. Watch the particle trails to visualize airflow patterns.\n5. Look for vortex shedding behind bluff bodies (alternating vortices).\n6. Check the graphs for force variations and Reynolds number.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Streamlined shapes (airfoils) have low drag and high lift. Blunt shapes create more drag and wake turbulence. At low speeds, flow is smooth; at high speeds, it becomes turbulent. The pressure is higher where flow slows down. Try the mouse probe to see local flow conditions.',
+  },
 ];
 
 export const graphParams = [

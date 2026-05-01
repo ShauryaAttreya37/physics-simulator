@@ -19,39 +19,57 @@ export const defaultParams = { ...DEFAULTS };
 
 export const equationSections = [
   {
-    title: 'The Force \& The Work-Energy Theorem',
+    title: 'Introduction',
+    content: 'Work and energy are fundamental concepts in physics. This simulation shows a block on an inclined plane where you can apply forces, change friction, and see how work converts to kinetic energy, potential energy, and heat. It demonstrates the work-energy theorem and conservation of energy.',
+  },
+  {
+    title: 'The Force & The Work-Energy Theorem',
     equations: [
       {
         latex: String.raw`W_{net} = \Delta K = K_f - K_i`,
-        description: 'Imagine a Jedi using the Force to push a block of kyber crystal up a ramp. The precise amount of Net Force they channel over that distance (Work) translates exactly to the crystal\'s change in Kinetic Energy. The Force is what gives it motion!',
+        description: 'The net work done on an object equals its change in kinetic energy. Work is force times distance in the direction of the force.',
       },
       {
         latex: String.raw`W = \int \vec{F} \cdot d\vec{r}`,
-        description: 'Every midichlorian contributes. Here, we sum up the continuous Force over every inch of the displacement, even if the dark side (friction) tries to oppose the struggle.',
+        description: 'Work is the integral of force dotted with displacement. Only the component of force parallel to motion does work.',
       },
+    ],
+    variables: [
+      { symbol: 'W_net', description: 'Net work done on the system' },
+      { symbol: 'ΔK', description: 'Change in kinetic energy' },
+      { symbol: 'F', description: 'Force vector' },
+      { symbol: 'dr', description: 'Displacement vector' },
     ],
   },
   {
-    title: 'Energy Conservation in the Galaxy',
+    title: 'Energy Conservation',
     equations: [
       {
-        latex: String.raw`E_{total} = K + U + Q = \text{const}`,
-        description: 'Energy, like the Force, binds the galaxy together—it cannot be created or destroyed. Kinetic (motion), Potential (height), and Thermal (heat from friction on sandy Tatooine slopes) always sum to the same constant.',
+        latex: String.raw`E_{total} = K + U + Q = \text{constant}`,
+        description: 'Total mechanical energy plus thermal energy is conserved. Energy can convert between forms but total amount stays the same.',
       },
       {
         latex: String.raw`K = \frac{1}{2}mv^2, \quad U = mgh, \quad Q = \int |f_k| dx`,
-        description: 'Kinetic (K) measures the speed of your pod-racer, Potential (U) is its height over the Sarlacc pit, and Q is the thermal energy lost scraping the hull against the canyon walls.',
+        description: 'Kinetic energy from motion, potential energy from height, thermal energy from friction (dissipates as heat).',
       },
     ],
   },
   {
-    title: 'Unlimited Power!',
+    title: 'Power',
     equations: [
       {
         latex: String.raw`P = \frac{dW}{dt} = \vec{F} \cdot \vec{v}`,
-        description: '"Unlimited Power!" — the Sith Lord was actually referring to the RATE at which work is performed. It\'s your instantaneous physical Force multiplied by your current velocity.',
+        description: 'Power is the rate of doing work. It\'s force times velocity (component in direction of force).',
       },
     ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Adjust the applied force - positive pushes up the ramp, negative pulls down.\n2. Change the incline angle - steeper ramps make gravity more important.\n3. Set friction coefficient - higher friction converts more energy to heat.\n4. Modify mass - heavier objects need more force to move.\n5. Watch the energy graphs - see how work converts to different energy forms.\n6. Try to conserve total energy by minimizing friction.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Start with no friction to see pure mechanical energy conservation. Add friction to see energy dissipation. The work you do with applied force should equal the change in kinetic energy (minus friction losses). Power shows how quickly you\'re doing work. Try different combinations to understand energy flow.',
   },
 ];
 

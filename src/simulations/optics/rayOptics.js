@@ -65,36 +65,57 @@ export const controls = [
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'Geometrical optics uses light rays to understand how lenses, mirrors, and prisms bend and focus light. This simulation traces rays through optical systems to show how images are formed. You can experiment with lenses, mirrors, and refractive materials to understand cameras, telescopes, and eyeglasses.',
+  },
+  {
     title: 'Thin Lens and Mirror Equation',
     equations: [
       {
         latex: String.raw`\frac{1}{f} = \frac{1}{d_o} + \frac{1}{d_i}`,
-        description: 'Relates focal length, object distance, and image distance.',
+        description: 'The lens/mirror equation. It tells you where the image forms. If d_i is negative, the image is virtual (on the same side as object).',
       },
       {
         latex: String.raw`m = -\frac{d_i}{d_o} = \frac{h_i}{h_o}`,
-        description: 'Lateral magnification determines image size and orientation.',
+        description: 'Magnification shows how much bigger/smaller the image is. Negative magnification means the image is upside down.',
       },
     ],
     variables: [
-      { symbol: 'f', description: 'Focal length (positive for converging, negative for diverging)' },
-      { symbol: 'd_o', description: 'Object distance (always positive for real objects)' },
-      { symbol: 'd_i', description: 'Image distance (positive for real, negative for virtual)' },
-      { symbol: 'm', description: 'Magnification (negative means inverted)' },
+      { symbol: 'f', description: 'Focal length - distance from lens/mirror to focal point (positive for converging, negative for diverging)' },
+      { symbol: 'd_o', description: 'Object distance - how far the object is from the lens/mirror' },
+      { symbol: 'd_i', description: 'Image distance - where the image forms (positive = real image, negative = virtual)' },
+      { symbol: 'm', description: 'Magnification - image height divided by object height' },
     ],
   },
   {
-    title: "Snell's Law & Slab Shift",
+    title: "Snell's Law & Refraction",
     equations: [
       {
         latex: String.raw`n_1 \sin\theta_1 = n_2 \sin\theta_2`,
-        description: 'Refraction at each interface.',
+        description: 'Snell\'s Law: When light crosses from one material to another, it bends. Higher index of refraction bends light more.',
       },
       {
         latex: String.raw`s = t \frac{\sin(\theta_1-\theta_2)}{\cos\theta_2}`,
-        description: 'Lateral displacement through a parallel slab of thickness t.',
+        description: 'For a parallel slab, light exits parallel to incident ray but shifted sideways by amount s.',
       },
     ],
+    variables: [
+      { symbol: 'n', description: 'Index of refraction - how much the material slows down light (air=1, glass=1.5, diamond=2.4)' },
+      { symbol: 'θ', description: 'Angle of incidence/refraction from normal' },
+      { symbol: 't', description: 'Thickness of the slab' },
+    ],
+  },
+  {
+    title: 'Ray Tracing Rules',
+    content: '1. Light rays are straight lines in uniform media.\n2. At mirrors: angle of incidence = angle of reflection.\n3. At lenses: rays parallel to axis pass through focal point; rays through center go straight.\n4. At interfaces: use Snell\'s law for refraction.',
+  },
+  {
+    title: 'How to Use',
+    content: '1. Select different optical elements (lens, mirror, prism, slab).\n2. Adjust object distance and height.\n3. Change focal length for lenses/mirrors.\n4. Try different refractive indices for prisms and slabs.\n5. Watch how rays bend and where images form.\n6. Use scenarios like "Camera Lens" or "Magnifying Glass" for examples.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Real images can be projected on a screen, virtual images cannot. Converging lenses (positive f) focus light, diverging lenses (negative f) spread it out. The human eye is like a camera lens. Rainbows form from refraction in raindrops.',
   },
 ];
 
@@ -198,6 +219,7 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
   };
 
   const onDown = (event) => {
+    if (event.button === 1 || event.shiftKey) return; // Ignore pan events
     const m = getMouse(event);
     const L = layout();
     const element = ELEMENTS[Math.round(p.elementIdx)] || ELEMENTS[0];
@@ -272,8 +294,8 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
     const w = canvas.width || 1;
     const h = canvas.height || 1;
     const scale = Math.min(w / 900, h / 520);
-    const axisY = h * 0.54;
-    const elementX = w * 0.48;
+    const axisY = h * 0.54 + (p.panY || 0);
+    const elementX = w * 0.48 + (p.panX || 0);
     const pixelsPerCm = scale * 0.95;
     return { w, h, axisY, elementX, pixelsPerCm };
   }

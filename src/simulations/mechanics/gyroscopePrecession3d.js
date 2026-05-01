@@ -27,19 +27,23 @@ export const defaultParams = { ...DEFAULTS };
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'A gyroscope is a spinning wheel that resists changes to its orientation. When tilted, instead of falling, it precesses (moves in a circle around the vertical). This counterintuitive behavior comes from angular momentum conservation. Gyroscopes are used in navigation, stabilization, and toys.',
+  },
+  {
     title: 'Lagrangian',
     equations: [
       {
         latex: String.raw`\mathcal{L} = \frac{1}{2}I_1(\dot{\theta}^2 + \dot{\phi}^2\sin^2\theta) + \frac{1}{2}I_3(\dot{\psi} + \dot{\phi}\cos\theta)^2 - mgl\cos\theta`,
-        description: 'Full Lagrangian for a symmetric heavy top.',
+        description: 'The Lagrangian combines kinetic energy (rotational) and potential energy (gravity). The kinetic energy depends on the three angles θ, ϕ, ψ that describe the gyroscope\'s orientation.',
       },
     ],
     variables: [
-      { symbol: 'θ', description: 'Tilt (nutation) angle from vertical' },
-      { symbol: 'ϕ', description: 'Precession angle' },
-      { symbol: 'ψ', description: 'Spin angle around its own axis' },
+      { symbol: 'θ', description: 'Tilt angle from vertical (nutation)' },
+      { symbol: 'ϕ', description: 'Horizontal rotation angle (precession)' },
+      { symbol: 'ψ', description: 'Spin angle around its axis' },
       { symbol: 'ℓ', description: 'Distance from pivot to center of mass' },
-      { symbol: 'I₁, I₃', description: 'Transverse and Spin moments of inertia' },
+      { symbol: 'I₁, I₃', description: 'Moments of inertia perpendicular and along spin axis' },
     ],
   },
   {
@@ -47,15 +51,15 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\ddot{\theta} = \dot{\phi}^2\sin\theta\cos\theta - \frac{I_3}{I_1}\omega_3\dot{\phi}\sin\theta + \frac{mgl}{I_1}\sin\theta - \gamma_\theta\dot{\theta}`,
-        description: 'Nutation acceleration, balancing gyroscopic torque and gravity.',
+        description: 'How the tilt angle changes. Gravity tries to make it fall, but spin creates gyroscopic forces that cause precession instead.',
       },
       {
         latex: String.raw`\ddot{\phi} = \frac{I_3\omega_3\dot{\theta}\sin\theta + I_3 k_s\omega_3\cos\theta - 2I_1\dot{\phi}\dot{\theta}\sin\theta\cos\theta - \gamma_\phi\dot{\phi}}{I_1\sin^2\theta}`,
-        description: 'Precession acceleration.',
+        description: 'Precession rate. Fast spin makes it precess quickly. This is the key to gyroscope behavior.',
       },
       {
         latex: String.raw`\dot{\omega}_3 = -k_s\omega_3`,
-        description: 'Decay of total spin along the axis due to bearing friction.',
+        description: 'Spin slows down over time due to friction. Gyroscopes eventually stop precessing.',
       },
     ],
   },
@@ -64,9 +68,17 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`H = \frac{1}{2}I_1(\dot{\theta}^2 + \dot{\phi}^2\sin^2\theta) + \frac{1}{2}I_3\omega_3^2 + mgl\cos\theta`,
-        description: 'Hamiltonian (total energy). Tracked to measure numerical drift.',
+        description: 'Total energy. Should stay constant, but numerical errors cause small changes. This helps check simulation accuracy.',
       },
     ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Set initial spin rate - higher spin gives stronger gyroscopic effects.\n2. Adjust tilt angle θ - see how it affects precession speed.\n3. Change moments of inertia - affects stability.\n4. Add damping to see realistic behavior.\n5. Watch the 3D visualization and angle graphs.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Start with high spin and small tilt. Notice it doesn\'t fall but circles around. Try tilting more - precession gets faster. Compare with no spin - it just falls. Look at energy conservation. Experiment with different shapes (change I₁/I₃ ratio).',
   },
 ];
 

@@ -26,6 +26,38 @@ export const defaultParams = {
   gravityScale: 0.0012,
 };
 
+export const equationSections = [
+  {
+    title: 'Introduction',
+    content: 'Newton\'s cradle demonstrates conservation of momentum and energy through collisions. When you lift and release balls on one side, they transfer energy to the other side. It shows how elastic collisions work and why the same number of balls swing out.',
+  },
+  {
+    title: 'Conservation Laws',
+    equations: [
+      {
+        latex: String.raw`\sum m_i \mathbf{v}_i = \text{const}`,
+        description: 'Total momentum is conserved in collisions (no external forces).',
+      },
+      {
+        latex: String.raw`\sum \frac{1}{2} m_i \mathbf{v}_i^2 = \text{const}`,
+        description: 'Total kinetic energy is conserved in elastic collisions.',
+      },
+      {
+        latex: String.raw`e = \frac{v_{2f} - v_{1f}}{v_{1i} - v_{2i}} \approx 0.995`,
+        description: 'Coefficient of restitution measures elasticity. 1.0 = perfectly elastic.',
+      },
+    ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Choose how many balls to pull back (1-3).\n2. Adjust pull angle for different energy input.\n3. Change restitution to see inelastic vs elastic collisions.\n4. Modify ball count and see patterns.\n5. Watch momentum and energy graphs.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Start with pulling one ball - one swings out. Pull two - two swing out. This shows momentum conservation. Try pulling three with five balls - interesting patterns emerge. Reduce restitution to see energy loss. Look at the energy graph - it should stay constant for elastic collisions.',
+  },
+];
+
 export const equations = [
   String.raw`\sum m_i \mathbf{v}_i = \text{const} \quad \text{(Momentum)}`,
   String.raw`\sum \frac{1}{2} m_i \mathbf{v}_i^2 = \text{const} \quad \text{(Kinetic Energy)}`,

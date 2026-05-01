@@ -28,21 +28,27 @@ export const graphParams = [
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'Torque and rotation are the angular equivalents of force and linear motion. This simulation shows a rotor that you can apply torques to, demonstrating how rotational inertia affects angular acceleration. It\'s like Newton\'s second law but for spinning objects.',
+  },
+  {
     title: 'Rotational Dynamics',
     equations: [
       {
         latex: String.raw`\tau = rF_t`,
-        description: 'Torque magnitude is the tangential force times lever arm radius.',
+        description: 'Torque is force times the perpendicular distance from the axis (lever arm). It causes rotation.',
       },
       {
         latex: String.raw`\sum \tau = I\alpha`,
-        description: 'Angular acceleration scales inversely with moment of inertia.',
+        description: 'Net torque equals moment of inertia times angular acceleration. This is Newton\'s second law for rotation.',
       },
     ],
     variables: [
-      { symbol: 'tau', description: 'Net torque about axle' },
-      { symbol: 'I', description: 'Moment of inertia of rotor' },
-      { symbol: 'alpha', description: 'Angular acceleration' },
+      { symbol: 'τ', description: 'Torque (N·m) - rotational force' },
+      { symbol: 'r', description: 'Lever arm - distance from axis to force' },
+      { symbol: 'F_t', description: 'Tangential force component' },
+      { symbol: 'I', description: 'Moment of inertia - rotational mass (kg·m²)' },
+      { symbol: 'α', description: 'Angular acceleration (rad/s²)' },
     ],
   },
   {
@@ -50,9 +56,26 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`K_{rot} = \frac{1}{2}I\omega^2`,
-        description: 'Rotational kinetic energy grows with inertia and spin speed.',
+        description: 'Rotational kinetic energy. Like linear KE but with moment of inertia and angular velocity.',
       },
     ],
+  },
+  {
+    title: 'Moment of Inertia',
+    equations: [
+      {
+        latex: String.raw`I = \sum m_i r_i^2`,
+        description: 'Moment of inertia depends on mass distribution. Mass farther from axis has more effect.',
+      },
+    ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Apply tangential forces by clicking and dragging on the rotor.\n2. Adjust the moment of inertia - higher I means harder to spin.\n3. Add damping to see realistic slowing down.\n4. Watch angular velocity and acceleration graphs.\n5. See how torque relates to angular acceleration.\n6. Compare rotational KE to the work done.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Torque is like force for rotation. The farther from the center you apply force, the more torque. Heavy objects or mass far from axis have high moment of inertia. Try spinning it fast then letting it slow - see conservation of energy. Compare to linear motion analogies.',
   },
 ];
 

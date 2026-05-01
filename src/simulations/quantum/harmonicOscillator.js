@@ -22,21 +22,25 @@ export const defaultParams = { ...DEFAULTS };
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'The quantum harmonic oscillator describes a particle in a potential that increases quadratically with distance, like a spring or atoms in a molecule. In quantum mechanics, the energy levels are equally spaced, unlike classical oscillators. Even the ground state has some energy (zero-point energy). This simulation shows how quantum states combine and evolve, revealing the rich structure of quantum motion.',
+  },
+  {
     title: 'Quantum Harmonic Oscillator',
     equations: [
       {
         latex: String.raw`\hat{H} = \frac{\hat{p}^2}{2m} + \frac{1}{2}m\omega^2\hat{x}^2`,
-        description: 'Hamiltonian for a particle in a quadratic potential.',
+        description: 'The total energy operator (Hamiltonian) includes kinetic energy (p²/2m) and potential energy (½mω²x²). This is the quantum version of E = p²/2m + ½kx².',
       },
       {
         latex: String.raw`E_n = \hbar\omega\left(n + \frac{1}{2}\right), \quad n = 0, 1, 2, \ldots`,
-        description: 'Equally-spaced energy eigenvalues — the hallmark of the QHO.',
+        description: 'Energy levels are equally spaced by ℏω. Notice the ½ - even at absolute zero temperature, there\'s residual energy. n=0 is ground state, n=1 first excited, etc.',
       },
     ],
     variables: [
-      { symbol: 'ω', description: 'Angular frequency of oscillator' },
-      { symbol: 'n', description: 'Quantum number' },
-      { symbol: 'ℏ', description: 'Reduced Planck constant' },
+      { symbol: 'ω', description: 'Oscillation frequency - higher ω means stiffer spring and higher energies' },
+      { symbol: 'n', description: 'Energy level number - determines how many "bumps" in the wavefunction' },
+      { symbol: 'ℏ', description: 'Quantum constant - sets the scale of quantum effects' },
     ],
   },
   {
@@ -44,7 +48,7 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\psi_n(x) = \left(\frac{m\omega}{\pi\hbar}\right)^{1/4} \frac{1}{\sqrt{2^n n!}} H_n(\xi)\,e^{-\xi^2/2}, \quad \xi = \sqrt{\frac{m\omega}{\hbar}}\,x`,
-        description: 'Hermite-Gauss eigenfunctions. Hₙ are the physicist\'s Hermite polynomials.',
+        description: 'The probability amplitudes. They look like Gaussians multiplied by Hermite polynomials. Higher n means the particle can be found farther from center.',
       },
     ],
   },
@@ -53,9 +57,17 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`W(x,p) = \frac{1}{\pi\hbar}\int_{-\infty}^{\infty}\psi^*(x+y)\psi(x-y)e^{2ipy/\hbar}\,dy`,
-        description: 'Quasi-probability distribution in phase space. Can be negative — a signature of quantum mechanics.',
+        description: 'A way to visualize quantum states in position-momentum space. Unlike classical distributions, it can be negative, showing quantum uncertainty.',
       },
     ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Start with n=0 amplitude = 1. This is the ground state - particle most likely near center.\n2. Add n=1 amplitude. See how the wave oscillates between stretched and compressed.\n3. Try superposition of n=0 and n=2. Watch the complex motion.\n4. Adjust ω to see how frequency affects the spread.\n5. Look at ⟨x⟩ and ⟨p⟩ - they oscillate, showing quantum beats.\n6. Check the Wigner function to see the phase space distribution.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Unlike classical oscillators, quantum ones have discrete energy levels. The zero-point energy means particles never completely stop. Higher states allow the particle to explore larger regions. The Wigner function shows why you can\'t know both position and momentum perfectly.',
   },
 ];
 

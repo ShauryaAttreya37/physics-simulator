@@ -24,22 +24,26 @@ export const defaultParams = {
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'Orbital gravity shows how planets, moons, and stars move under gravitational attraction. This N-body simulation demonstrates Kepler\'s laws, conservation of energy and angular momentum, and chaotic behavior in multi-body systems.',
+  },
+  {
     title: 'Gravitational Interaction',
     equations: [
       {
         latex: String.raw`\mathbf{F}_{ij} = G \frac{m_i m_j}{|\mathbf{r}_j - \mathbf{r}_i|^3}(\mathbf{r}_j - \mathbf{r}_i)`,
-        description: 'Pairwise gravitational force between bodies i and j.',
+        description: 'Gravitational force between two bodies. Force is attractive, proportional to masses and inversely proportional to distance squared.',
       },
       {
         latex: String.raw`\ddot{\mathbf{r}}_i = \sum_{j \neq i} G m_j \frac{\mathbf{r}_j - \mathbf{r}_i}{(|\mathbf{r}_j - \mathbf{r}_i|^2 + \epsilon^2)^{3/2}}`,
-        description: 'Acceleration with Plummer softening ε to avoid divergence.',
+        description: 'Acceleration of body i due to all others. Softening ε prevents infinite forces when bodies get very close.',
       },
     ],
     variables: [
-      { symbol: 'G', description: 'Gravitational constant' },
-      { symbol: 'mᵢ', description: 'Mass of body i' },
-      { symbol: 'rᵢ', description: 'Position vector of body i' },
-      { symbol: 'ε', description: 'Softening parameter (regularization)' },
+      { symbol: 'G', description: 'Gravitational constant (set to 1 for simplicity)' },
+      { symbol: 'mᵢ', description: 'Mass of each body' },
+      { symbol: 'rᵢ', description: 'Position vector' },
+      { symbol: 'ε', description: 'Softening parameter to avoid singularities' },
     ],
   },
   {
@@ -47,11 +51,11 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`E = \sum_i \frac{1}{2} m_i |\mathbf{v}_i|^2 - \sum_{i < j} G \frac{m_i m_j}{|\mathbf{r}_j - \mathbf{r}_i|}`,
-        description: 'Total energy (kinetic + potential). Conserved in the continuum limit.',
+        description: 'Total energy = kinetic + potential. Should be conserved, but numerical errors cause small drift.',
       },
       {
         latex: String.raw`\mathbf{L} = \sum_i m_i \, \mathbf{r}_i \times \mathbf{v}_i`,
-        description: 'Total angular momentum. Exactly conserved.',
+        description: 'Angular momentum. Exactly conserved in numerical simulation.',
       },
     ],
   },
@@ -60,9 +64,17 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\text{Coefficients: } c_1 = c_4 = \frac{1}{2(2 - 2^{1/3})}, \quad c_2 = c_3 = \frac{1 - 2^{1/3}}{2(2 - 2^{1/3})}`,
-        description: 'Yoshida symplectic integrator preserves the symplectic structure of Hamiltonian dynamics, giving superior long-term energy conservation compared to standard Runge-Kutta methods.',
+        description: 'Symplectic integrator that preserves energy and momentum much better than regular methods for long simulations.',
       },
     ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Choose scenarios like solar system or figure-8 orbit.\n2. Adjust masses and initial velocities.\n3. Watch trails to see orbital paths.\n4. Check energy and angular momentum conservation.\n5. Try adding or removing bodies.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Start with two bodies - they orbit their center of mass. Try circular vs elliptical orbits. Look at three-body problem - it can be chaotic. Check conservation graphs - angular momentum should be constant. Try the figure-8 solution - perfectly symmetric orbits.',
   },
 ];
 

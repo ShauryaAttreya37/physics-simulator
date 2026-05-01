@@ -28,25 +28,29 @@ export const defaultParams = { ...DEFAULTS };
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'The Lorenz attractor is a famous example of chaotic behavior in a simple system. It models atmospheric convection and shows how deterministic equations can produce unpredictable results. Tiny changes in initial conditions lead to completely different outcomes - the "butterfly effect".',
+  },
+  {
     title: 'Lorenz System',
     equations: [
       {
         latex: String.raw`\dot{x} = \sigma(y - x)`,
-        description: 'Rate of convective overturning.',
+        description: 'How the convective intensity changes. σ controls how quickly temperature differences are smoothed out.',
       },
       {
         latex: String.raw`\dot{y} = x(\rho - z) - y`,
-        description: 'Horizontal temperature variation.',
+        description: 'Horizontal temperature variation. ρ is the key parameter - above a critical value, convection becomes chaotic.',
       },
       {
         latex: String.raw`\dot{z} = xy - \beta z`,
-        description: 'Vertical temperature variation.',
+        description: 'Vertical temperature difference. β affects the shape of the convection rolls.',
       },
     ],
     variables: [
-      { symbol: 'σ', description: 'Prandtl number (ratio of viscosity to thermal diffusivity)' },
-      { symbol: 'ρ', description: 'Rayleigh number (drives convection; chaos onset at ρ ≈ 24.74)' },
-      { symbol: 'β', description: 'Geometric factor of the convection cell' },
+      { symbol: 'σ', description: 'Prandtl number - ratio of fluid viscosity to thermal diffusivity (typically 10 for air)' },
+      { symbol: 'ρ', description: 'Rayleigh number - measures temperature difference driving convection (chaos starts around 24.74)' },
+      { symbol: 'β', description: 'Aspect ratio of convection rolls (usually 8/3)' },
     ],
   },
   {
@@ -54,13 +58,21 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\text{Divergence: } \nabla \cdot \mathbf{F} = -(\sigma + 1 + \beta) < 0`,
-        description: 'The system is dissipative — phase space volumes contract exponentially.',
+        description: 'The system contracts phase space volume over time - it\'s dissipative, like real physical systems.',
       },
       {
         latex: String.raw`\text{Lyapunov exponents: } \lambda_1 \approx 0.906, \; \lambda_2 = 0, \; \lambda_3 \approx -14.57`,
-        description: 'For standard parameters (σ=10, ρ=28, β=8/3). One positive exponent ⟹ chaos.',
+        description: 'Quantifies chaos. Positive exponent means trajectories diverge exponentially - sensitive dependence on initial conditions.',
       },
     ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Adjust ρ (Rayleigh number) - increase above ~25 to see chaos emerge.\n2. Change σ and β to see how they affect the attractor shape.\n3. Set different initial conditions - see how trajectories diverge.\n4. Watch the 3D butterfly shape and projections.\n5. Look at time series for periodic vs chaotic behavior.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Start with ρ=28, σ=10, β=8/3 (classic parameters). See the butterfly wings. Lower ρ for simpler behavior. Try ρ just above 24.74 - transition to chaos. Notice how close trajectories eventually diverge completely.',
   },
 ];
 

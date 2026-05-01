@@ -22,23 +22,27 @@ export const defaultParams = { ...DEFAULTS };
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'A spring pendulum combines pendulum motion with a spring. The bob can move radially (stretching the spring) and angularly. This creates complex motion patterns and demonstrates coupled oscillations in two dimensions.',
+  },
+  {
     title: 'Equations of Motion',
     equations: [
       {
         latex: String.raw`\ddot{r} = r\dot{\theta}^2 - \frac{k}{m}(r - L_0) + g\cos\theta - c\dot{r}`,
-        description: 'Radial acceleration: centripetal force + spring force + gravity component + damping.',
+        description: 'Radial acceleration includes centrifugal force (r θ̇²), spring restoring force, gravity component, and damping.',
       },
       {
         latex: String.raw`\ddot{\theta} = -\frac{g}{r}\sin\theta - \frac{2\dot{r}\dot{\theta}}{r} - c\dot{\theta}`,
-        description: 'Angular acceleration: gravity component + Coriolis force + damping.',
+        description: 'Angular acceleration has gravity torque, Coriolis effect from radial motion, and damping.',
       },
     ],
     variables: [
-      { symbol: 'r', description: 'Radial distance from pivot' },
+      { symbol: 'r', description: 'Distance from pivot (changes with spring)' },
       { symbol: 'θ', description: 'Angle from vertical' },
-      { symbol: 'L₀', description: 'Spring rest length' },
-      { symbol: 'k', description: 'Spring constant' },
-      { symbol: 'c', description: 'Damping coefficient' },
+      { symbol: 'L₀', description: 'Natural spring length' },
+      { symbol: 'k', description: 'Spring stiffness' },
+      { symbol: 'c', description: 'Damping (friction)' },
     ],
   },
   {
@@ -46,9 +50,17 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`E = \frac{1}{2}m(\dot{r}^2 + r^2\dot{\theta}^2) + \frac{1}{2}k(r-L_0)^2 - mgr\cos\theta`,
-        description: 'Total energy: Kinetic + Elastic Potential + Gravitational Potential.',
+        description: 'Total energy = kinetic (radial + rotational) + spring potential + gravitational potential.',
       },
     ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Adjust spring constant k - stiffer springs oscillate faster radially.\n2. Change rest length L₀ - affects equilibrium position.\n3. Set initial angle θ and radial displacement.\n4. Add damping c to see energy dissipation.\n5. Watch r and θ graphs for coupled motion.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Start with small displacements to see simple oscillations. Try large angles - motion becomes nonlinear. Look at Lissajous figures in r vs θ plot. Notice how spring and pendulum motions couple. Try different initial conditions - some lead to looping orbits.',
   },
 ];
 
@@ -150,8 +162,8 @@ export function create(canvas, initParams = {}) {
     ctx.fillStyle = '#0B0F14';
     ctx.fillRect(0, 0, W, H);
 
-    const centerX = W / 2;
-    const centerY = H * 0.2;
+    const centerX = W / 2 + (p.panX || 0);
+    const centerY = H * 0.2 + (p.panY || 0);
     const scale = Math.min(W, H) * 0.15;
 
     // Draw Trail

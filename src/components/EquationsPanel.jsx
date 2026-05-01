@@ -5,7 +5,7 @@ import { BlockMath } from './KaTeX';
  * variable lists, and numbered equations. Makie-inspired scientific layout.
  *
  * Props:
- *   sections — [{title, equations: [{latex, description?, number?}], variables?: [{symbol, description}]}]
+ *   sections — [{title?, content?, equations?: [{latex, description?, number?}], variables?: [{symbol, description}]}]
  *   title    — panel title
  */
 export default function EquationsPanel({ sections = [], title = 'Governing Equations' }) {
@@ -21,7 +21,10 @@ export default function EquationsPanel({ sections = [], title = 'Governing Equat
           {section.title && (
             <div className="equations-section-title">{section.title}</div>
           )}
-          {section.equations.map((eq, ei) => (
+          {section.content && (
+            <div className="equations-section-content">{section.content}</div>
+          )}
+          {section.equations && section.equations.map((eq, ei) => (
             <div key={ei} className="eq-numbered">
               <span className="eq-number">({si + 1}.{ei + 1})</span>
               <div className="eq-content">

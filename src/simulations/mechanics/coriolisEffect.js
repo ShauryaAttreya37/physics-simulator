@@ -19,25 +19,29 @@ export const defaultParams = { ...DEFAULTS };
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'The Coriolis effect is what makes objects seem to curve when viewed from a rotating frame, like Earth. It explains why hurricanes rotate differently in northern and southern hemispheres, and why projectiles seem to deflect. This simulation shows motion on a rotating disk to demonstrate these fictitious forces.',
+  },
+  {
     title: 'Newtonian Forces (Rotating Frame)',
     equations: [
       {
         latex: String.raw`\vec{F}_{eff} = \vec{F}_{ext} + \vec{F}_{cor} + \vec{F}_{cf}`,
-        description: 'Effective force in a rotating frame includes fictitious terms.',
+        description: 'In a rotating frame, we add fictitious forces to make Newton\'s laws work. These aren\'t real forces but appear due to the rotation.',
       },
       {
         latex: String.raw`\vec{F}_{cor} = -2m(\vec{\Omega} \times \vec{v})`,
-        description: 'Coriolis force acts perpendicular to the velocity.',
+        description: 'Coriolis force deflects moving objects sideways. It\'s zero for objects at rest, maximum for fast-moving ones.',
       },
       {
         latex: String.raw`\vec{F}_{cf} = -m\vec{\Omega} \times (\vec{\Omega} \times \vec{r})`,
-        description: 'Centrifugal force acts radially outward from the axis.',
+        description: 'Centrifugal force pushes objects outward from the center of rotation, like in a centrifuge.',
       },
     ],
     variables: [
-      { symbol: 'Ω', description: 'Angular velocity vector of rotating frame' },
-      { symbol: 'v', description: 'Velocity in rotating frame' },
-      { symbol: 'r', description: 'Position from center' },
+      { symbol: 'Ω', description: 'Rotation rate of the frame (vector)' },
+      { symbol: 'v', description: 'Velocity relative to rotating frame' },
+      { symbol: 'r', description: 'Position from rotation axis' },
     ]
   },
   {
@@ -45,13 +49,21 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\ddot{x} = 2\Omega\dot{y} + \Omega^2 x`,
-        description: 'Apparent acceleration in rotating X coordinates.',
+        description: 'X-acceleration includes Coriolis (2Ω·y-velocity) and centrifugal (Ω²·x) terms.',
       },
       {
         latex: String.raw`\ddot{y} = -2\Omega\dot{x} + \Omega^2 y`,
-        description: 'Apparent acceleration in rotating Y coordinates.',
+        description: 'Y-acceleration has Coriolis (-2Ω·x-velocity) and centrifugal (Ω²·y) terms.',
       },
     ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Set rotation rate Ω - higher values make effects stronger.\n2. Launch particles with different speeds and directions.\n3. Try straight launches vs angled ones.\n4. Watch how paths curve due to Coriolis force.\n5. Compare with non-rotating frame.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Start with slow rotation and fast particles to see clear deflection. Notice objects moving with rotation don\'t feel Coriolis force. Try launching radially - centrifugal force pushes outward. Look at weather patterns on Earth - Coriolis explains their rotation.',
   },
 ];
 

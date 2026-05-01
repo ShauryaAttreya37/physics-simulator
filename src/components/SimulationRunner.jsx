@@ -245,7 +245,7 @@ export default function SimulationRunner({ sim, onBack }) {
   const lastPanPosRef = useRef({ x: 0, y: 0 });
 
   const isModern = !!(sim.init && sim.update);
-  const engine = usePhysicsEngine(isModern ? sim : null, params, canvasRef);
+  const engine = usePhysicsEngine(isModern ? sim : null, { ...params, panX: globalPan.x, panY: globalPan.y }, canvasRef);
 
   const controls = useMemo(() => sim.controls ?? [], [sim.controls]);
   const paramsRef = useRef(params);
@@ -362,9 +362,9 @@ export default function SimulationRunner({ sim, onBack }) {
   // Push params to the live simulation instance *without* destroying it
   useEffect(() => {
     if (simRef.current?.setParams) {
-      simRef.current.setParams(params);
+      simRef.current.setParams({ ...params, panX: globalPan.x, panY: globalPan.y });
     }
-  }, [params]);
+  }, [params, globalPan]);
 
   const togglePlay = useCallback(() => {
     if (isModern) {
@@ -815,7 +815,7 @@ export default function SimulationRunner({ sim, onBack }) {
           <canvas 
             ref={canvasRef} 
             className="sim-runner-canvas" 
-            style={{ transform: `translate(${globalPan.x}px, ${globalPan.y}px)`, touchAction: 'none' }}
+            style={{ touchAction: 'none' }}
           />
           <canvas ref={recordingCanvasRef} className="recording-export-canvas" aria-hidden="true" />
           {runnerError && (

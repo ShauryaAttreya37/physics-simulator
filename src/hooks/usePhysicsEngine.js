@@ -21,6 +21,8 @@ export function usePhysicsEngine(sim, params, canvasRef) {
   useEffect(() => { runningRef.current = running; }, [running]);
   useEffect(() => { stateRef.current = state; }, [state]);
 
+  const initParamsRef = useRef(params);
+
   const initWorker = useCallback(() => {
     if (workerRef.current) workerRef.current.terminate();
     if (!sim) return;
@@ -46,9 +48,9 @@ export function usePhysicsEngine(sim, params, canvasRef) {
 
     workerRef.current.postMessage({
       type: 'INIT',
-      payload: { simId: sim.id, params }
+      payload: { simId: sim.id, params: initParamsRef.current }
     });
-  }, [sim, params]);
+  }, [sim]);
 
   const loop = useCallback((ts) => {
     if (!runningRef.current) return;

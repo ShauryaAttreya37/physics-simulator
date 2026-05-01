@@ -25,20 +25,24 @@ export const defaultParams = { ...DEFAULTS };
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'Atwood\'s machine is a pulley system with two masses connected by a string over a pulley. It demonstrates Newton\'s laws and energy conservation. When masses are different, the heavier one pulls the lighter one up. This is a classic physics experiment that shows how gravity creates acceleration and tension.',
+  },
+  {
     title: 'Equations of Motion',
     equations: [
       {
         latex: String.raw`a = g \frac{m_2 - m_1}{m_1 + m_2}`,
-        description: 'System acceleration. Positive means m₂ descends and m₁ ascends.',
+        description: 'The acceleration of the system depends on the mass difference. If m₂ > m₁, acceleration is positive (m₂ goes down). If equal masses, no motion. This comes from Newton\'s second law applied to the system.',
       },
       {
         latex: String.raw`T = \frac{2 m_1 m_2 g}{m_1 + m_2}`,
-        description: 'String tension (ideal massless pulley and string).',
+        description: 'Tension in the string. It\'s the same throughout the string. Notice it\'s always between the weights of the two masses - makes sense for equilibrium.',
       },
     ],
     variables: [
-      { symbol: 'm₁, m₂', description: 'Hanging masses [kg]' },
-      { symbol: 'g', description: 'Gravitational acceleration [m/s²]' },
+      { symbol: 'm₁, m₂', description: 'Masses hanging on each side (kg)' },
+      { symbol: 'g', description: 'Gravity acceleration (9.81 m/s² on Earth)' },
     ],
   },
   {
@@ -46,7 +50,7 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`E = \frac{1}{2}(m_1+m_2)v^2 + (m_1 - m_2) g \, s`,
-        description: 'Total mechanical energy. s is the displacement of m₂ downward from start.',
+        description: 'Total energy = kinetic + potential. s is how far the system has moved. Potential energy depends on height difference. Energy should be conserved (constant) over time.',
       },
     ],
   },
@@ -55,9 +59,17 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\Delta y_1 = -\Delta y_2, \quad v_1 = -v_2, \quad a_1 = -a_2`,
-        description: 'Inextensible string constraint: if m₂ descends, m₁ ascends equally.',
+        description: 'The string connects the masses, so they move together. If one goes up, the other goes down by the same amount. This is the key constraint that makes the system work.',
       },
     ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Set different masses m₁ and m₂ - heavier on one side causes motion.\n2. Try equal masses - system should not move.\n3. Adjust gravity - see how it affects acceleration.\n4. Watch the tension graph - it stays constant.\n5. Check energy conservation over time.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Start with m₂ much larger than m₁ to see clear motion. Calculate expected acceleration using the formula. Notice tension is less than the heavier mass\'s weight. Try very small mass differences - motion is slow. Look at the pulley - it changes direction of force.',
   },
 ];
 

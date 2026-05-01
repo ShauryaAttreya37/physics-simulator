@@ -22,24 +22,28 @@ export const defaultParams = { ...DEFAULTS };
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'Projectile motion is what happens when you throw or launch an object and it moves through the air under gravity. Think of throwing a ball or shooting a cannon. In a vacuum, the path is a perfect parabola, but air resistance makes it more realistic. This simulation lets you launch projectiles with different speeds, angles, and see how drag affects the flight. You can compare to ideal cases and learn about range, height, and energy.',
+  },
+  {
     title: 'Equations of Motion',
     equations: [
       {
         latex: String.raw`\vec{a} = \vec{g} - \frac{b}{m} \|\vec{v}\| \vec{v}`,
-        description: 'Acceleration vector including gravity and quadratic air drag.',
+        description: 'The acceleration has two parts: gravity pulling down, and drag opposing the motion. Drag depends on speed squared, so faster objects feel more drag. This is a vector equation, meaning it works in x and y directions.',
       },
       {
         latex: String.raw`a_x = -\frac{b}{m} v_x \sqrt{v_x^2 + v_y^2}`,
-        description: 'Horizontal deceleration due to drag.',
+        description: 'Horizontal acceleration is only from drag - it slows down the forward speed. No gravity in horizontal direction.',
       },
       {
-        latex: String.raw`a_y = -g - \frac{b}{m} v_y \sqrt{v_x^2 + v_y^2}`,
-        description: 'Vertical acceleration (gravity + drag).',
+        latex: String.raw`a_y = -g - \frac{b}{m} v_y \sqrt{v_y^2 + v_y^2}`,
+        description: 'Vertical acceleration combines gravity (always down) and drag. When going up, drag helps slow the ascent; when falling, it speeds up the descent.',
       },
     ],
     variables: [
-      { symbol: 'b/m', description: 'Mass-normalized drag coefficient [1/m]' },
-      { symbol: 'g', description: 'Gravitational acceleration [m/s²]' },
+      { symbol: 'b/m', description: 'Drag coefficient divided by mass - higher means more air resistance' },
+      { symbol: 'g', description: 'Gravity acceleration (9.81 m/s² on Earth)' },
     ],
   },
   {
@@ -47,7 +51,7 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`y(x) = x \tan \theta - \frac{g x^2}{2 v_0^2 \cos^2 \theta}`,
-        description: 'Analytical parabolic trajectory with zero air resistance.',
+        description: 'In vacuum (no air), the height y at horizontal distance x follows this parabolic equation. The launch angle θ and initial speed v₀ determine the shape. This is exact - no approximations.',
       },
     ],
   },
@@ -56,9 +60,17 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`R = \frac{v_0^2 \sin 2\theta}{g}, \quad H = \frac{v_0^2 \sin^2\theta}{2g}`,
-        description: 'Theoretical range and maximum height in vacuum.',
+        description: 'Maximum range R occurs at 45° launch angle. Maximum height H is reached at the peak. These formulas assume no air resistance.',
       },
     ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Set launch speed and angle - try 45° for maximum range in vacuum.\n2. Adjust drag coefficient - 0 for vacuum, higher values for realistic air.\n3. Change mass - heavier objects are less affected by drag.\n4. Watch the trajectory - compare parabolic (vacuum) vs curved (with drag).\n5. Check graphs for velocity components and energy over time.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Start with no drag to see the perfect parabola. Notice range is maximum at 45°. Add drag and see how the path flattens. Try different angles - low angles go far but low, high angles go high but short distance. Experiment with different gravities, like on Moon (1.62 m/s²). Look at energy - it decreases with drag due to air resistance doing work.',
   },
 ];
 

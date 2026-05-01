@@ -79,11 +79,41 @@ export const controls = [
 
 export const equationSections = [
   {
+    title: 'Introduction',
+    content: 'Buoyancy is the upward force that fluids exert on objects submerged in them. This principle explains why objects float or sink, and why submarines can control their depth. The buoyant force depends on the fluid density and the volume of fluid displaced. This simulation lets you experiment with different materials and fluids to see buoyancy in action.',
+  },
+  {
     title: "Archimedes' Principle",
     equations: [
-      { latex: String.raw`F_b = \rho_{f} \cdot g \cdot V_{sub}`, description: 'Buoyant force is equal to the weight of the fluid displaced.' },
-    ]
-  }
+      { latex: String.raw`F_b = \rho_{f} \cdot g \cdot V_{sub}`, description: 'The buoyant force equals the weight of the fluid displaced by the object. ρ_f is fluid density, g is gravity, V_sub is submerged volume.' },
+    ],
+    variables: [
+      { symbol: 'F_b', description: 'Buoyant force (upward)' },
+      { symbol: 'ρ_f', description: 'Density of the fluid (mass per volume)' },
+      { symbol: 'V_sub', description: 'Volume of fluid displaced (submerged volume)' },
+    ],
+  },
+  {
+    title: 'Floating Condition',
+    equations: [
+      { latex: String.raw`F_b = W_{object}`, description: 'Object floats when buoyant force equals object weight.' },
+      { latex: String.raw`\rho_{object} < \rho_{fluid}`, description: 'Object density must be less than fluid density to float.' },
+    ],
+  },
+  {
+    title: 'Apparent Weight',
+    equations: [
+      { latex: String.raw`W_{apparent} = W_{object} - F_b`, description: 'Weight you feel when lifting submerged object. It\'s less than actual weight.' },
+    ],
+  },
+  {
+    title: 'How to Use',
+    content: '1. Click in the tank to add blocks of different materials.\n2. Select different fluids (water, oil, mercury) to see how density affects buoyancy.\n3. Try materials denser than fluid (sink) vs less dense (float).\n4. Drag blocks around to see how depth affects buoyant force.\n5. Watch the graphs: weight, buoyancy, and apparent weight.\n6. Experiment with partial submersion.',
+  },
+  {
+    title: 'Beginner Tips',
+    content: 'Denser fluids provide more buoyancy. Objects float when their average density is less than the fluid. The buoyant force increases with depth. Steel ships float because they displace a lot of water. Try the "Eureka!" moment - objects lose weight in water!',
+  },
 ];
 
 export const equations = [];
