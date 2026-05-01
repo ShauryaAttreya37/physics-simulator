@@ -240,6 +240,9 @@ export default function SimulationRunner({ sim, onBack }) {
   const [runnerError, setRunnerError] = useState('');
   const [exportToast, setExportToast] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [globalPan, setGlobalPan] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const lastPanPosRef = useRef({ x: 0, y: 0 });
 
   const isModern = !!(sim.init && sim.update);
   const engine = usePhysicsEngine(isModern ? sim : null, params, canvasRef);
@@ -380,6 +383,7 @@ export default function SimulationRunner({ sim, onBack }) {
   }, [isModern, engine, running]);
 
   const reset = useCallback(() => {
+    setGlobalPan({ x: 0, y: 0 });
     if (isModern) {
       engine.reset();
       setRunning(true);
@@ -787,8 +791,32 @@ export default function SimulationRunner({ sim, onBack }) {
         </div>
 
         {/* Canvas with figure frame */}
-        <div className="sim-canvas-wrapper">
-          <canvas ref={canvasRef} className="sim-runner-canvas" />
+        <div 
+          className="sim-canvas-wrapper"
+          onPointerDown={(e) => {
+            if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
+              e.preventDefault();
+              setIsPanning(true);
+              lastPanPosRef.current = { x: e.clientX, y: e.clientY };
+            }
+          }}
+          onPointerMove={(e) => {
+            if (isPanning) {
+              const dx = e.clientX - lastPanPosRef.current.x;
+              const dy = e.clientY - lastPanPosRef.current.y;
+              setGlobalPan((p) => ({ x: p.x + dx, y: p.y + dy }));
+              lastPanPosRef.current = { x: e.clientX, y: e.clientY };
+            }
+          }}
+          onPointerUp={() => setIsPanning(false)}
+          onPointerLeave={() => setIsPanning(false)}
+          style={{ cursor: isPanning ? 'grabbing' : undefined }}
+        >
+          <canvas 
+            ref={canvasRef} 
+            className="sim-runner-canvas" 
+            style={{ transform: `translate(${globalPan.x}px, ${globalPan.y}px)`, touchAction: 'none' }}
+          />
           <canvas ref={recordingCanvasRef} className="recording-export-canvas" aria-hidden="true" />
           {runnerError && (
             <div className="sim-runner-error">
