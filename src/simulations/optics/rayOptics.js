@@ -344,7 +344,7 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
         }
       };
     } else if (element.kind === 'mirror') {
-      const curve = element.focalSign > 0 ? -35 : 35;
+      const curve = element.focalSign > 0 ? 35 : -35;
       return {
         front: (y) => {
           const t = (y - L.axisY) / (aperturePx / 2);
@@ -397,7 +397,7 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
       ctx.fill();
       ctx.stroke();
     } else {
-      const curve = element.focalSign > 0 ? -35 : 35;
+      const curve = element.focalSign > 0 ? 35 : -35;
       ctx.beginPath();
       ctx.moveTo(x, L.axisY - aperturePx / 2);
       ctx.quadraticCurveTo(x + curve, L.axisY, x, L.axisY + aperturePx / 2);
@@ -405,8 +405,12 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
       ctx.shadowBlur = 0;
       ctx.strokeStyle = 'rgba(255,255,255,0.2)';
       ctx.lineWidth = 1;
+      const hashDir = element.focalSign > 0 ? 1 : -1;
       for (let y = -aperturePx / 2; y <= aperturePx / 2; y += 20) {
-        ctx.beginPath(); ctx.moveTo(x, L.axisY + y); ctx.lineTo(x + 12, L.axisY + y + 8); ctx.stroke();
+        ctx.beginPath(); 
+        ctx.moveTo(x + (curve * (1 - (y/(aperturePx/2))**2)) * 0.5, L.axisY + y); 
+        ctx.lineTo(x + (curve * (1 - (y/(aperturePx/2))**2)) * 0.5 + 12, L.axisY + y + 8); 
+        ctx.stroke();
       }
     }
     ctx.restore();
@@ -541,10 +545,10 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
         
         if (!virtual) {
           drawRay(h1, objectTipY, img.x, img.y, c1, 0.8);
-          const end = rayEndpoint(h1, img, 10);
+          const end = rayEndpoint({x: h1, y: objectTipY}, img, 10);
           drawRay(img.x, img.y, end.x, end.y, c1, 0.4);
         } else {
-          const end = rayEndpoint(img, h1, 10);
+          const end = rayEndpoint(img, {x: h1, y: objectTipY}, 10);
           drawRay(h1, objectTipY, end.x, end.y, c1, 0.8);
           drawRay(h1, objectTipY, img.x, img.y, c1, 0.4, true);
         }
