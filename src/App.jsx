@@ -21,6 +21,12 @@ export default function App() {
   const { setRunning } = useSandboxStore();
 
   useEffect(() => {
+    if (!supabase) {
+      console.error("Supabase client is not initialized. Check your environment variables.");
+      setIsLoadingAuth(false);
+      return;
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
       setIsLoadingAuth(false);
@@ -58,8 +64,11 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
     setPage('home');
+    setIsAuthenticated(false);
   };
 
   if (isLoadingAuth) {

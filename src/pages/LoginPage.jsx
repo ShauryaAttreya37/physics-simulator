@@ -43,6 +43,12 @@ export default function LoginPage({ onBack, onLogin }) {
     setLoading(true);
     setError('');
     
+    if (!supabase) {
+      setError('System Error: Supabase client is not configured. Please add environment variables in Vercel.');
+      setLoading(false);
+      return;
+    }
+    
     try {
       if (isLoginMode) {
         const { data, error: authError } = await supabase.auth.signInWithPassword({
