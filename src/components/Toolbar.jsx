@@ -19,7 +19,8 @@ import {
   Car,
   List,
   MoreHorizontal,
-  Settings2
+  Settings2,
+  LogOut
 } from 'lucide-react';
 
 const tools = [
@@ -43,7 +44,7 @@ const systems = [
   { id: 'cradle', label: 'Newton Cradle', icon: <MoreHorizontal size={18} /> },
 ];
 
-export default function Toolbar({ onReset, onHome }) {
+export default function Toolbar({ onReset, onHome, onLogout }) {
   const { activeTool, setActiveTool, isRunning, setRunning, togglePropertiesPanel } = useSandboxStore();
 
   return (
@@ -109,6 +110,16 @@ export default function Toolbar({ onReset, onHome }) {
         >
           <RotateCcw size={16} />
         </button>
+        {onLogout && (
+          <button
+            title="Log Out"
+            onClick={onLogout}
+            className="icon-btn"
+            style={{ marginTop: 'auto', color: 'var(--danger)' }}
+          >
+            <LogOut size={16} />
+          </button>
+        )}
       </div>
     </aside>
   );

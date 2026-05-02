@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import './Home.css';
 
-export default function Home({ onNavigate }) {
+export default function Home({ onNavigate, isAuthenticated }) {
   const containerRef = useRef(null);
   const [isExiting, setIsExiting] = useState(false);
 
@@ -45,6 +45,7 @@ export default function Home({ onNavigate }) {
             <button className="nav-link-btn" onClick={() => handleNavigate('topics')}>Laboratory</button>
             <button className="nav-link-btn" onClick={() => handleNavigate('integrators')}>Integrators</button>
             <button className="nav-link-btn" onClick={() => handleNavigate('docs')}>Docs</button>
+            {!isAuthenticated && <button className="nav-link-btn" onClick={() => handleNavigate('login')}>Sign In</button>}
           </div>
           <button className="nav-btn" onClick={() => handleNavigate('topics')}>Launch Lab</button>
         </nav>
