@@ -1,0 +1,118 @@
+<!--
+  Physics Simulator — Supabase Email Templates
+  
+  HOW TO USE:
+  1. Go to your Supabase Dashboard
+  2. Navigate to Authentication → Email Templates
+  3. For each template type below, paste the corresponding HTML
+  4. Save
+-->
+
+<!-- ═══════════════════════════════════════════
+     TEMPLATE 1: CONFIRM SIGNUP
+     Supabase Dashboard → Authentication → Email Templates → "Confirm signup"
+     ═══════════════════════════════════════════ -->
+
+<div style="max-width:520px;margin:0 auto;font-family:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif;background:#0d0f17;border-radius:24px;border:1px solid rgba(255,255,255,0.1);overflow:hidden;">
+  <!-- Header -->
+  <div style="background:linear-gradient(135deg,#1a1b26,#0d0f17);padding:40px 32px 24px;text-align:center;">
+    <div style="width:48px;height:48px;margin:0 auto 20px;background:linear-gradient(135deg,#0A84FF,#5E5CE6);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+      <span style="color:#fff;font-size:20px;font-weight:700;">P</span>
+    </div>
+    <h1 style="color:#fff;font-size:24px;font-weight:300;margin:0 0 8px;letter-spacing:-0.02em;">Welcome, Researcher</h1>
+    <p style="color:rgba(255,255,255,0.5);font-size:14px;margin:0;line-height:1.6;">Thank you for joining the Physics Simulator community.</p>
+  </div>
+
+  <!-- Body -->
+  <div style="padding:32px;">
+    <p style="color:rgba(255,255,255,0.75);font-size:14px;line-height:1.7;margin:0 0 16px;">
+      We built this simulator not just as a tool, but as a bridge for curious minds to uncover the elegance of physics together. Your journey into the unseen forces that govern our reality inspires us every single day.
+    </p>
+    <p style="color:rgba(255,255,255,0.75);font-size:14px;line-height:1.7;margin:0 0 24px;">
+      Please confirm your email address to get started:
+    </p>
+
+    <!-- CTA Button -->
+    <div style="text-align:center;margin:0 0 32px;">
+      <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 32px;background:rgba(10,132,255,0.2);color:#fff;border:1px solid rgba(10,132,255,0.5);border-radius:12px;font-size:14px;font-weight:600;text-decoration:none;letter-spacing:0.02em;">
+        Confirm Email Address
+      </a>
+    </div>
+
+    <!-- Discord -->
+    <div style="background:rgba(88,101,242,0.08);border:1px solid rgba(88,101,242,0.2);border-radius:12px;padding:16px;margin:0 0 24px;">
+      <p style="color:rgba(255,255,255,0.8);font-size:13px;margin:0 0 8px;font-weight:600;">Join our Discord Community</p>
+      <p style="color:rgba(255,255,255,0.5);font-size:12px;margin:0 0 12px;line-height:1.5;">Discuss physics, share research, and collaborate with fellow researchers.</p>
+      <a href="https://discord.gg/pbDm2rRECb" style="color:#5865F2;font-size:13px;font-weight:600;text-decoration:none;">discord.gg/pbDm2rRECb →</a>
+    </div>
+
+    <p style="color:rgba(255,255,255,0.3);font-size:12px;font-style:italic;margin:0;text-align:center;">
+      With immense gratitude,<br/>The Physics Simulator Team
+    </p>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     TEMPLATE 2: RESET PASSWORD
+     Supabase Dashboard → Authentication → Email Templates → "Reset Password"
+     ═══════════════════════════════════════════ -->
+
+<div style="max-width:520px;margin:0 auto;font-family:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif;background:#0d0f17;border-radius:24px;border:1px solid rgba(255,255,255,0.1);overflow:hidden;">
+  <!-- Header -->
+  <div style="background:linear-gradient(135deg,#1a1b26,#0d0f17);padding:40px 32px 24px;text-align:center;">
+    <div style="width:48px;height:48px;margin:0 auto 20px;background:linear-gradient(135deg,#0A84FF,#5E5CE6);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+      <span style="color:#fff;font-size:20px;font-weight:700;">P</span>
+    </div>
+    <h1 style="color:#fff;font-size:24px;font-weight:300;margin:0 0 8px;letter-spacing:-0.02em;">Reset Your Password</h1>
+    <p style="color:rgba(255,255,255,0.5);font-size:14px;margin:0;line-height:1.6;">We received a request to reset your password.</p>
+  </div>
+
+  <!-- Body -->
+  <div style="padding:32px;">
+    <p style="color:rgba(255,255,255,0.75);font-size:14px;line-height:1.7;margin:0 0 24px;">
+      Click the button below to set a new password for your Physics Simulator account. This link will expire in 1 hour.
+    </p>
+
+    <!-- CTA Button -->
+    <div style="text-align:center;margin:0 0 32px;">
+      <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 32px;background:rgba(10,132,255,0.2);color:#fff;border:1px solid rgba(10,132,255,0.5);border-radius:12px;font-size:14px;font-weight:600;text-decoration:none;letter-spacing:0.02em;">
+        Reset Password
+      </a>
+    </div>
+
+    <p style="color:rgba(255,255,255,0.4);font-size:12px;line-height:1.6;margin:0 0 24px;text-align:center;">
+      If you didn't request this, you can safely ignore this email. Your password will remain unchanged.
+    </p>
+
+    <p style="color:rgba(255,255,255,0.3);font-size:12px;font-style:italic;margin:0;text-align:center;">
+      — The Physics Simulator Team
+    </p>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     TEMPLATE 3: MAGIC LINK
+     Supabase Dashboard → Authentication → Email Templates → "Magic Link"
+     ═══════════════════════════════════════════ -->
+
+<div style="max-width:520px;margin:0 auto;font-family:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif;background:#0d0f17;border-radius:24px;border:1px solid rgba(255,255,255,0.1);overflow:hidden;">
+  <div style="background:linear-gradient(135deg,#1a1b26,#0d0f17);padding:40px 32px 24px;text-align:center;">
+    <div style="width:48px;height:48px;margin:0 auto 20px;background:linear-gradient(135deg,#0A84FF,#5E5CE6);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+      <span style="color:#fff;font-size:20px;font-weight:700;">P</span>
+    </div>
+    <h1 style="color:#fff;font-size:24px;font-weight:300;margin:0 0 8px;letter-spacing:-0.02em;">Your Login Link</h1>
+    <p style="color:rgba(255,255,255,0.5);font-size:14px;margin:0;line-height:1.6;">Click below to securely sign in to your account.</p>
+  </div>
+  <div style="padding:32px;">
+    <div style="text-align:center;margin:0 0 32px;">
+      <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 32px;background:rgba(10,132,255,0.2);color:#fff;border:1px solid rgba(10,132,255,0.5);border-radius:12px;font-size:14px;font-weight:600;text-decoration:none;letter-spacing:0.02em;">
+        Sign In to Physics Simulator
+      </a>
+    </div>
+    <p style="color:rgba(255,255,255,0.4);font-size:12px;line-height:1.6;margin:0;text-align:center;">
+      This link expires in 24 hours. If you didn't request this, you can safely ignore it.
+    </p>
+  </div>
+</div>

@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { supabase } from '../lib/supabase';
 import './Home.css';
 
-export default function Home({ onNavigate, isAuthenticated }) {
+export default function Home({ onNavigate, isAuthenticated, onLogout }) {
   const containerRef = useRef(null);
   const [isExiting, setIsExiting] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   const handleNavigate = (page) => {
     setIsExiting(true);
@@ -11,6 +14,14 @@ export default function Home({ onNavigate, isAuthenticated }) {
       onNavigate(page);
     }, 400); // matches the 0.4s animation duration in App.css
   };
+
+  useEffect(() => {
+    if (isAuthenticated && supabase) {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) setUserEmail(user.email);
+      });
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -25,6 +36,14 @@ export default function Home({ onNavigate, isAuthenticated }) {
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    if (!showUserMenu) return;
+    const handleClick = () => setShowUserMenu(false);
+    window.addEventListener('click', handleClick);
+    return () => window.removeEventListener('click', handleClick);
+  }, [showUserMenu]);
 
   return (
     <div className={`home-wrapper ${isExiting ? 'page-fade-out' : 'page-fade-in'}`} ref={containerRef}>
@@ -47,7 +66,32 @@ export default function Home({ onNavigate, isAuthenticated }) {
             <button className="nav-link-btn" onClick={() => handleNavigate('docs')}>Docs</button>
             {!isAuthenticated && <button className="nav-link-btn" onClick={() => handleNavigate('login')}>Sign In</button>}
           </div>
-          <button className="nav-btn" onClick={() => handleNavigate('topics')}>Launch Lab</button>
+          {isAuthenticated ? (
+            <div className="user-menu-wrapper" onClick={(e) => e.stopPropagation()}>
+              <button className="user-avatar-btn" onClick={() => setShowUserMenu(!showUserMenu)} title={userEmail}>
+                <span className="avatar-initial">{userEmail ? userEmail.charAt(0).toUpperCase() : '?'}</span>
+              </button>
+              {showUserMenu && (
+                <div className="user-dropdown">
+                  <div className="dropdown-header">
+                    <span className="dropdown-email">{userEmail}</span>
+                    <span className="dropdown-role">Researcher</span>
+                  </div>
+                  <div className="dropdown-divider"></div>
+                  <button className="dropdown-item" onClick={() => handleNavigate('profile')}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Profile
+                  </button>
+                  <button className="dropdown-item danger" onClick={onLogout}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                    Log Out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button className="nav-btn" onClick={() => handleNavigate('topics')}>Launch Lab</button>
+          )}
         </nav>
 
         {/* Thin Grid Overlay */}

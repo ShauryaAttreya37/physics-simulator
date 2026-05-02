@@ -7,6 +7,8 @@ import TopicsPage from './pages/TopicsPage';
 import DocsPage from './pages/DocsPage';
 import IntegratorsPage from './pages/IntegratorsPage';
 import LoginPage from './pages/LoginPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+import ProfilePage from './pages/ProfilePage';
 import { useSandboxStore } from './store/sandboxStore';
 import { resetEngine } from './physics/engine';
 import Matter from 'matter-js';
@@ -14,7 +16,7 @@ import { supabase } from './lib/supabase';
 import './App.css';
 
 export default function App() {
-  const [page, setPage] = useState('home'); // 'home' | 'sandbox' | 'topics' | 'docs' | 'integrators' | 'login'
+  const [page, setPage] = useState('home');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const engineRef = useRef(null);
@@ -27,6 +29,12 @@ export default function App() {
       return;
     }
 
+    // Check for password recovery hash in the URL
+    const hash = window.location.hash;
+    if (hash && hash.includes('type=recovery')) {
+      setPage('reset-password');
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
       setIsLoadingAuth(false);
@@ -34,8 +42,13 @@ export default function App() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setIsAuthenticated(!!session);
+
+      // When Supabase fires PASSWORD_RECOVERY, show the reset page
+      if (event === 'PASSWORD_RECOVERY') {
+        setPage('reset-password');
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -79,8 +92,16 @@ export default function App() {
     );
   }
 
+  if (page === 'reset-password') {
+    return <ResetPasswordPage onComplete={() => {
+      // Clear the hash from the URL
+      window.history.replaceState(null, '', window.location.pathname);
+      setPage('home');
+    }} />;
+  }
+
   if (page === 'home') {
-    return <Home onNavigate={handleNavigate} isAuthenticated={isAuthenticated} />;
+    return <Home onNavigate={handleNavigate} isAuthenticated={isAuthenticated} onLogout={handleLogout} />;
   }
 
   if (page === 'topics') {
@@ -102,6 +123,13 @@ export default function App() {
         setIsAuthenticated(true);
         setPage('topics');
       }} 
+    />;
+  }
+
+  if (page === 'profile') {
+    return <ProfilePage 
+      onBack={() => handleNavigate('home')} 
+      onLogout={handleLogout}
     />;
   }
 
