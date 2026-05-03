@@ -130,6 +130,29 @@ const CONTROL_MARKERS = {
       { value: 8, label: 'High inertia' },
     ],
   },
+  'simple-pendulum': {
+    gravity: [
+      { value: 1.62, label: 'Moon' },
+      { value: 9.81, label: 'Earth' },
+      { value: 24.79, label: 'Jupiter' },
+    ],
+    damping: [
+      { value: 0, label: 'None' },
+      { value: 0.1, label: 'Light' },
+      { value: 1, label: 'Heavy' },
+    ],
+    theta0Deg: [
+      { value: 0, label: '0°' },
+      { value: 45, label: '45°' },
+      { value: 90, label: '90°' },
+      { value: 180, label: '180°' },
+    ],
+    length: [
+      { value: 1, label: 'Short' },
+      { value: 2, label: 'Standard' },
+      { value: 4, label: 'Long' },
+    ],
+  },
   'gyroscope-precession-3d': {
     spinRate: [
       { value: 40, label: 'Low spin' },

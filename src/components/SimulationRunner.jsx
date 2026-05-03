@@ -887,23 +887,35 @@ export default function SimulationRunner({ sim, onBack }) {
               </div>
               {controls.length > 0 ? (
                 <div className="property-section" style={{ paddingTop: 0, borderBottom: 'none' }}>
-                  {controls.map(control => (
-                    control.type === 'tiles' ? (
+                  {controls.map(control => {
+                    const handleChange = (next) => {
+                      setParams(prev => {
+                        const updated = { ...prev, [control.key]: next };
+                        // Sync linked angle controls (rad ↔ deg)
+                        if (control.key === 'theta0' && 'theta0Deg' in prev) {
+                          updated.theta0Deg = parseFloat((next * 180 / Math.PI).toFixed(1));
+                        } else if (control.key === 'theta0Deg' && 'theta0' in prev) {
+                          updated.theta0 = parseFloat((next * Math.PI / 180).toFixed(4));
+                        }
+                        return updated;
+                      });
+                    };
+                    return control.type === 'tiles' ? (
                       <TileControl
                         key={control.key}
                         control={control}
                         value={params[control.key] ?? 0}
-                        onChange={(next) => setParams(prev => ({ ...prev, [control.key]: next }))}
+                        onChange={handleChange}
                       />
                     ) : (
                       <ParamControl
                         key={control.key}
                         control={control}
                         value={params[control.key] ?? control.min ?? 0}
-                        onChange={(next) => setParams(prev => ({ ...prev, [control.key]: next }))}
+                        onChange={handleChange}
                       />
-                    )
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="empty-state">
