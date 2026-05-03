@@ -88,7 +88,7 @@ export default function LoginPage({ onBack, onLogin }) {
       } else if (mode === 'forgot') {
         if (!email) { setError('Please enter your email address'); return; }
         const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/#recovery`,
+          redirectTo: `${window.location.origin}/`,
         });
         if (authError) throw authError;
         setMode('reset-sent');
