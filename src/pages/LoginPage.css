@@ -353,6 +353,79 @@
   80% { transform: translateX(4px); }
 }
 
+/* ── Email Not Confirmed Banner ── */
+.email-not-confirmed-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.2rem;
+  border-radius: 16px;
+  background: rgba(255, 159, 10, 0.08);
+  border: 1px solid rgba(255, 159, 10, 0.25);
+  animation: lp-banner-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes lp-banner-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.banner-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 159, 10, 0.12);
+  color: #FF9F0A;
+  flex-shrink: 0;
+}
+
+.banner-content {
+  text-align: center;
+}
+
+.banner-content strong {
+  font-size: 0.88rem;
+  color: #FF9F0A;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.banner-content p {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.resend-btn {
+  padding: 0.5rem 1.2rem;
+  border-radius: 10px;
+  background: rgba(255, 159, 10, 0.15);
+  border: 1px solid rgba(255, 159, 10, 0.35);
+  color: #FF9F0A;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.resend-btn:hover {
+  background: rgba(255, 159, 10, 0.25);
+  border-color: rgba(255, 159, 10, 0.5);
+  transform: translateY(-1px);
+}
+
+.resend-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* ── Auth Toggle ── */
 .auth-toggle {
   text-align: center;

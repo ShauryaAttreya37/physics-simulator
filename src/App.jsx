@@ -78,10 +78,14 @@ export default function App() {
 
   const handleLogout = async () => {
     if (supabase) {
-      await supabase.auth.signOut();
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (e) {
+        console.warn('Sign out error (continuing anyway):', e);
+      }
     }
-    setPage('home');
     setIsAuthenticated(false);
+    setPage('home');
   };
 
   if (isLoadingAuth) {

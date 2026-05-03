@@ -10,6 +10,8 @@ export default function LoginPage({ onBack, onLogin }) {
   const [isExiting, setIsExiting] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
+  const [showEmailNotConfirmed, setShowEmailNotConfirmed] = useState(false);
 
   // Password strength (only shown during signup)
   const getPasswordStrength = (pw) => {
@@ -57,12 +59,31 @@ export default function LoginPage({ onBack, onLogin }) {
       if (mode === 'login') {
         if (!email || !password) { setError('Please fill in all fields'); return; }
         const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
-        if (authError) throw authError;
+        if (authError) {
+          // Handle "Email not confirmed" error specifically
+          if (authError.message?.toLowerCase().includes('email not confirmed')) {
+            setShowEmailNotConfirmed(true);
+            setError('');
+            return;
+          }
+          throw authError;
+        }
         if (onLogin) onLogin(data.user);
       } else if (mode === 'signup') {
         if (!email || !password) { setError('Please fill in all fields'); return; }
-        const { error: authError } = await supabase.auth.signUp({ email, password });
+        const { data, error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+          },
+        });
         if (authError) throw authError;
+        // If user already exists but unconfirmed, Supabase returns a user with identities = []
+        if (data?.user?.identities?.length === 0) {
+          setError('An account with this email already exists. Please sign in instead.');
+          return;
+        }
         setMode('welcome');
       } else if (mode === 'forgot') {
         if (!email) { setError('Please enter your email address'); return; }
@@ -83,10 +104,36 @@ export default function LoginPage({ onBack, onLogin }) {
     if (onLogin) onLogin();
   };
 
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      setError('Please enter your email address above.');
+      return;
+    }
+    setResendLoading(true);
+    try {
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+        },
+      });
+      if (resendError) throw resendError;
+      setShowEmailNotConfirmed(false);
+      setError('');
+      setMode('reset-sent');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   const switchMode = (newMode) => {
     setMode(newMode);
     setError('');
     setPassword('');
+    setShowEmailNotConfirmed(false);
   };
 
   // --- Header config per mode ---
@@ -94,8 +141,8 @@ export default function LoginPage({ onBack, onLogin }) {
     login:      { title: 'Welcome Back',     sub: 'Sign in to access your simulations.' },
     signup:     { title: 'Join the Lab',      sub: 'Create an account to start experimenting.' },
     forgot:     { title: 'Reset Password',    sub: 'Enter your email and we\'ll send a recovery link.' },
-    welcome:    { title: 'Welcome Aboard',    sub: 'Your account has been created successfully.' },
-    'reset-sent': { title: 'Check Your Email', sub: 'We\'ve sent a password reset link.' },
+    welcome:    { title: 'Verify Your Email',    sub: 'One last step before you can start experimenting.' },
+    'reset-sent': { title: 'Check Your Email', sub: 'We\'ve sent you an email — check your inbox.' },
   };
 
   const { title, sub } = headers[mode];
@@ -135,29 +182,29 @@ export default function LoginPage({ onBack, onLogin }) {
               <div className="success-state">
                 <div className="success-icon">
                   <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
                   </svg>
                 </div>
-                <h3>Account Created!</h3>
-                <p>Welcome to the community, <strong>{email}</strong>.</p>
+                <h3>Confirmation Email Sent!</h3>
+                <p>We've sent a verification link to <strong>{email}</strong>. Please check your inbox and click the link to activate your account.</p>
 
                 <div className="mock-email-preview">
                   <div className="mock-email-header">
                     <span>From: The Physics Simulator Team</span>
-                    <span>Subject: Welcome to the Physics Simulator Community!</span>
+                    <span>Subject: Confirm your email address</span>
                   </div>
                   <div className="mock-email-body">
                     <p>Dear Researcher,</p>
-                    <p>Thank you for exploring the mechanics of the universe with us. We built this simulator not just as a tool, but as a bridge for curious minds to uncover the elegance of physics together.</p>
-                    <p>Your journey into the unseen forces that govern our reality inspires us every single day.</p>
+                    <p>Click the confirmation link in your email to verify your account. Once confirmed, you'll have full access to the laboratory.</p>
+                    <p>Didn't receive the email? Check your spam folder or click below to resend.</p>
                     <p><a href="https://discord.gg/pbDm2rRECb" target="_blank" rel="noopener noreferrer" className="discord-link">→ Join our Discord Community</a></p>
                     <p className="mock-signature">With immense gratitude,<br/>The Physics Simulator Team</p>
                   </div>
                 </div>
 
-                <button className="login-submit-btn" onClick={handleContinueToLab}>
-                  Enter Laboratory →
+                <button className="login-submit-btn" onClick={() => switchMode('login')} style={{ marginTop: '1rem' }}>
+                  ← Back to Sign In
                 </button>
               </div>
             )}
@@ -183,6 +230,28 @@ export default function LoginPage({ onBack, onLogin }) {
             {mode === 'login' && (
               <form onSubmit={handleSubmit} className="login-form">
                 {error && <div className="auth-error">{error}</div>}
+                {showEmailNotConfirmed && (
+                  <div className="email-not-confirmed-banner">
+                    <div className="banner-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                      </svg>
+                    </div>
+                    <div className="banner-content">
+                      <strong>Email not confirmed</strong>
+                      <p>Please check your inbox for a verification link, or click below to resend it.</p>
+                    </div>
+                    <button
+                      type="button"
+                      className="resend-btn"
+                      onClick={handleResendConfirmation}
+                      disabled={resendLoading}
+                    >
+                      {resendLoading ? 'Sending…' : 'Resend Email'}
+                    </button>
+                  </div>
+                )}
                 <div className="input-group">
                   <label htmlFor="email">Email</label>
                   <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@university.edu" autoComplete="email" required />
