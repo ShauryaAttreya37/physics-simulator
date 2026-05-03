@@ -126,7 +126,7 @@ html, body {
 /* Glass Navbar */
 .glass-nav {
   position: relative;
-  z-index: 10;
+  z-index: 20;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -223,7 +223,7 @@ html, body {
 /* Hero Section */
 .hero-content {
   position: relative;
-  z-index: 10;
+  z-index: 5;
   display: flex;
   flex-direction: column;
   align-items: center;
