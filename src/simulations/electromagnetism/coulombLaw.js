@@ -284,30 +284,106 @@ export function create(canvas, initParams = {}) {
     const maxArrowLen = Math.min(W * 0.25, 180);
     const arrowLen = Math.min(maxArrowLen, Math.sqrt(absF) * 3);
 
-    // Force arrows on Q1
+    // Force arrows + clear labels
     if (absF > 0.01) {
       const dir1 = isRepulsive ? -1 : 1; // Q1: left if repulsive, right if attractive
       const dir2 = isRepulsive ? 1 : -1; // Q2: opposite
+      const fcolor = isRepulsive ? '#ff6b6b' : '#4ade80';
+      const fMagText =
+        absF >= 100 ? absF.toFixed(0) : absF >= 1 ? absF.toFixed(1) : absF.toFixed(2);
+      const dirWord = isRepulsive ? 'repulsion' : 'attraction';
 
       // Arrow on Q1
-      const f1color = isRepulsive ? '#ff6b6b' : '#4ade80';
-      drawArrow(c1x, cy, c1x + dir1 * arrowLen, cy, f1color, 3, 12);
+      const tip1x = c1x + dir1 * arrowLen;
+      drawArrow(c1x, cy, tip1x, cy, fcolor, 3.5, 14);
 
       // Arrow on Q2
-      const f2color = isRepulsive ? '#ff6b6b' : '#4ade80';
-      drawArrow(c2x, cy, c2x + dir2 * arrowLen, cy, f2color, 3, 12);
+      const tip2x = c2x + dir2 * arrowLen;
+      drawArrow(c2x, cy, tip2x, cy, fcolor, 3.5, 14);
 
-      // Force labels on arrows
-      ctx.font = 'bold 10px "JetBrains Mono", monospace';
+      // ── Force label pill on Q1 arrow ───────────────────────────────
+      const labelText1 = `F₂→₁ = ${fMagText}`;
+      ctx.font = 'bold 11px "JetBrains Mono", monospace';
+      const tw1 = ctx.measureText(labelText1).width;
+      const pillW1 = tw1 + 16;
+      const pillH = 22;
+      const pillX1 = dir1 < 0 ? tip1x - pillW1 - 6 : tip1x + 6;
+      const pillY1 = cy - pillH / 2 - 16;
+
+      // Pill background
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.beginPath();
+      ctx.roundRect(pillX1, pillY1, pillW1, pillH, 6);
+      ctx.fill();
+      ctx.strokeStyle = fcolor;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Pill text
+      ctx.fillStyle = fcolor;
+      ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
+      ctx.fillText(labelText1, pillX1 + pillW1 / 2, pillY1 + pillH / 2);
 
-      ctx.fillStyle = f1color;
-      ctx.textAlign = dir1 < 0 ? 'right' : 'left';
-      ctx.fillText('F₁₂', c1x + dir1 * (arrowLen + 8), cy - 14);
+      // ── Force label pill on Q2 arrow ───────────────────────────────
+      const labelText2 = `F₁→₂ = ${fMagText}`;
+      const tw2 = ctx.measureText(labelText2).width;
+      const pillW2 = tw2 + 16;
+      const pillX2 = dir2 > 0 ? tip2x + 6 : tip2x - pillW2 - 6;
+      const pillY2 = cy - pillH / 2 - 16;
 
-      ctx.fillStyle = f2color;
-      ctx.textAlign = dir2 > 0 ? 'left' : 'right';
-      ctx.fillText('F₂₁', c2x + dir2 * (arrowLen + 8), cy - 14);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.beginPath();
+      ctx.roundRect(pillX2, pillY2, pillW2, pillH, 6);
+      ctx.fill();
+      ctx.strokeStyle = fcolor;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = fcolor;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(labelText2, pillX2 + pillW2 / 2, pillY2 + pillH / 2);
+
+      // ── Newton's 3rd law note (between arrows) ────────────────────
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText("|F₂→₁| = |F₁→₂|  (Newton's 3rd Law)", cx, cy + 80);
+
+      // ── Force type badge (centered above the scene) ───────────────
+      const badge = isRepulsive ? '⟵  REPULSION  ⟶' : '⟶  ATTRACTION  ⟵';
+      ctx.font = 'bold 13px "JetBrains Mono", monospace';
+      const bw = ctx.measureText(badge).width + 24;
+      const bh = 28;
+      const bx = cx - bw / 2;
+      const by = cy - Math.max(60, r * 0.25) - 20;
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+      ctx.beginPath();
+      ctx.roundRect(bx, by, bw, bh, 8);
+      ctx.fill();
+      ctx.strokeStyle = fcolor;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = fcolor;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(badge, cx, by + bh / 2);
+
+      // ── Direction word under the type badge ───────────────────────
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.fillText(`q₁·q₂ ${p.q1 * p.q2 > 0 ? '> 0' : '< 0'} → ${dirWord}`, cx, by + bh + 6);
+    } else {
+      // No force label
+      ctx.font = 'bold 12px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('F = 0  (no force)', cx, cy - 60);
     }
 
     // Draw charges
