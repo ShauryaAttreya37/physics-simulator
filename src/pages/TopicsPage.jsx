@@ -44,37 +44,49 @@ export default function TopicsPage({ onBack }) {
             <h2 className="topic-track-title" style={{ fontFamily: 'var(--font-serif)' }}>
               {topic.label}
             </h2>
-            <div className="topic-track-slider custom-scroll">
-              {topic.sims.map((sim) => (
-                <button key={sim.id} className="sim-card" onClick={() => setSelectedSim(sim)}>
-                  {/* Preview area */}
-                  <div className="sim-card-preview" style={{ background: sim.gradient }}>
-                    <div
-                      className="sim-card-preview-glow"
-                      style={{ boxShadow: `0 0 60px 20px ${sim.accentColor}40` }}
-                    />
-                    <div className="sim-card-preview-icon" style={{ color: sim.accentColor }}>
-                      {ICONS[sim.id] || ICONS['default']}
-                    </div>
-                  </div>
-
-                  {/* Body */}
-                  <div className="sim-card-body">
-                    <div className="sim-card-title">{sim.title}</div>
-                    <p className="sim-card-desc">{sim.description}</p>
-                    <div className="sim-card-footer">
-                      <div className="sim-card-tags">
-                        {sim.tags.slice(0, 2).map((t) => (
-                          <span key={t} className="sim-tag">
-                            {t}
-                          </span>
-                        ))}
+            <div className="topic-track-wrapper">
+              <div className="topic-track-slider custom-scroll" id={`track-${key}`}>
+                {topic.sims.map((sim) => (
+                  <button key={sim.id} className="sim-card" onClick={() => setSelectedSim(sim)}>
+                    {/* Preview area */}
+                    <div className="sim-card-preview" style={{ background: sim.gradient }}>
+                      <div
+                        className="sim-card-preview-glow"
+                        style={{ boxShadow: `0 0 60px 20px ${sim.accentColor}40` }}
+                      />
+                      <div className="sim-card-preview-icon" style={{ color: sim.accentColor }}>
+                        {ICONS[sim.id] || ICONS['default']}
                       </div>
-                      <ChevronRight size={16} style={{ color: sim.accentColor, flexShrink: 0 }} />
                     </div>
-                  </div>
-                </button>
-              ))}
+
+                    {/* Body */}
+                    <div className="sim-card-body">
+                      <div className="sim-card-title">{sim.title}</div>
+                      <p className="sim-card-desc">{sim.description}</p>
+                      <div className="sim-card-footer">
+                        <div className="sim-card-tags">
+                          {sim.tags.slice(0, 2).map((t) => (
+                            <span key={t} className="sim-tag">
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                        <ChevronRight size={16} style={{ color: sim.accentColor, flexShrink: 0 }} />
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <button
+                className="track-scroll-btn right"
+                onClick={() => {
+                  document
+                    .getElementById(`track-${key}`)
+                    ?.scrollBy({ left: 680, behavior: 'smooth' });
+                }}
+              >
+                <ChevronRight size={28} />
+              </button>
             </div>
           </div>
         ))}

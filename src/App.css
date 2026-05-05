@@ -1196,6 +1196,12 @@ select.form-input option {
   letter-spacing: 0.02em;
 }
 
+.topic-track-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .topic-track-slider {
   display: flex;
   gap: 20px;
@@ -1208,6 +1214,37 @@ select.form-input option {
 
 .topic-track-slider::-webkit-scrollbar {
   display: none;
+}
+
+.track-scroll-btn {
+  position: absolute;
+  right: 16px;
+  top: calc(50% - 12px); /* Adjusting for padding */
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(10, 10, 15, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  transition: all 0.2s;
+  opacity: 0;
+}
+
+.topic-track-wrapper:hover .track-scroll-btn {
+  opacity: 0.8;
+}
+
+.track-scroll-btn:hover {
+  background: rgba(10, 10, 15, 0.95);
+  opacity: 1 !important;
+  transform: translateY(-50%) scale(1.05);
 }
 
 /* Simulation card */
