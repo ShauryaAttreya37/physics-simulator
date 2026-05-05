@@ -4,7 +4,6 @@ import { TOPICS } from '../simulations/index';
 import SimulationRunner from '../components/SimulationRunner';
 
 export default function TopicsPage({ onBack }) {
-  const [activeTopic, setActiveTopic] = useState('mechanics');
   const [selectedSim, setSelectedSim] = useState(null);
 
   if (selectedSim) {
@@ -17,8 +16,6 @@ export default function TopicsPage({ onBack }) {
     );
   }
 
-  const topic = TOPICS[activeTopic];
-
   return (
     <div className="topics-page page-fade-in">
       {/* Header */}
@@ -26,19 +23,7 @@ export default function TopicsPage({ onBack }) {
         <button className="topics-back-btn icon-btn" onClick={onBack}>
           <ArrowLeft size={16} />
         </button>
-        <nav className="topics-nav" style={{ overflowX: 'auto', scrollbarWidth: 'none' }}>
-          {Object.entries(TOPICS).map(([key, t]) => (
-            <button
-              key={key}
-              className={`topics-nav-btn${activeTopic === key ? ' active' : ''}`}
-              onClick={() => setActiveTopic(key)}
-              style={{ whiteSpace: 'nowrap' }}
-            >
-              {t.label}
-            </button>
-          ))}
-        </nav>
-        <div className="mobile-hide" style={{ flex: 1 }} />
+        <div style={{ flex: 1 }} />
         <span
           className="mobile-hide"
           style={{
@@ -52,55 +37,46 @@ export default function TopicsPage({ onBack }) {
         </span>
       </div>
 
-      {/* Section heading */}
-      <div className="topics-heading">
-        <h1 className="topics-title" style={{ fontFamily: 'var(--font-serif)' }}>
-          {topic.label}
-        </h1>
-        <p className="topics-subtitle">
-          {activeTopic === 'mechanics'
-            ? 'Classical mechanics & dynamical systems — from chaotic pendulums to strange attractors.'
-            : activeTopic === 'quantum'
-              ? 'Quantum mechanics — wavefunctions, probability densities, and phase-space distributions.'
-              : activeTopic === 'optics'
-                ? 'Optics — ray tracing, image formation, refraction, and focal geometry.'
-                : activeTopic === 'electromagnetism'
-                  ? 'Electromagnetism — charge interactions and vector fields.'
-                  : 'Fluid dynamics — wave propagation and particle-based simulation.'}
-        </p>
-      </div>
+      {/* Track Container */}
+      <div className="topics-track-container custom-scroll">
+        {Object.entries(TOPICS).map(([key, topic]) => (
+          <div key={key} className="topic-track">
+            <h2 className="topic-track-title" style={{ fontFamily: 'var(--font-serif)' }}>
+              {topic.label}
+            </h2>
+            <div className="topic-track-slider custom-scroll">
+              {topic.sims.map((sim) => (
+                <button key={sim.id} className="sim-card" onClick={() => setSelectedSim(sim)}>
+                  {/* Preview area */}
+                  <div className="sim-card-preview" style={{ background: sim.gradient }}>
+                    <div
+                      className="sim-card-preview-glow"
+                      style={{ boxShadow: `0 0 60px 20px ${sim.accentColor}40` }}
+                    />
+                    <div className="sim-card-preview-icon" style={{ color: sim.accentColor }}>
+                      {ICONS[sim.id] || ICONS['default']}
+                    </div>
+                  </div>
 
-      {/* Grid */}
-      <div className="topics-grid">
-        {topic.sims.map((sim) => (
-          <button key={sim.id} className="sim-card" onClick={() => setSelectedSim(sim)}>
-            {/* Preview area */}
-            <div className="sim-card-preview" style={{ background: sim.gradient }}>
-              <div
-                className="sim-card-preview-glow"
-                style={{ boxShadow: `0 0 60px 20px ${sim.accentColor}40` }}
-              />
-              <div className="sim-card-preview-icon" style={{ color: sim.accentColor }}>
-                {ICONS[sim.id] || ICONS['default']}
-              </div>
+                  {/* Body */}
+                  <div className="sim-card-body">
+                    <div className="sim-card-title">{sim.title}</div>
+                    <p className="sim-card-desc">{sim.description}</p>
+                    <div className="sim-card-footer">
+                      <div className="sim-card-tags">
+                        {sim.tags.slice(0, 2).map((t) => (
+                          <span key={t} className="sim-tag">
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                      <ChevronRight size={16} style={{ color: sim.accentColor, flexShrink: 0 }} />
+                    </div>
+                  </div>
+                </button>
+              ))}
             </div>
-
-            {/* Body */}
-            <div className="sim-card-body">
-              <div className="sim-card-title">{sim.title}</div>
-              <p className="sim-card-desc">{sim.description}</p>
-              <div className="sim-card-footer">
-                <div className="sim-card-tags">
-                  {sim.tags.slice(0, 2).map((t) => (
-                    <span key={t} className="sim-tag">
-                      {t}
-                    </span>
-                  ))}
-                </div>
-                <ChevronRight size={16} style={{ color: sim.accentColor, flexShrink: 0 }} />
-              </div>
-            </div>
-          </button>
+          </div>
         ))}
       </div>
     </div>
