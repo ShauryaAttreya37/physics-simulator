@@ -285,6 +285,7 @@ export default function SimulationRunner({ sim, onBack }) {
   const [isRecording, setIsRecording] = useState(false);
   const [globalPan, setGlobalPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
+  const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
   const lastPanPosRef = useRef({ x: 0, y: 0 });
 
   const isModern = !!(sim.init && sim.update);
@@ -813,7 +814,7 @@ export default function SimulationRunner({ sim, onBack }) {
   const graphHeight = 220;
 
   return (
-    <div className="sim-runner-research">
+    <div className={`sim-runner-research ${isMobilePanelOpen ? 'mobile-panel-open' : ''}`}>
       {/* ── Main area (canvas + controls) ────────────────────── */}
       <div className="sim-main-area">
         {/* Top bar */}
@@ -946,6 +947,13 @@ export default function SimulationRunner({ sim, onBack }) {
           <DataReadout data={readoutData} method={sim.method || 'rk4'} />
         </div>
         {exportToast && <div className="sim-toast">{exportToast}</div>}
+
+        <button
+          className={`mobile-panel-toggle ${isMobilePanelOpen ? 'active' : ''}`}
+          onClick={() => setIsMobilePanelOpen(!isMobilePanelOpen)}
+        >
+          <Sliders size={20} />
+        </button>
       </div>
 
       {/* ── Side panel ───────────────────────────────────────── */}

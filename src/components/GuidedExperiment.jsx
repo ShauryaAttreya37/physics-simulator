@@ -44,7 +44,6 @@ export default function GuidedExperiment({ experiment, onApplyParams, onClose })
   const [selectedChoice, setSelectedChoice] = useState(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
 
-
   const step = experiment?.steps?.[stepIdx] || {};
   const isLast = stepIdx === (experiment?.steps?.length || 1) - 1;
   const isCorrect = selectedChoice === step.correctIndex;

@@ -2065,23 +2065,66 @@ select.form-input option {
   .sim-runner-research {
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
+    overflow: hidden; /* Prevent body scroll */
   }
   .sim-runner-research .sim-main-area {
-    height: 50vh;
-    min-height: 300px;
-    flex-shrink: 0;
+    flex: 1; /* Take full height */
+    height: 100%;
+    min-height: 0;
+    flex-shrink: 1;
   }
   .sim-side-panel {
-    height: auto;
-    border-left: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60vh;
+    transform: translateY(100%);
+    transition: transform 0.4s var(--ease-apple);
+    z-index: 100;
+    background: rgba(13, 17, 26, 0.98);
+    backdrop-filter: blur(20px);
+    border-radius: 24px 24px 0 0;
     border-top: 1px solid var(--panel-border);
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+  }
+  .sim-runner-research.mobile-panel-open .sim-side-panel {
+    transform: translateY(0);
   }
   .sim-runner-top-bar {
     padding: 8px 12px;
   }
   .sim-canvas-wrapper {
     margin: 8px !important;
+  }
+  /* mobile toggle button */
+  .mobile-panel-toggle {
+    display: flex;
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 110;
+    box-shadow: 0 4px 15px var(--accent-glow);
+    transition:
+      transform 0.4s var(--ease-apple),
+      bottom 0.4s var(--ease-apple);
+  }
+  .mobile-panel-toggle.active {
+    transform: rotate(180deg);
+    bottom: calc(60vh + 24px);
+  }
+}
+@media (min-width: 769px) {
+  .mobile-panel-toggle {
+    display: none !important;
   }
 }
 
@@ -3067,7 +3110,40 @@ input[type='range']::-webkit-slider-thumb:hover {
 @media (max-width: 768px) {
   .sim-runner-top-bar {
     padding: 8px;
-    gap: 8px;
+    gap: 6px;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+  .sim-runner-top-bar .icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+  .sim-runner-top-bar .btn-export {
+    height: 36px;
+    width: 36px;
+    font-size: 0;
+    padding: 0;
+    min-width: 0;
+    justify-content: center;
+  }
+  .sim-runner-top-bar .btn-export svg {
+    margin: 0;
+  }
+  .sim-runner-top-bar .btn-record {
+    height: 36px;
+    width: 36px;
+    font-size: 0;
+    padding: 0;
+    min-width: 0;
+    justify-content: center;
+  }
+  .sim-runner-top-bar .btn-record svg {
+    margin: 0;
+  }
+  .sim-runner-top-bar .speed-select {
+    height: 36px;
+    font-size: 11px;
+    padding: 0 4px;
   }
 }
 
