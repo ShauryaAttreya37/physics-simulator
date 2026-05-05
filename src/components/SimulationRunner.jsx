@@ -417,10 +417,21 @@ export default function SimulationRunner({ sim, onBack }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sim, reloadNonce]);
 
-  // Push params to the live simulation instance *without* destroying it
+  // Push params to the live simulation instance and restart with new values
+  const prevParamsRef = useRef(params);
   useEffect(() => {
-    if (simRef.current?.setParams) {
-      simRef.current.setParams({ ...params, panX: globalPan.x, panY: globalPan.y });
+    if (!simRef.current) return;
+    const paramsChanged = prevParamsRef.current !== params;
+    prevParamsRef.current = params;
+
+    // Always sync params (including pan offsets)
+    simRef.current.setParams?.({ ...params, panX: globalPan.x, panY: globalPan.y });
+
+    // Auto-restart simulation when user tweaks sliders (but not on pan-only changes)
+    if (paramsChanged && simRef.current.reset) {
+      simRef.current.reset();
+      runningRef.current = true;
+      setRunning(true);
     }
   }, [params, globalPan]);
 
