@@ -55,17 +55,17 @@ export default function Home({ onNavigate }) {
         {/* Hero Content */}
         <main className="hero-content">
           <h1 className="hero-title">
-            Transform your understanding.
+            Visualize the physics
             <br />
-            Elevate your research.
+            you learn in class.
           </h1>
 
           <p className="hero-sub">
-            Physics Simulator adapts to dynamic physical systems
+            An interactive sandbox built for students. Tweak parameters in
             <br />
-            in real time — revealing chaos, conserving energy,
+            real-time, plot data, and get an intuitive feel for complex
             <br />
-            and helping you visualize the mechanics of the universe.
+            systems—from mechanics to quantum.
           </p>
 
           <button className="primary-btn" onClick={() => handleNavigate('topics')}>
