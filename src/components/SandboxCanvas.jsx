@@ -31,7 +31,12 @@ let idCounter = 0;
 const uid = () => `body_${++idCounter}`;
 
 // Module-level camera — stable across renders
-let cam = { x: 0, y: 0, zoom: 1 };
+const isMobile = window.innerWidth <= 768;
+let cam = {
+  x: window.innerWidth / 2,
+  y: isMobile ? window.innerHeight * 0.4 : window.innerHeight / 2,
+  zoom: isMobile ? 0.7 : 1,
+};
 
 function worldToScreen(wx, wy) {
   return { x: wx * cam.zoom + cam.x, y: wy * cam.zoom + cam.y };
@@ -633,8 +638,11 @@ export default function SandboxCanvas({ engineRef }) {
   // ---- Physics helpers ----
   function addFloor(eng) {
     const canvas = canvasRef.current;
-    const w = canvas?.width ?? window.innerWidth - 220;
-    const floor = createWall(w / 2, 580, w + 200, 20);
+    const w = canvas?.width ?? window.innerWidth;
+    const isMob = window.innerWidth <= 768;
+    // Since camera is centered at wx=0, floor should be at wx=0
+    const floorY = isMob ? 400 : 500;
+    const floor = createWall(0, floorY, w * 2, 40);
     floor._isFloor = true;
     Matter.Composite.add(eng.world, floor);
   }

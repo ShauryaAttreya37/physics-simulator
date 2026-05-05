@@ -21,7 +21,9 @@ export default function App() {
     useSandboxStore.setState({ bodies: {}, constraints: {}, selectedId: null });
     const eng = resetEngine();
     engineRef.current = eng;
-    const floor = Matter.Bodies.rectangle(window.innerWidth / 2, 580, window.innerWidth + 200, 20, {
+    const isMob = window.innerWidth <= 768;
+    const floorY = isMob ? 400 : 500;
+    const floor = Matter.Bodies.rectangle(0, floorY, window.innerWidth * 2, 40, {
       isStatic: true,
       friction: 0.5,
       restitution: 0.3,

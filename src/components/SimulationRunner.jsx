@@ -428,10 +428,10 @@ export default function SimulationRunner({ sim, onBack }) {
     simRef.current.setParams?.({ ...params, panX: globalPan.x, panY: globalPan.y });
 
     // Auto-restart simulation when user tweaks sliders (but not on pan-only changes)
-    if (paramsChanged && simRef.current.reset) {
-      simRef.current.reset();
-      runningRef.current = true;
-      setRunning(true);
+    // Removed automatic reset to prevent stuttering/jumping during slider drags.
+    // Users can manually click Reset to apply initial condition changes.
+    if (paramsChanged && simRef.current.setParams) {
+      // Just ensure we are running if we want live updates, or maybe don't force start.
     }
   }, [params, globalPan]);
 

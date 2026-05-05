@@ -76,6 +76,16 @@ export default function TopicsPage({ onBack }) {
                 ))}
               </div>
               <button
+                className="track-scroll-btn left"
+                onClick={() => {
+                  document
+                    .getElementById(`track-${key}`)
+                    ?.scrollBy({ left: -680, behavior: 'smooth' });
+                }}
+              >
+                <ChevronRight size={28} style={{ transform: 'rotate(180deg)' }} />
+              </button>
+              <button
                 className="track-scroll-btn right"
                 onClick={() => {
                   document
