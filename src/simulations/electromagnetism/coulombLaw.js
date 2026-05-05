@@ -293,25 +293,30 @@ export function create(canvas, initParams = {}) {
         absF >= 100 ? absF.toFixed(0) : absF >= 1 ? absF.toFixed(1) : absF.toFixed(2);
       const dirWord = isRepulsive ? 'repulsion' : 'attraction';
 
-      // Arrow on Q1
-      const tip1x = c1x + dir1 * arrowLen;
-      drawArrow(c1x, cy, tip1x, cy, fcolor, 3.5, 14);
+      // Charge radii (must match drawCharge)
+      const q1R = 18 + Math.abs(p.q1) * 4;
+      const q2R = 18 + Math.abs(p.q2) * 4;
 
-      // Arrow on Q2
-      const tip2x = c2x + dir2 * arrowLen;
-      drawArrow(c2x, cy, tip2x, cy, fcolor, 3.5, 14);
+      // Arrow starts at the edge of each sphere, not the center
+      const start1x = c1x + dir1 * (q1R + 4);
+      const tip1x = c1x + dir1 * (q1R + 4 + arrowLen);
+      const start2x = c2x + dir2 * (q2R + 4);
+      const tip2x = c2x + dir2 * (q2R + 4 + arrowLen);
 
-      // ── Force label pill on Q1 arrow ───────────────────────────────
+      drawArrow(start1x, cy, tip1x, cy, fcolor, 3.5, 14);
+      drawArrow(start2x, cy, tip2x, cy, fcolor, 3.5, 14);
+
+      // ── Force label pill above Q1 arrow midpoint ──────────────────
+      const pillH = 24;
+      const mid1x = (start1x + tip1x) / 2;
       const labelText1 = `F₂→₁ = ${fMagText}`;
       ctx.font = 'bold 11px "JetBrains Mono", monospace';
       const tw1 = ctx.measureText(labelText1).width;
-      const pillW1 = tw1 + 16;
-      const pillH = 22;
-      const pillX1 = dir1 < 0 ? tip1x - pillW1 - 6 : tip1x + 6;
-      const pillY1 = cy - pillH / 2 - 16;
+      const pillW1 = tw1 + 18;
+      const pillX1 = mid1x - pillW1 / 2;
+      const pillY1 = cy - q1R - 20 - pillH;
 
-      // Pill background
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.fillStyle = 'rgba(5, 8, 16, 0.85)';
       ctx.beginPath();
       ctx.roundRect(pillX1, pillY1, pillW1, pillH, 6);
       ctx.fill();
@@ -319,20 +324,30 @@ export function create(canvas, initParams = {}) {
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // Pill text
       ctx.fillStyle = fcolor;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(labelText1, pillX1 + pillW1 / 2, pillY1 + pillH / 2);
 
-      // ── Force label pill on Q2 arrow ───────────────────────────────
+      // Connector line from pill to arrow
+      ctx.beginPath();
+      ctx.setLineDash([2, 3]);
+      ctx.moveTo(mid1x, pillY1 + pillH);
+      ctx.lineTo(mid1x, cy - 2);
+      ctx.strokeStyle = `${fcolor}44`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // ── Force label pill above Q2 arrow midpoint ──────────────────
+      const mid2x = (start2x + tip2x) / 2;
       const labelText2 = `F₁→₂ = ${fMagText}`;
       const tw2 = ctx.measureText(labelText2).width;
-      const pillW2 = tw2 + 16;
-      const pillX2 = dir2 > 0 ? tip2x + 6 : tip2x - pillW2 - 6;
-      const pillY2 = cy - pillH / 2 - 16;
+      const pillW2 = tw2 + 18;
+      const pillX2 = mid2x - pillW2 / 2;
+      const pillY2 = cy - q2R - 20 - pillH;
 
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.fillStyle = 'rgba(5, 8, 16, 0.85)';
       ctx.beginPath();
       ctx.roundRect(pillX2, pillY2, pillW2, pillH, 6);
       ctx.fill();
@@ -345,12 +360,15 @@ export function create(canvas, initParams = {}) {
       ctx.textBaseline = 'middle';
       ctx.fillText(labelText2, pillX2 + pillW2 / 2, pillY2 + pillH / 2);
 
-      // ── Newton's 3rd law note (between arrows) ────────────────────
-      ctx.font = '9px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      ctx.fillText("|F₂→₁| = |F₁→₂|  (Newton's 3rd Law)", cx, cy + 80);
+      // Connector line from pill to arrow
+      ctx.beginPath();
+      ctx.setLineDash([2, 3]);
+      ctx.moveTo(mid2x, pillY2 + pillH);
+      ctx.lineTo(mid2x, cy - 2);
+      ctx.strokeStyle = `${fcolor}44`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.setLineDash([]);
 
       // ── Force type badge (centered above the scene) ───────────────
       const badge = isRepulsive ? '⟵  REPULSION  ⟶' : '⟶  ATTRACTION  ⟵';
@@ -358,9 +376,10 @@ export function create(canvas, initParams = {}) {
       const bw = ctx.measureText(badge).width + 24;
       const bh = 28;
       const bx = cx - bw / 2;
-      const by = cy - Math.max(60, r * 0.25) - 20;
+      const topCharge = Math.max(q1R, q2R);
+      const by = cy - topCharge - 90;
 
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+      ctx.fillStyle = 'rgba(5, 8, 16, 0.75)';
       ctx.beginPath();
       ctx.roundRect(bx, by, bw, bh, 8);
       ctx.fill();
@@ -373,17 +392,24 @@ export function create(canvas, initParams = {}) {
       ctx.textBaseline = 'middle';
       ctx.fillText(badge, cx, by + bh / 2);
 
-      // ── Direction word under the type badge ───────────────────────
+      // Direction note under badge
       ctx.font = '9px "JetBrains Mono", monospace';
       ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
       ctx.fillText(`q₁·q₂ ${p.q1 * p.q2 > 0 ? '> 0' : '< 0'} → ${dirWord}`, cx, by + bh + 6);
+
+      // ── Newton's 3rd law + magnitude below charges ────────────────
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText(`|F| = ${fMagText}   •   |F₂→₁| = |F₁→₂|  (Newton's 3rd Law)`, cx, cy + 85);
     } else {
       // No force label
       ctx.font = 'bold 12px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('F = 0  (no force)', cx, cy - 60);
+      ctx.fillText('F = 0  (no force)', cx, cy - 70);
     }
 
     // Draw charges
