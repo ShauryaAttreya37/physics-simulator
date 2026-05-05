@@ -489,12 +489,12 @@ export const TOPICS = {
     sims: [
       {
         id: 'electric-charges',
-        title: 'Interacting Charges',
+        title: 'Rutherford Scattering',
         description:
-          "Simulates point charges using Coulomb's Law with adaptive RK45 integration. Computes and renders the instantaneous electric vector field.",
-        tags: ['Coulomb', 'Vector Field', 'Charge'],
-        gradient: 'linear-gradient(135deg, #050a14 0%, #03060c 100%)',
-        accentColor: '#3b82f6',
+          'Alpha particles scatter off a gold nucleus via Coulomb repulsion — the experiment that discovered the atomic nucleus. Watch inverse-square law physics in action.',
+        tags: ['Coulomb', 'Nuclear', 'Scattering'],
+        gradient: 'linear-gradient(135deg, #050a14 0%, #0a0604 100%)',
+        accentColor: '#ffa500',
         method: 'rk4',
         create: electricCharges.create,
         controls: electricCharges.controls,
@@ -502,6 +502,7 @@ export const TOPICS = {
         equations: electricCharges.equations,
         equationSections: electricCharges.equationSections,
         graphParams: electricCharges.graphParams,
+        scenarios: electricCharges.scenarios,
       },
       {
         id: 'electrostatic-fields',
