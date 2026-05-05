@@ -538,18 +538,7 @@ body,
 }
 
 .value-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 48px;
-  padding: 2px 7px;
-  border-radius: 999px;
-  border: 1px solid var(--panel-hi);
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--text-muted);
-  font-size: 10.5px;
-  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-  font-variant-numeric: tabular-nums;
+  display: none;
 }
 
 .input-row {
@@ -565,7 +554,7 @@ body,
 }
 
 .slider-stack.has-markers {
-  padding-bottom: 28px;
+  padding-bottom: 20px;
 }
 
 .slider-markers {
@@ -592,10 +581,14 @@ body,
 }
 
 .slider-marker-label {
-  margin-top: 2px;
-  font-size: 9px;
+  margin-top: 1px;
+  font-size: 8px;
   color: #64748b;
   white-space: nowrap;
+  max-width: 48px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
 }
 
 /* ─── Tile Controls ──────────────────────────────────────────────── */
