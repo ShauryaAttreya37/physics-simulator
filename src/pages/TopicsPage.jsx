@@ -18,24 +18,22 @@ export default function TopicsPage({ onBack }) {
 
   return (
     <div className="topics-page page-fade-in">
-      {/* Header */}
-      <div className="topics-header">
-        <button className="topics-back-btn icon-btn" onClick={onBack}>
-          <ArrowLeft size={16} />
-        </button>
-        <div style={{ flex: 1 }} />
-        <span
-          className="mobile-hide"
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: 10,
-            color: 'var(--text-muted)',
-            letterSpacing: '0.1em',
-          }}
-        >
-          RESEARCH LAB
-        </span>
-      </div>
+      {/* Floating Back Button */}
+      <button
+        className="topics-back-btn icon-btn"
+        onClick={onBack}
+        style={{
+          position: 'absolute',
+          top: '24px',
+          left: '24px',
+          zIndex: 100,
+          background: 'var(--panel-bg)',
+          border: '1px solid var(--panel-border)',
+          backdropFilter: 'var(--glass-blur)',
+        }}
+      >
+        <ArrowLeft size={16} />
+      </button>
 
       {/* Track Container */}
       <div className="topics-track-container custom-scroll">
