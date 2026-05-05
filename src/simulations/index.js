@@ -19,6 +19,7 @@ import * as wavePool from './fluid/wavePool';
 import * as buoyancyLab from './fluid/buoyancyLab';
 import * as windTunnel from './fluid/windTunnel';
 import * as electricCharges from './electromagnetism/electricCharges';
+import * as coulombLaw from './electromagnetism/coulombLaw';
 import * as electrostaticFields from './electromagnetism/electrostaticFields';
 import * as maxwellWaves from './electromagnetism/maxwellWaves';
 
@@ -487,6 +488,23 @@ export const TOPICS = {
   electromagnetism: {
     label: 'Electromagnetism',
     sims: [
+      {
+        id: 'coulomb-law',
+        title: "Coulomb's Law",
+        description:
+          'Visualize the electrostatic force between two point charges. Drag charges with sliders, see force vectors scale with F = kq₁q₂/r² in real time.',
+        tags: ['Coulomb', 'Force', 'Electrostatics'],
+        gradient: 'linear-gradient(135deg, #0a0410 0%, #050208 100%)',
+        accentColor: '#ef4444',
+        method: 'static',
+        create: coulombLaw.create,
+        controls: coulombLaw.controls,
+        defaultParams: coulombLaw.defaultParams,
+        equations: coulombLaw.equations,
+        equationSections: coulombLaw.equationSections,
+        graphParams: coulombLaw.graphParams,
+        scenarios: coulombLaw.scenarios,
+      },
       {
         id: 'electric-charges',
         title: 'Rutherford Scattering',
