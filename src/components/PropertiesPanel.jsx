@@ -106,18 +106,8 @@ export default function PropertiesPanel() {
 
   return (
     <aside className={`inspector-panel ui-panel${showPropertiesPanel ? ' show' : ''}`}>
-      <div
-        className="panel-header"
-        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-      >
+      <div className="panel-header">
         <span>Properties</span>
-        <button
-          className="icon-btn mobile-only-flex"
-          onClick={togglePropertiesPanel}
-          style={{ width: 28, height: 28, border: 'none', background: 'transparent' }}
-        >
-          <X size={18} />
-        </button>
       </div>
       <div className="panel-content">
         {/* ── World gravity ────────────────────────────────── */}

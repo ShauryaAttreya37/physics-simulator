@@ -433,19 +433,74 @@ body,
 @media (max-width: 768px) {
   .inspector-panel {
     position: fixed;
-    top: 0;
+    left: 0;
     right: 0;
     bottom: 0;
-    width: 300px;
+    top: auto;
+    width: 100%;
+    height: 50vh;
     z-index: 100;
-    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
-    border-left: 1px solid var(--panel-border);
-    transform: translateX(100%);
-    background: rgba(13, 17, 26, 0.95);
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+    border-left: none;
+    border-top: 1px solid var(--panel-border);
+    transform: translateY(100%);
+    background: rgba(13, 17, 26, 0.98);
+    border-radius: 24px 24px 0 0;
+    padding-top: 8px;
   }
 
   .inspector-panel.show {
-    transform: translateX(0);
+    transform: translateY(0);
+  }
+
+  .panel-header {
+    height: 44px;
+    padding: 0 20px;
+  }
+
+  /* Bottom sheet handle */
+  .inspector-panel::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    background: var(--panel-hi);
+    border-radius: 2px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE PANEL TOGGLE
+══════════════════════════════════════════════════════════════════════ */
+.mobile-bottom-toggle {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-bottom-toggle {
+    display: flex;
+    position: fixed;
+    bottom: 84px; /* Above the toolbar */
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+    box-shadow: 0 4px 15px var(--accent-glow);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .mobile-bottom-toggle.active {
+    transform: rotate(180deg);
+    bottom: calc(50vh + 20px); /* Move up when panel is open */
   }
 }
 

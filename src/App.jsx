@@ -9,12 +9,13 @@ import IntegratorsPage from './pages/IntegratorsPage';
 import { useSandboxStore } from './store/sandboxStore';
 import { resetEngine } from './physics/engine';
 import Matter from 'matter-js';
+import { ChevronUp } from 'lucide-react';
 import './App.css';
 
 export default function App() {
   const [page, setPage] = useState('home');
   const engineRef = useRef(null);
-  const { setRunning } = useSandboxStore();
+  const { setRunning, showPropertiesPanel, togglePropertiesPanel } = useSandboxStore();
 
   function handleReset() {
     setRunning(false);
@@ -59,6 +60,13 @@ export default function App() {
       <div className="canvas-container">
         <SandboxCanvas engineRef={engineRef} />
       </div>
+      <button
+        className={`mobile-bottom-toggle${showPropertiesPanel ? ' active' : ''}`}
+        onClick={togglePropertiesPanel}
+        title="Toggle Properties"
+      >
+        <ChevronUp size={24} />
+      </button>
       <PropertiesPanel />
     </div>
   );

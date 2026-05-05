@@ -20,7 +20,6 @@ import {
   Car,
   List,
   MoreHorizontal,
-  Settings2,
 } from 'lucide-react';
 
 const tools = [
@@ -45,8 +44,7 @@ const systems = [
 ];
 
 export default function Toolbar({ onReset, onHome }) {
-  const { activeTool, setActiveTool, isRunning, setRunning, togglePropertiesPanel } =
-    useSandboxStore();
+  const { activeTool, setActiveTool, isRunning, setRunning } = useSandboxStore();
 
   return (
     <aside className="left-sidebar">
@@ -102,13 +100,6 @@ export default function Toolbar({ onReset, onHome }) {
       {/* Push playback to bottom */}
       <div className="sidebar-actions">
         <div className="sidebar-sep" />
-        <button
-          title="Properties"
-          onClick={togglePropertiesPanel}
-          className="icon-btn mobile-only-flex"
-        >
-          <Settings2 size={17} />
-        </button>
         <button
           title={isRunning ? 'Pause' : 'Play'}
           onClick={() => setRunning(!isRunning)}
