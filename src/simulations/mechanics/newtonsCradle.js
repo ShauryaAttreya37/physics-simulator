@@ -29,7 +29,8 @@ export const defaultParams = {
 export const equationSections = [
   {
     title: 'Introduction',
-    content: 'Newton\'s cradle demonstrates conservation of momentum and energy through collisions. When you lift and release balls on one side, they transfer energy to the other side. It shows how elastic collisions work and why the same number of balls swing out.',
+    content:
+      "Newton's cradle demonstrates conservation of momentum and energy through collisions. When you lift and release balls on one side, they transfer energy to the other side. It shows how elastic collisions work and why the same number of balls swing out.",
   },
   {
     title: 'Conservation Laws',
@@ -50,18 +51,20 @@ export const equationSections = [
   },
   {
     title: 'How to Use',
-    content: '1. Choose how many balls to pull back (1-3).\n2. Adjust pull angle for different energy input.\n3. Change restitution to see inelastic vs elastic collisions.\n4. Modify ball count and see patterns.\n5. Watch momentum and energy graphs.',
+    content:
+      '1. Choose how many balls to pull back (1-3).\n2. Adjust pull angle for different energy input.\n3. Change restitution to see inelastic vs elastic collisions.\n4. Modify ball count and see patterns.\n5. Watch momentum and energy graphs.',
   },
   {
     title: 'Beginner Tips',
-    content: 'Start with pulling one ball - one swings out. Pull two - two swing out. This shows momentum conservation. Try pulling three with five balls - interesting patterns emerge. Reduce restitution to see energy loss. Look at the energy graph - it should stay constant for elastic collisions.',
+    content:
+      'Start with pulling one ball - one swings out. Pull two - two swing out. This shows momentum conservation. Try pulling three with five balls - interesting patterns emerge. Reduce restitution to see energy loss. Look at the energy graph - it should stay constant for elastic collisions.',
   },
 ];
 
 export const equations = [
   String.raw`\sum m_i \mathbf{v}_i = \text{const} \quad \text{(Momentum)}`,
   String.raw`\sum \frac{1}{2} m_i \mathbf{v}_i^2 = \text{const} \quad \text{(Kinetic Energy)}`,
-  String.raw`e = \frac{v_{2f} - v_{1f}}{v_{1i} - v_{2i}} \approx 0.995 \quad \text{(Restitution)}`
+  String.raw`e = \frac{v_{2f} - v_{1f}}{v_{1i} - v_{2i}} \approx 0.995 \quad \text{(Restitution)}`,
 ];
 
 export const graphParams = [
@@ -218,7 +221,7 @@ export function create(canvas, initParams = {}) {
         p.radius * 0.08,
         x,
         y,
-        p.radius
+        p.radius,
       );
 
       if (f > 0.08) {
@@ -288,7 +291,10 @@ export function create(canvas, initParams = {}) {
       render();
       this.start();
     },
-    setParams(next) { Object.assign(p, next); render(); },
+    setParams(next) {
+      Object.assign(p, next);
+      render();
+    },
     destroy() {
       this.stop();
       Matter.Composite.clear(engine.world, false);
@@ -299,7 +305,7 @@ export function create(canvas, initParams = {}) {
       let pe = 0;
       let px = 0;
       for (const b of balls) {
-        ke += 0.5 * b.mass * (b.velocity.x**2 + b.velocity.y**2);
+        ke += 0.5 * b.mass * (b.velocity.x ** 2 + b.velocity.y ** 2);
         pe += b.mass * engine.gravity.scale * (engine.gravity.y * (1000 - b.position.y));
         px += b.mass * b.velocity.x;
       }
@@ -307,8 +313,8 @@ export function create(canvas, initParams = {}) {
         time: engine.timing.timestamp / 1000,
         totalEnergy: ke + pe,
         kineticEnergy: ke,
-        momentumX: px
+        momentumX: px,
       };
-    }
+    },
   };
 }

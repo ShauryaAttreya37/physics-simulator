@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { useSandboxStore } from '../store/sandboxStore';
 import {
   MousePointer2,
@@ -19,22 +20,22 @@ import {
   Car,
   List,
   MoreHorizontal,
-  Settings2
+  Settings2,
 } from 'lucide-react';
 
 const tools = [
-  { id: 'select', label: 'Select',  icon: <MousePointer2 size={18} /> },
-  { id: 'circle', label: 'Circle',  icon: <Circle        size={18} /> },
-  { id: 'box',    label: 'Box',     icon: <Square        size={18} /> },
-  { id: 'wood',   label: 'Wood',    icon: <Package       size={18} /> },
-  { id: 'beam',   label: 'Beam',    icon: <GripHorizontal size={18} /> },
-  { id: 'wedge',  label: 'Wedge',   icon: <Triangle      size={18} /> },
-  { id: 'wall',   label: 'Wall',    icon: <RectangleHorizontal size={18} /> },
-  { id: 'spring', label: 'Spring',  icon: <Activity      size={18} /> },
-  { id: 'string', label: 'String',  icon: <Minus         size={18} /> },
-  { id: 'pivot',  label: 'Pivot',   icon: <Link          size={18} /> },
+  { id: 'select', label: 'Select', icon: <MousePointer2 size={18} /> },
+  { id: 'circle', label: 'Circle', icon: <Circle size={18} /> },
+  { id: 'box', label: 'Box', icon: <Square size={18} /> },
+  { id: 'wood', label: 'Wood', icon: <Package size={18} /> },
+  { id: 'beam', label: 'Beam', icon: <GripHorizontal size={18} /> },
+  { id: 'wedge', label: 'Wedge', icon: <Triangle size={18} /> },
+  { id: 'wall', label: 'Wall', icon: <RectangleHorizontal size={18} /> },
+  { id: 'spring', label: 'Spring', icon: <Activity size={18} /> },
+  { id: 'string', label: 'String', icon: <Minus size={18} /> },
+  { id: 'pivot', label: 'Pivot', icon: <Link size={18} /> },
   { id: 'oscillator', label: 'Oscillator', icon: <Wifi size={18} /> },
-  { id: 'pulley', label: 'Pulley',  icon: <CircleDot     size={18} /> },
+  { id: 'pulley', label: 'Pulley', icon: <CircleDot size={18} /> },
 ];
 
 const systems = [
@@ -44,7 +45,8 @@ const systems = [
 ];
 
 export default function Toolbar({ onReset, onHome }) {
-  const { activeTool, setActiveTool, isRunning, setRunning, togglePropertiesPanel } = useSandboxStore();
+  const { activeTool, setActiveTool, isRunning, setRunning, togglePropertiesPanel } =
+    useSandboxStore();
 
   return (
     <aside className="left-sidebar">
@@ -59,7 +61,7 @@ export default function Toolbar({ onReset, onHome }) {
       <div className="sidebar-sep" />
 
       {/* Tool buttons */}
-      {tools.map(t => (
+      {tools.map((t) => (
         <button
           key={t.id}
           title={t.label}
@@ -73,8 +75,20 @@ export default function Toolbar({ onReset, onHome }) {
       <div className="sidebar-sep mobile-hide" style={{ margin: '12px 0' }} />
 
       {/* Systems section */}
-      <div className="mobile-hide" style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', textAlign: 'center', fontWeight: '600' }}>Systems</div>
-      {systems.map(s => (
+      <div
+        className="mobile-hide"
+        style={{
+          fontSize: '10px',
+          textTransform: 'uppercase',
+          color: 'var(--text-muted)',
+          marginBottom: '8px',
+          textAlign: 'center',
+          fontWeight: '600',
+        }}
+      >
+        Systems
+      </div>
+      {systems.map((s) => (
         <button
           key={s.id}
           title={s.label}
@@ -102,14 +116,15 @@ export default function Toolbar({ onReset, onHome }) {
         >
           {isRunning ? <Pause size={17} /> : <Play size={17} fill="currentColor" />}
         </button>
-        <button
-          title="Reset"
-          onClick={onReset}
-          className="icon-btn"
-        >
+        <button title="Reset" onClick={onReset} className="icon-btn">
           <RotateCcw size={16} />
         </button>
       </div>
     </aside>
   );
 }
+
+Toolbar.propTypes = {
+  onReset: PropTypes.func.isRequired,
+  onHome: PropTypes.func.isRequired,
+};

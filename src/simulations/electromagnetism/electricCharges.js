@@ -22,26 +22,33 @@ export const defaultParams = { ...DEFAULTS };
 export const equationSections = [
   {
     title: 'Introduction',
-    content: 'Electric charges create forces and fields around them. Like charges repel, opposite charges attract. This simulation shows two charges interacting: one fixed, one moving. You can see the electric field lines, equipotential surfaces, and how the moving charge\'s path curves due to the Coulomb force. It\'s like gravitational orbits but with electrical forces.',
+    content:
+      "Electric charges create forces and fields around them. Like charges repel, opposite charges attract. This simulation shows two charges interacting: one fixed, one moving. You can see the electric field lines, equipotential surfaces, and how the moving charge's path curves due to the Coulomb force. It's like gravitational orbits but with electrical forces.",
   },
   {
     title: "Coulomb's Law & Electric Field",
     equations: [
       {
         latex: String.raw`\vec{F}_{12} = k_e \frac{q_1 q_2}{|\mathbf{r}_{12}|^2} \hat{r}_{12}`,
-        description: 'The force between two point charges. Like charges (same sign) repel, opposite charges attract. Force gets weaker with distance squared.',
+        description:
+          'The force between two point charges. Like charges (same sign) repel, opposite charges attract. Force gets weaker with distance squared.',
       },
       {
         latex: String.raw`\vec{E}(\mathbf{r}) = \sum_i k_e \frac{q_i}{|\mathbf{r} - \mathbf{r}_i|^2} \hat{r}_i`,
-        description: 'Electric field shows the force per unit charge at each point. Field lines point away from positive charges, toward negative ones.',
+        description:
+          'Electric field shows the force per unit charge at each point. Field lines point away from positive charges, toward negative ones.',
       },
       {
         latex: String.raw`V(\mathbf{r}) = k_e \sum_i \frac{q_i}{|\mathbf{r} - \mathbf{r}_i|}`,
-        description: 'Electric potential - the energy per unit charge. Equipotential lines are where potential is constant (no work needed to move along them).',
+        description:
+          'Electric potential - the energy per unit charge. Equipotential lines are where potential is constant (no work needed to move along them).',
       },
     ],
     variables: [
-      { symbol: 'k_e', description: 'Coulomb constant (8.99 × 10⁹ N·m²/C²) - strength of electric force' },
+      {
+        symbol: 'k_e',
+        description: 'Coulomb constant (8.99 × 10⁹ N·m²/C²) - strength of electric force',
+      },
       { symbol: 'q', description: 'Electric charge - positive or negative amount of charge' },
       { symbol: 'r', description: 'Distance between charges - force decreases as 1/r²' },
     ],
@@ -51,17 +58,20 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`U = k_e \frac{q_1 q_2}{r}, \quad K = \tfrac{1}{2}m v^2, \quad E = K + U`,
-        description: 'Total energy (kinetic + potential) is conserved. As charges get closer, potential energy decreases and kinetic energy increases.',
+        description:
+          'Total energy (kinetic + potential) is conserved. As charges get closer, potential energy decreases and kinetic energy increases.',
       },
     ],
   },
   {
     title: 'How to Use',
-    content: '1. Set charges q1 and q2 - try same signs (repulsion) vs opposite (attraction).\n2. Adjust initial velocity of the moving charge (q2).\n3. Change impact parameter b - how far the moving charge starts from the line between centers.\n4. Watch the trajectory - straight line for like charges, curved for opposite.\n5. Observe field lines and equipotentials - they show the "landscape" the charge moves through.\n6. Check energy conservation over time.',
+    content:
+      '1. Set charges q1 and q2 - try same signs (repulsion) vs opposite (attraction).\n2. Adjust initial velocity of the moving charge (q2).\n3. Change impact parameter b - how far the moving charge starts from the line between centers.\n4. Watch the trajectory - straight line for like charges, curved for opposite.\n5. Observe field lines and equipotentials - they show the "landscape" the charge moves through.\n6. Check energy conservation over time.',
   },
   {
     title: 'Beginner Tips',
-    content: 'Electric forces are much stronger than gravity. The field lines show force direction. Equipotentials are like contour lines on a map. For head-on collisions (b=0), charges may scatter or orbit. Rutherford used similar ideas to discover the atomic nucleus!',
+    content:
+      'Electric forces are much stronger than gravity. The field lines show force direction. Equipotentials are like contour lines on a map. For head-on collisions (b=0), charges may scatter or orbit. Rutherford used similar ideas to discover the atomic nucleus!',
   },
 ];
 
@@ -107,15 +117,19 @@ export function create(canvas, initParams = {}) {
     const dy = y1 - y2;
     const rSq = dx * dx + dy * dy + 4;
     const r = Math.sqrt(rSq);
-    const fMag = p.k * p.q1 * p.q2 / rSq;
+    const fMag = (p.k * p.q1 * p.q2) / rSq;
     const fx = fMag * (dx / r);
     const fy = fMag * (dy / r);
 
     return [
-      p1.locked ? 0 : vx1, p1.locked ? 0 : vy1,
-      p1.locked ? 0 : fx / p.m1, p1.locked ? 0 : fy / p.m1,
-      p2.locked ? 0 : vx2, p2.locked ? 0 : vy2,
-      p2.locked ? 0 : -fx / p.m2, p2.locked ? 0 : -fy / p.m2,
+      p1.locked ? 0 : vx1,
+      p1.locked ? 0 : vy1,
+      p1.locked ? 0 : fx / p.m1,
+      p1.locked ? 0 : fy / p.m1,
+      p2.locked ? 0 : vx2,
+      p2.locked ? 0 : vy2,
+      p2.locked ? 0 : -fx / p.m2,
+      p2.locked ? 0 : -fy / p.m2,
     ];
   }
 
@@ -129,15 +143,15 @@ export function create(canvas, initParams = {}) {
     for (let i = 0; i < steps; i++) {
       const s0 = [p1.x, p1.y, p1.vx, p1.vy, p2.x, p2.y, p2.vx, p2.vy];
       const k1 = derivs(s0);
-      const s1 = s0.map((v, j) => v + k1[j] * h / 2);
+      const s1 = s0.map((v, j) => v + (k1[j] * h) / 2);
       const k2 = derivs(s1);
-      const s2 = s0.map((v, j) => v + k2[j] * h / 2);
+      const s2 = s0.map((v, j) => v + (k2[j] * h) / 2);
       const k3 = derivs(s2);
       const s3 = s0.map((v, j) => v + k3[j] * h);
       const k4 = derivs(s3);
 
       for (let j = 0; j < 8; j++) {
-        const val = h * (k1[j] + 2 * k2[j] + 2 * k3[j] + k4[j]) / 6;
+        const val = (h * (k1[j] + 2 * k2[j] + 2 * k3[j] + k4[j])) / 6;
         if (j < 4) {
           if (j === 0) p1.x += val;
           if (j === 1) p1.y += val;
@@ -186,7 +200,7 @@ export function create(canvas, initParams = {}) {
           const dx = wx - pt.x;
           const dy = wy - pt.y;
           const r = Math.sqrt(dx * dx + dy * dy + 25);
-          V += p.k * pt.q / r;
+          V += (p.k * pt.q) / r;
         }
         // Map potential to color
         const idx = (py * ew + px) * 4;
@@ -222,7 +236,8 @@ export function create(canvas, initParams = {}) {
 
     for (let x = spacing / 2; x < W; x += spacing) {
       for (let y = spacing / 2; y < H; y += spacing) {
-        let Ex = 0, Ey = 0;
+        let Ex = 0,
+          Ey = 0;
         const pts = [p1, p2];
         for (const pt of pts) {
           if (pt.q === 0) continue;
@@ -230,7 +245,7 @@ export function create(canvas, initParams = {}) {
           const dy = y - pt.y;
           const rSq = dx * dx + dy * dy + 100;
           const r = Math.sqrt(rSq);
-          const eMag = p.k * pt.q / rSq;
+          const eMag = (p.k * pt.q) / rSq;
           Ex += eMag * (dx / r);
           Ey += eMag * (dy / r);
         }
@@ -245,26 +260,31 @@ export function create(canvas, initParams = {}) {
         const nx = Ex / mag;
         const ny = Ey / mag;
         ctx.beginPath();
-        ctx.moveTo(x - nx * len / 2, y - ny * len / 2);
-        ctx.lineTo(x + nx * len / 2, y + ny * len / 2);
+        ctx.moveTo(x - (nx * len) / 2, y - (ny * len) / 2);
+        ctx.lineTo(x + (nx * len) / 2, y + (ny * len) / 2);
         ctx.stroke();
 
         // Arrowhead
         const aSize = Math.min(3, len * 0.35);
         ctx.beginPath();
-        ctx.moveTo(x + nx * len / 2, y + ny * len / 2);
-        ctx.lineTo(x + nx * len / 2 - nx * aSize - ny * aSize,
-                   y + ny * len / 2 - ny * aSize + nx * aSize);
-        ctx.moveTo(x + nx * len / 2, y + ny * len / 2);
-        ctx.lineTo(x + nx * len / 2 - nx * aSize + ny * aSize,
-                   y + ny * len / 2 - ny * aSize - nx * aSize);
+        ctx.moveTo(x + (nx * len) / 2, y + (ny * len) / 2);
+        ctx.lineTo(
+          x + (nx * len) / 2 - nx * aSize - ny * aSize,
+          y + (ny * len) / 2 - ny * aSize + nx * aSize,
+        );
+        ctx.moveTo(x + (nx * len) / 2, y + (ny * len) / 2);
+        ctx.lineTo(
+          x + (nx * len) / 2 - nx * aSize + ny * aSize,
+          y + (ny * len) / 2 - ny * aSize - nx * aSize,
+        );
         ctx.stroke();
       }
     }
   }
 
   function render() {
-    const W = canvas.width, H = canvas.height;
+    const W = canvas.width,
+      H = canvas.height;
 
     // Deep dark gradient background
     const bg = ctx.createLinearGradient(0, 0, 0, H);
@@ -305,7 +325,7 @@ export function create(canvas, initParams = {}) {
       const dy = p2.y - p1.y;
       const rSq = dx * dx + dy * dy + 4;
       const r = Math.sqrt(rSq);
-      const fMag = p.k * p.q1 * p.q2 / rSq;
+      const fMag = (p.k * p.q1 * p.q2) / rSq;
       const fx = fMag * (dx / r);
       const fy = fMag * (dy / r);
       const fScale = 0.3;
@@ -334,8 +354,12 @@ export function create(canvas, initParams = {}) {
     const drawCharge = (pt, label) => {
       const isPos = pt.q > 0;
       const isZero = pt.q === 0;
-      const color = isZero ? '#94a3b8' : (isPos ? '#FF6B6B' : '#3b82f6');
-      const glowColor = isZero ? '#94a3b8' : (isPos ? 'rgba(255, 107, 107,0.3)' : 'rgba(59,130,246,0.3)');
+      const color = isZero ? '#94a3b8' : isPos ? '#FF6B6B' : '#3b82f6';
+      const glowColor = isZero
+        ? '#94a3b8'
+        : isPos
+          ? 'rgba(255, 107, 107,0.3)'
+          : 'rgba(59,130,246,0.3)';
 
       // Glow ring
       const grad = ctx.createRadialGradient(pt.x, pt.y, 2, pt.x, pt.y, 30);
@@ -358,7 +382,7 @@ export function create(canvas, initParams = {}) {
       ctx.font = 'bold 14px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(isZero ? '0' : (isPos ? '+' : '−'), pt.x, pt.y);
+      ctx.fillText(isZero ? '0' : isPos ? '+' : '−', pt.x, pt.y);
 
       // Label
       ctx.font = '11px "JetBrains Mono", monospace';
@@ -372,7 +396,7 @@ export function create(canvas, initParams = {}) {
     // HUD
     const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
     const KE = 0.5 * p.m2 * (p2.vx * p2.vx + p2.vy * p2.vy);
-    const PE = p.k * p.q1 * p.q2 / Math.max(dist, 1);
+    const PE = (p.k * p.q1 * p.q2) / Math.max(dist, 1);
     const E = KE + PE;
 
     ctx.font = '12px "JetBrains Mono", monospace';
@@ -388,7 +412,9 @@ export function create(canvas, initParams = {}) {
     ctx.fillText(`E  = ${E.toFixed(1)}`, 16, 64);
   }
 
-  let rafId, lastTs, running = false;
+  let rafId,
+    lastTs,
+    running = false;
 
   function loop(ts) {
     if (!running) return;
@@ -411,15 +437,28 @@ export function create(canvas, initParams = {}) {
       lastTs = undefined;
       rafId = requestAnimationFrame(loop);
     },
-    stop() { running = false; cancelAnimationFrame(rafId); },
-    reset() { this.stop(); initState(); render(); this.start(); },
-    setParams(next) { Object.assign(p, next); render(); },
-    destroy() { this.stop(); },
+    stop() {
+      running = false;
+      cancelAnimationFrame(rafId);
+    },
+    reset() {
+      this.stop();
+      initState();
+      render();
+      this.start();
+    },
+    setParams(next) {
+      Object.assign(p, next);
+      render();
+    },
+    destroy() {
+      this.stop();
+    },
     getData() {
       if (!p1 || !p2) return { energy: 0, dist: 0 };
       const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
       const KE = 0.5 * p.m2 * (p2.vx * p2.vx + p2.vy * p2.vy);
-      const PE = p.k * p.q1 * p.q2 / Math.max(dist, 1);
+      const PE = (p.k * p.q1 * p.q2) / Math.max(dist, 1);
       return { energy: KE + PE, dist };
     },
   };

@@ -1,6 +1,6 @@
 /**
  * Quantum Particle in a Box — Infinite Square Well
- * 
+ *
  * Time-evolving superposition of energy eigenstates.
  * Renders: probability density |ψ|², real/imaginary wavefunction,
  * energy spectrum, expectation values ⟨x⟩ and ⟨p⟩.
@@ -23,24 +23,33 @@ export const defaultParams = { ...DEFAULTS };
 export const equationSections = [
   {
     title: 'Introduction',
-    content: 'The particle in a box is a fundamental quantum mechanics problem. Imagine a tiny particle, like an electron, trapped inside an infinitely high box (walls it can\'t escape). In classical physics, the particle could have any energy and be anywhere. But quantum mechanics says it can only have specific energies, and the probability of finding it follows wave patterns. This simulation shows how quantum states combine and evolve over time, creating interesting interference effects.',
+    content:
+      "The particle in a box is a fundamental quantum mechanics problem. Imagine a tiny particle, like an electron, trapped inside an infinitely high box (walls it can't escape). In classical physics, the particle could have any energy and be anywhere. But quantum mechanics says it can only have specific energies, and the probability of finding it follows wave patterns. This simulation shows how quantum states combine and evolve over time, creating interesting interference effects.",
   },
   {
     title: 'Schrödinger Equation (Time-Independent)',
     equations: [
       {
         latex: String.raw`-\frac{\hbar^2}{2m}\frac{d^2\psi}{dx^2} = E\psi, \quad V(x) = \begin{cases} 0 & 0 < x < L \\ \infty & \text{otherwise} \end{cases}`,
-        description: 'This is the quantum equation for the particle. Inside the box (V=0), it\'s like a free particle. The infinite walls mean the wavefunction must be zero at the edges, creating standing waves.',
+        description:
+          "This is the quantum equation for the particle. Inside the box (V=0), it's like a free particle. The infinite walls mean the wavefunction must be zero at the edges, creating standing waves.",
       },
       {
         latex: String.raw`\psi_n(x) = \sqrt{\frac{2}{L}}\sin\!\left(\frac{n\pi x}{L}\right), \quad E_n = \frac{n^2\pi^2\hbar^2}{2mL^2}`,
-        description: 'These are the allowed wavefunctions and energies. n=1 is the lowest energy state (ground state), n=2 is excited, etc. Higher n means more "bumps" in the wave and higher energy.',
+        description:
+          'These are the allowed wavefunctions and energies. n=1 is the lowest energy state (ground state), n=2 is excited, etc. Higher n means more "bumps" in the wave and higher energy.',
       },
     ],
     variables: [
-      { symbol: 'n', description: 'Energy level number (n = 1, 2, 3, …) - like floors in a building' },
+      {
+        symbol: 'n',
+        description: 'Energy level number (n = 1, 2, 3, …) - like floors in a building',
+      },
       { symbol: 'L', description: 'Length of the box - longer box means closer energy levels' },
-      { symbol: 'ℏ', description: 'Quantum constant (very small number, about 1.0545718 × 10^{-34} J⋅s)' },
+      {
+        symbol: 'ℏ',
+        description: 'Quantum constant (very small number, about 1.0545718 × 10^{-34} J⋅s)',
+      },
       { symbol: 'm', description: 'Mass of the particle - heavier particles have lower energies' },
     ],
   },
@@ -49,11 +58,13 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\Psi(x,t) = \sum_n c_n\,\psi_n(x)\,e^{-iE_n t/\hbar}`,
-        description: 'When you mix different energy states, the total wavefunction changes with time. Each state oscillates at its own frequency, creating beating patterns.',
+        description:
+          'When you mix different energy states, the total wavefunction changes with time. Each state oscillates at its own frequency, creating beating patterns.',
       },
       {
         latex: String.raw`|\Psi(x,t)|^2 = \text{probability density — oscillates due to beating between modes}`,
-        description: 'This is what you would measure: the probability of finding the particle at position x at time t. It moves around as the waves interfere.',
+        description:
+          'This is what you would measure: the probability of finding the particle at position x at time t. It moves around as the waves interfere.',
       },
     ],
   },
@@ -62,17 +73,20 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\langle x \rangle = \int_0^L x|\Psi|^2\,dx, \quad \langle p \rangle = -i\hbar\int_0^L \Psi^*\frac{\partial\Psi}{\partial x}\,dx`,
-        description: 'These are quantum averages. ⟨x⟩ is the average position, ⟨p⟩ is average momentum. They show how the particle behaves on average.',
+        description:
+          'These are quantum averages. ⟨x⟩ is the average position, ⟨p⟩ is average momentum. They show how the particle behaves on average.',
       },
     ],
   },
   {
     title: 'How to Use',
-    content: '1. Start with just n=1 amplitude = 1, others = 0. This is the ground state - particle most likely in center.\n2. Add some n=2 amplitude. See how the wave oscillates between states.\n3. Try equal amplitudes for n=1 and n=2. Watch the probability density move back and forth.\n4. Look at ⟨x⟩ and ⟨p⟩ graphs - they show average position and momentum over time.\n5. Experiment with different combinations to see interference patterns.',
+    content:
+      '1. Start with just n=1 amplitude = 1, others = 0. This is the ground state - particle most likely in center.\n2. Add some n=2 amplitude. See how the wave oscillates between states.\n3. Try equal amplitudes for n=1 and n=2. Watch the probability density move back and forth.\n4. Look at ⟨x⟩ and ⟨p⟩ graphs - they show average position and momentum over time.\n5. Experiment with different combinations to see interference patterns.',
   },
   {
     title: 'Beginner Tips',
-    content: 'Think of energy levels like rungs on a ladder - you can only stand on specific rungs. The wavefunction shows where you\'re likely to be found. When states mix, the particle seems to "tunnel" between positions. This is quantum superposition in action!',
+    content:
+      'Think of energy levels like rungs on a ladder - you can only stand on specific rungs. The wavefunction shows where you\'re likely to be found. When states mix, the particle seems to "tunnel" between positions. This is quantum superposition in action!',
   },
 ];
 
@@ -134,7 +148,7 @@ export function create(canvas, initParams = {}) {
   function getCoeffs() {
     const raw = [p.n1Amp, p.n2Amp, p.n3Amp, p.n4Amp];
     const norm = Math.sqrt(raw.reduce((s, a) => s + a * a, 0)) || 1;
-    return raw.map(a => a / norm);
+    return raw.map((a) => a / norm);
   }
 
   function computeWavefunction(t) {
@@ -147,11 +161,12 @@ export function create(canvas, initParams = {}) {
 
     for (let i = 0; i < N_POINTS; i++) {
       const x = i * dx;
-      let psiRe = 0, psiIm = 0;
+      let psiRe = 0,
+        psiIm = 0;
       for (let n = 0; n < 4; n++) {
         if (Math.abs(coeffs[n]) < 1e-12) continue;
         const En = eigenEnergy(n + 1, p);
-        const phase = -En * t / p.hbar;
+        const phase = (-En * t) / p.hbar;
         const phi = eigenFunc(n + 1, x, L);
         psiRe += coeffs[n] * phi * Math.cos(phase);
         psiIm += coeffs[n] * phi * Math.sin(phase);
@@ -165,7 +180,9 @@ export function create(canvas, initParams = {}) {
 
   function computeExpectations(wf) {
     const L = p.boxLength;
-    let expectX = 0, expectP = 0, totalProb = 0;
+    let expectX = 0,
+      expectP = 0,
+      totalProb = 0;
     for (let i = 0; i < N_POINTS; i++) {
       const x = i * wf.dx;
       expectX += x * wf.prob[i] * wf.dx;
@@ -203,11 +220,17 @@ export function create(canvas, initParams = {}) {
     ctx.lineWidth = 0.5;
     for (let i = 1; i < gridLines; i++) {
       const y = gy + (gh * i) / gridLines;
-      ctx.beginPath(); ctx.moveTo(gx, y); ctx.lineTo(gx + gw, y); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(gx, y);
+      ctx.lineTo(gx + gw, y);
+      ctx.stroke();
     }
     for (let i = 1; i < gridLines; i++) {
       const x = gx + (gw * i) / gridLines;
-      ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x, gy + gh); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x, gy);
+      ctx.lineTo(x, gy + gh);
+      ctx.stroke();
     }
 
     // Title
@@ -276,7 +299,8 @@ export function create(canvas, initParams = {}) {
 
   // ── Main render ──────────────────────────────────────────────────────
   function render() {
-    const W = canvas.width, H = canvas.height;
+    const W = canvas.width,
+      H = canvas.height;
 
     // Deep dark background
     const mainBg = ctx.createLinearGradient(0, 0, W, H);
@@ -357,7 +381,8 @@ export function create(canvas, initParams = {}) {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    const rePts = [], imPts = [];
+    const rePts = [],
+      imPts = [];
     for (let i = 0; i < N_POINTS; i++) {
       const px = plotX + (i / (N_POINTS - 1)) * plotW;
       rePts.push({ x: px, y: eqLine - (wf.re[i] / wfMax) * (wfPlotH / 2 - 16) });
@@ -385,13 +410,13 @@ export function create(canvas, initParams = {}) {
     });
 
     const coeffs = getCoeffs();
-    const energies = [1, 2, 3, 4].map(n => eigenEnergy(n, p));
+    const energies = [1, 2, 3, 4].map((n) => eigenEnergy(n, p));
     const Emax = Math.max(...energies) * 1.15;
 
     for (let n = 0; n < 4; n++) {
       const barH = (energies[n] / Emax) * (specH - 40);
       const barW = specW * 0.12;
-      const barX = specX + 30 + n * (specW - 60) / 3.5;
+      const barX = specX + 30 + (n * (specW - 60)) / 3.5;
       const barY = specY + specH - 20 - barH;
       const alpha = 0.3 + Math.abs(coeffs[n]) * 0.7;
 
@@ -431,7 +456,8 @@ export function create(canvas, initParams = {}) {
       const tMin = trail[0].t;
       const tMax = trail[trail.length - 1].t;
       if (tMax > tMin) {
-        let xMax = 0, pMax = 0;
+        let xMax = 0,
+          pMax = 0;
         for (const pt of trail) {
           xMax = Math.max(xMax, Math.abs(pt.expectX - L / 2));
           pMax = Math.max(pMax, Math.abs(pt.expectP));
@@ -439,7 +465,8 @@ export function create(canvas, initParams = {}) {
         xMax = Math.max(xMax, 0.01) * 1.3;
         pMax = Math.max(pMax, 0.01) * 1.3;
 
-        const xPts = [], pPts = [];
+        const xPts = [],
+          pPts = [];
         for (const pt of trail) {
           const tx = tsX + ((pt.t - tMin) / (tMax - tMin)) * tsW;
           xPts.push({ x: tx, y: tsY + tsH / 2 - ((pt.expectX - L / 2) / xMax) * (tsH / 2 - 14) });
@@ -474,7 +501,9 @@ export function create(canvas, initParams = {}) {
     if (trail.length > p.trailMax) trail.shift();
   }
 
-  let rafId, lastTs, running = false;
+  let rafId,
+    lastTs,
+    running = false;
 
   function loop(ts) {
     if (!running) return;
@@ -492,13 +521,28 @@ export function create(canvas, initParams = {}) {
   return {
     start() {
       if (running) return;
-      running = true; lastTs = undefined;
+      running = true;
+      lastTs = undefined;
       rafId = requestAnimationFrame(loop);
     },
-    stop() { running = false; cancelAnimationFrame(rafId); },
-    reset() { this.stop(); simTime = 0; trail = []; render(); this.start(); },
-    setParams(next) { Object.assign(p, next); render(); },
-    destroy() { this.stop(); },
+    stop() {
+      running = false;
+      cancelAnimationFrame(rafId);
+    },
+    reset() {
+      this.stop();
+      simTime = 0;
+      trail = [];
+      render();
+      this.start();
+    },
+    setParams(next) {
+      Object.assign(p, next);
+      render();
+    },
+    destroy() {
+      this.stop();
+    },
     getData() {
       const wf = computeWavefunction(simTime);
       const exp = computeExpectations(wf);

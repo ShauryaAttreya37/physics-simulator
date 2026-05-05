@@ -21,18 +21,21 @@ export const defaultParams = {
 export const equationSections = [
   {
     title: 'Introduction',
-    content: 'Water waves demonstrate how energy propagates through a medium. This simulation shows 2D waves on a surface, like ripples in a pond. Waves can interfere, reflect, and dissipate. You can create splashes and watch how they spread and interact.',
+    content:
+      'Water waves demonstrate how energy propagates through a medium. This simulation shows 2D waves on a surface, like ripples in a pond. Waves can interfere, reflect, and dissipate. You can create splashes and watch how they spread and interact.',
   },
   {
     title: 'Wave Equation',
     equations: [
       {
         latex: String.raw`\frac{\partial^2 u}{\partial t^2} = c^2 \nabla^2 u`,
-        description: 'The 2D wave equation. u is the wave height, c is wave speed, ∇² is the Laplacian (curvature). This governs how waves propagate.',
+        description:
+          'The 2D wave equation. u is the wave height, c is wave speed, ∇² is the Laplacian (curvature). This governs how waves propagate.',
       },
       {
         latex: String.raw`u_{t+1} = 2u_t - u_{t-1} + c^2(\Delta u_t) \times \text{damping}`,
-        description: 'Numerical solution using finite differences. Each point\'s future height depends on current and past values plus neighboring curvature.',
+        description:
+          "Numerical solution using finite differences. Each point's future height depends on current and past values plus neighboring curvature.",
       },
     ],
     variables: [
@@ -46,32 +49,36 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`v = f \lambda`,
-        description: 'Wave speed equals frequency times wavelength. Faster waves have longer wavelengths at same frequency.',
+        description:
+          'Wave speed equals frequency times wavelength. Faster waves have longer wavelengths at same frequency.',
       },
       {
         latex: String.raw`E \propto A^2`,
-        description: 'Wave energy is proportional to amplitude squared. Bigger splashes carry more energy.',
+        description:
+          'Wave energy is proportional to amplitude squared. Bigger splashes carry more energy.',
       },
     ],
   },
   {
     title: 'How to Use',
-    content: '1. Click anywhere on the water surface to create a splash.\n2. Adjust wave speed - faster waves travel quicker but may become unstable.\n3. Change damping - higher damping makes waves die out faster.\n4. Try different splash sizes and strengths.\n5. Watch waves reflect off boundaries and interfere with each other.\n6. Look at the amplitude graphs to see how energy dissipates.',
+    content:
+      '1. Click anywhere on the water surface to create a splash.\n2. Adjust wave speed - faster waves travel quicker but may become unstable.\n3. Change damping - higher damping makes waves die out faster.\n4. Try different splash sizes and strengths.\n5. Watch waves reflect off boundaries and interfere with each other.\n6. Look at the amplitude graphs to see how energy dissipates.',
   },
   {
     title: 'Beginner Tips',
-    content: 'Waves add up when they meet (superposition). Crest + crest = bigger wave, crest + trough = flat. Waves lose energy to friction. Try making multiple splashes to see interference patterns. The grid shows wave propagation in real time.',
+    content:
+      'Waves add up when they meet (superposition). Crest + crest = bigger wave, crest + trough = flat. Waves lose energy to friction. Try making multiple splashes to see interference patterns. The grid shows wave propagation in real time.',
   },
 ];
 
 export const equations = [
   String.raw`\frac{\partial^2 u}{\partial t^2} = c^2 \nabla^2 u`,
-  String.raw`u_{t+1} = 2u_t - u_{t-1} + c^2(\Delta u_t) \times \text{damp}`
+  String.raw`u_{t+1} = 2u_t - u_{t-1} + c^2(\Delta u_t) \times \text{damp}`,
 ];
 
 export const graphParams = [
   { key: 'centerAmp', label: 'Center Amplitude' },
-  { key: 'totalEnergyP', label: 'Average Absolute Amplitude' }
+  { key: 'totalEnergyP', label: 'Average Absolute Amplitude' },
 ];
 
 export const controls = [
@@ -145,7 +152,7 @@ export function create(canvas, initParams = {}) {
         const iy = Math.round(gy + dy);
         if (ix < 0 || ix >= GW || iy < 0 || iy >= GH) continue;
         const d = Math.sqrt(dx * dx + dy * dy);
-        if (d <= R) cur[iy * GW + ix] += amp * Math.cos((d / R) * Math.PI / 2);
+        if (d <= R) cur[iy * GW + ix] += amp * Math.cos(((d / R) * Math.PI) / 2);
       }
     }
   }
@@ -243,7 +250,10 @@ export function create(canvas, initParams = {}) {
       render();
       this.start();
     },
-    setParams(next) { Object.assign(p, next); render(); },
+    setParams(next) {
+      Object.assign(p, next);
+      render();
+    },
     destroy() {
       this.stop();
       canvas.removeEventListener('pointerdown', onPointer);
@@ -251,12 +261,12 @@ export function create(canvas, initParams = {}) {
     getData() {
       let sum = 0;
       for (let i = 0; i < cur.length; i++) sum += Math.abs(cur[i]);
-      const centerIdx = Math.floor(GH/2) * GW + Math.floor(GW/2);
+      const centerIdx = Math.floor(GH / 2) * GW + Math.floor(GW / 2);
       return {
         time: (Date.now() / 1000) % 10000,
         centerAmp: cur[centerIdx] || 0,
-        totalEnergyP: cur.length ? sum / cur.length : 0
+        totalEnergyP: cur.length ? sum / cur.length : 0,
       };
-    }
+    },
   };
 }

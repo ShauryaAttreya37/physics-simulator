@@ -1,166 +1,166 @@
 ﻿meta:
   title: Mechanics Sandbox Governing Formulas
   version: 1.0
-  format: "LLM-readable YAML"
+  format: 'LLM-readable YAML'
   conventions:
-    - "SI base units unless explicitly overridden"
-    - "Angles in radians unless otherwise stated"
-    - "Vectors are denoted in equation text with bold symbols"
+    - 'SI base units unless explicitly overridden'
+    - 'Angles in radians unless otherwise stated'
+    - 'Vectors are denoted in equation text with bold symbols'
 
 global_constants:
   g:
     symbol: g
     value_si: 9.81
-    units: "m/s^2"
+    units: 'm/s^2'
     description: "Gravitational acceleration near Earth's surface"
   rho_water:
     symbol: rho
     value_si: 1000
-    units: "kg/m^3"
-    description: "Reference density of water"
+    units: 'kg/m^3'
+    description: 'Reference density of water'
 
 topics:
   - name: Kinematics and Vector Motion
     formulas:
       - id: kin_1
         name: Position update (constant acceleration)
-        equation: "x = x0 + v0*t + 0.5*a*t^2"
+        equation: 'x = x0 + v0*t + 0.5*a*t^2'
         variables:
-          x: "position"
-          x0: "initial position"
-          v0: "initial velocity"
-          a: "constant acceleration"
-          t: "time"
+          x: 'position'
+          x0: 'initial position'
+          v0: 'initial velocity'
+          a: 'constant acceleration'
+          t: 'time'
       - id: kin_2
         name: Velocity update (constant acceleration)
-        equation: "v = v0 + a*t"
+        equation: 'v = v0 + a*t'
         variables:
-          v: "final velocity"
-          v0: "initial velocity"
-          a: "constant acceleration"
-          t: "time"
+          v: 'final velocity'
+          v0: 'initial velocity'
+          a: 'constant acceleration'
+          t: 'time'
       - id: kin_3
         name: Velocity-position relation
-        equation: "v^2 = v0^2 + 2*a*(x - x0)"
+        equation: 'v^2 = v0^2 + 2*a*(x - x0)'
 
   - name: Projectile Motion
     formulas:
       - id: proj_1
         name: Initial velocity components
-        equation: "vx0 = v0*cos(theta), vy0 = v0*sin(theta)"
+        equation: 'vx0 = v0*cos(theta), vy0 = v0*sin(theta)'
       - id: proj_2
         name: Horizontal position
-        equation: "x(t) = x0 + vx0*t"
+        equation: 'x(t) = x0 + vx0*t'
       - id: proj_3
         name: Vertical position
-        equation: "y(t) = y0 + vy0*t - 0.5*g*t^2"
+        equation: 'y(t) = y0 + vy0*t - 0.5*g*t^2'
       - id: proj_4
         name: Vertical velocity
-        equation: "vy(t) = vy0 - g*t"
+        equation: 'vy(t) = vy0 - g*t'
       - id: proj_5
         name: Time of flight (same launch and landing height)
-        equation: "T = 2*v0*sin(theta)/g"
+        equation: 'T = 2*v0*sin(theta)/g'
       - id: proj_6
         name: Horizontal range (same launch and landing height)
-        equation: "R = v0^2*sin(2*theta)/g"
+        equation: 'R = v0^2*sin(2*theta)/g'
       - id: proj_7
         name: Maximum height above launch
-        equation: "H = v0^2*sin(theta)^2/(2*g)"
+        equation: 'H = v0^2*sin(theta)^2/(2*g)'
 
   - name: Newton Laws and Force Models
     formulas:
       - id: newton_1
         name: Newton second law (vector form)
-        equation: "sum(F) = m*a"
+        equation: 'sum(F) = m*a'
       - id: newton_2
         name: Weight force
-        equation: "W = m*g"
+        equation: 'W = m*g'
       - id: newton_3
         name: Normal force on incline (no additional vertical forces)
-        equation: "N = m*g*cos(theta)"
+        equation: 'N = m*g*cos(theta)'
       - id: newton_4
         name: Static friction bound
-        equation: "|fs| <= mu_s*N"
+        equation: '|fs| <= mu_s*N'
       - id: newton_5
         name: Kinetic friction magnitude
-        equation: "fk = mu_k*N"
+        equation: 'fk = mu_k*N'
       - id: newton_6
         name: Hooke spring force
-        equation: "F_spring = -k*x"
+        equation: 'F_spring = -k*x'
       - id: newton_7
         name: Linear drag (low Reynolds approximation)
-        equation: "F_drag = -b*v"
+        equation: 'F_drag = -b*v'
       - id: newton_8
         name: Quadratic drag magnitude
-        equation: "F_drag = 0.5*rho*Cd*A*v^2"
+        equation: 'F_drag = 0.5*rho*Cd*A*v^2'
         notes:
-          - "Direction opposite velocity vector"
+          - 'Direction opposite velocity vector'
       - id: newton_9
         name: Tension in massless ideal string
-        equation: "T is uniform along a continuous, massless, frictionless string"
+        equation: 'T is uniform along a continuous, massless, frictionless string'
 
   - name: Work, Energy, and Power
     formulas:
       - id: energy_1
         name: Work by constant force
-        equation: "W = F*d*cos(phi)"
+        equation: 'W = F*d*cos(phi)'
       - id: energy_2
         name: Differential work
-        equation: "dW = F . dr"
+        equation: 'dW = F . dr'
       - id: energy_3
         name: Work-energy theorem
-        equation: "W_net = Delta K"
+        equation: 'W_net = Delta K'
       - id: energy_4
         name: Translational kinetic energy
-        equation: "K = 0.5*m*v^2"
+        equation: 'K = 0.5*m*v^2'
       - id: energy_5
         name: Gravitational potential energy (near Earth)
-        equation: "U_g = m*g*h"
+        equation: 'U_g = m*g*h'
       - id: energy_6
         name: Elastic potential energy
-        equation: "U_s = 0.5*k*x^2"
+        equation: 'U_s = 0.5*k*x^2'
       - id: energy_7
         name: Mechanical energy with non-conservative work
-        equation: "K1 + U1 + W_nc = K2 + U2"
+        equation: 'K1 + U1 + W_nc = K2 + U2'
       - id: energy_8
         name: Power (average and instantaneous)
-        equation: "P_avg = W/Delta t, P = dW/dt = F . v"
+        equation: 'P_avg = W/Delta t, P = dW/dt = F . v'
 
   - name: Rotational Motion and Torque
     formulas:
       - id: rot_1
         name: Angular kinematics (constant angular acceleration)
-        equation: "omega = omega0 + alpha*t"
+        equation: 'omega = omega0 + alpha*t'
       - id: rot_2
         name: Angular displacement
-        equation: "theta = theta0 + omega0*t + 0.5*alpha*t^2"
+        equation: 'theta = theta0 + omega0*t + 0.5*alpha*t^2'
       - id: rot_3
         name: Angular velocity-displacement relation
-        equation: "omega^2 = omega0^2 + 2*alpha*(theta - theta0)"
+        equation: 'omega^2 = omega0^2 + 2*alpha*(theta - theta0)'
       - id: rot_4
         name: Tangential velocity
-        equation: "v_t = omega*r"
+        equation: 'v_t = omega*r'
       - id: rot_5
         name: Tangential and centripetal acceleration
-        equation: "a_t = alpha*r, a_c = omega^2*r = v^2/r"
+        equation: 'a_t = alpha*r, a_c = omega^2*r = v^2/r'
       - id: rot_6
         name: Torque magnitude
-        equation: "tau = r*F*sin(phi)"
+        equation: 'tau = r*F*sin(phi)'
       - id: rot_7
         name: Rotational dynamics
-        equation: "sum(tau) = I*alpha"
+        equation: 'sum(tau) = I*alpha'
       - id: rot_8
         name: Rotational kinetic energy
-        equation: "K_rot = 0.5*I*omega^2"
+        equation: 'K_rot = 0.5*I*omega^2'
       - id: rot_9
         name: Angular momentum (rigid body about fixed axis)
-        equation: "L = I*omega"
+        equation: 'L = I*omega'
       - id: rot_10
         name: Angular impulse-momentum
-        equation: "integral(tau dt) = Delta L"
+        equation: 'integral(tau dt) = Delta L'
       - id: rot_11
         name: Rolling without slipping
-        equation: "v_cm = omega*R, a_cm = alpha*R"
+        equation: 'v_cm = omega*R, a_cm = alpha*R'
 
   - name: Simple Harmonic Motion
     formulas:
@@ -169,96 +169,96 @@ topics:
         equation: "x'' + omega^2*x = 0"
       - id: shm_2
         name: SHM solution
-        equation: "x(t) = A*cos(omega*t + phi)"
+        equation: 'x(t) = A*cos(omega*t + phi)'
       - id: shm_3
         name: Velocity and acceleration in SHM
-        equation: "v(t) = -A*omega*sin(omega*t + phi), a(t) = -omega^2*x(t)"
+        equation: 'v(t) = -A*omega*sin(omega*t + phi), a(t) = -omega^2*x(t)'
       - id: shm_4
         name: Angular frequency and period (mass-spring)
-        equation: "omega = sqrt(k/m), T = 2*pi/omega"
+        equation: 'omega = sqrt(k/m), T = 2*pi/omega'
       - id: shm_5
         name: Simple pendulum (small-angle approximation)
-        equation: "omega = sqrt(g/L), T = 2*pi*sqrt(L/g)"
+        equation: 'omega = sqrt(g/L), T = 2*pi*sqrt(L/g)'
       - id: shm_6
         name: SHM total energy
-        equation: "E = 0.5*k*A^2 = 0.5*k*x^2 + 0.5*m*v^2"
+        equation: 'E = 0.5*k*A^2 = 0.5*k*x^2 + 0.5*m*v^2'
 
   - name: Fluid Dynamics and Statics
     formulas:
       - id: fluid_1
         name: Density
-        equation: "rho = m/V"
+        equation: 'rho = m/V'
       - id: fluid_2
         name: Pressure
-        equation: "P = F/A"
+        equation: 'P = F/A'
       - id: fluid_3
         name: Hydrostatic pressure variation
-        equation: "P = P0 + rho*g*h"
+        equation: 'P = P0 + rho*g*h'
       - id: fluid_4
         name: Buoyant force (Archimedes)
-        equation: "F_b = rho_fluid*g*V_displaced"
+        equation: 'F_b = rho_fluid*g*V_displaced'
       - id: fluid_5
         name: Continuity equation (incompressible flow)
-        equation: "A1*v1 = A2*v2"
+        equation: 'A1*v1 = A2*v2'
       - id: fluid_6
         name: Volumetric flow rate
-        equation: "Q = A*v"
+        equation: 'Q = A*v'
       - id: fluid_7
         name: Bernoulli equation (steady, incompressible, non-viscous along streamline)
-        equation: "P + 0.5*rho*v^2 + rho*g*h = constant"
+        equation: 'P + 0.5*rho*v^2 + rho*g*h = constant'
       - id: fluid_8
         name: Dynamic pressure
-        equation: "q = 0.5*rho*v^2"
+        equation: 'q = 0.5*rho*v^2'
       - id: fluid_9
         name: Reynolds number
-        equation: "Re = rho*v*L/mu"
+        equation: 'Re = rho*v*L/mu'
       - id: fluid_10
         name: Stokes drag on sphere (creeping flow)
-        equation: "F_d = 6*pi*mu*r*v"
+        equation: 'F_d = 6*pi*mu*r*v'
 
   - name: Constraints and Apparatus Models
     formulas:
       - id: app_1
         name: Ideal rope length constraint
-        equation: "L_total = sum(segment_lengths) = constant"
+        equation: 'L_total = sum(segment_lengths) = constant'
       - id: app_2
         name: Pulley kinematic constraint (single movable pulley)
-        equation: "a_load = 0.5*a_free_end"
+        equation: 'a_load = 0.5*a_free_end'
       - id: app_3
         name: Atwood machine acceleration (ideal)
-        equation: "a = (m2 - m1)*g/(m1 + m2)"
+        equation: 'a = (m2 - m1)*g/(m1 + m2)'
       - id: app_4
         name: Inclined plane acceleration with kinetic friction
-        equation: "a = g*(sin(theta) - mu_k*cos(theta))"
+        equation: 'a = g*(sin(theta) - mu_k*cos(theta))'
       - id: app_5
         name: Wedge-block horizontal acceleration (idealized, no friction)
-        equation: "a = (m*g*sin(theta)*cos(theta)) / (M + m*sin(theta)^2)"
+        equation: 'a = (m*g*sin(theta)*cos(theta)) / (M + m*sin(theta)^2)'
         notes:
-          - "M is wedge mass, m is block mass"
+          - 'M is wedge mass, m is block mass'
 
 numerical_integration_reference:
   state_model:
-    - "For each rigid body store: position, velocity, orientation, angular_velocity"
-    - "Compute net force and net torque each step"
-    - "Derive linear and angular accelerations"
+    - 'For each rigid body store: position, velocity, orientation, angular_velocity'
+    - 'Compute net force and net torque each step'
+    - 'Derive linear and angular accelerations'
   update_schemes:
     explicit_euler:
       equations:
-        - "v_next = v + a*dt"
-        - "x_next = x + v*dt"
+        - 'v_next = v + a*dt'
+        - 'x_next = x + v*dt'
     semi_implicit_euler:
       equations:
-        - "v_next = v + a*dt"
-        - "x_next = x + v_next*dt"
-      note: "Preferred over explicit Euler for better energy behavior in many mechanics scenes"
+        - 'v_next = v + a*dt'
+        - 'x_next = x + v_next*dt'
+      note: 'Preferred over explicit Euler for better energy behavior in many mechanics scenes'
     velocity_verlet:
       equations:
-        - "x_next = x + v*dt + 0.5*a*dt^2"
-        - "a_next from forces at x_next"
-        - "v_next = v + 0.5*(a + a_next)*dt"
+        - 'x_next = x + v*dt + 0.5*a*dt^2'
+        - 'a_next from forces at x_next'
+        - 'v_next = v + 0.5*(a + a_next)*dt'
 
 validation_checks:
-  - "Units consistency per equation"
-  - "Energy drift monitor when only conservative forces are enabled"
-  - "Momentum conservation checks for isolated systems"
-  - "Constraint violation tolerance for ropes/joints/pulleys"
+  - 'Units consistency per equation'
+  - 'Energy drift monitor when only conservative forces are enabled'
+  - 'Momentum conservation checks for isolated systems'
+  - 'Constraint violation tolerance for ropes/joints/pulleys'

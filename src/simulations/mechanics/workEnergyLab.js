@@ -1,6 +1,6 @@
 /**
  * Work & Energy Lab: Mass on an Incline
- * 
+ *
  * Demonstrates the Work-Energy Theorem and Conservation of Energy.
  * Tracks Kinetic, Potential, and Thermal energy in real-time.
  */
@@ -20,18 +20,21 @@ export const defaultParams = { ...DEFAULTS };
 export const equationSections = [
   {
     title: 'Introduction',
-    content: 'Work and energy are fundamental concepts in physics. This simulation shows a block on an inclined plane where you can apply forces, change friction, and see how work converts to kinetic energy, potential energy, and heat. It demonstrates the work-energy theorem and conservation of energy.',
+    content:
+      'Work and energy are fundamental concepts in physics. This simulation shows a block on an inclined plane where you can apply forces, change friction, and see how work converts to kinetic energy, potential energy, and heat. It demonstrates the work-energy theorem and conservation of energy.',
   },
   {
     title: 'The Force & The Work-Energy Theorem',
     equations: [
       {
         latex: String.raw`W_{net} = \Delta K = K_f - K_i`,
-        description: 'The net work done on an object equals its change in kinetic energy. Work is force times distance in the direction of the force.',
+        description:
+          'The net work done on an object equals its change in kinetic energy. Work is force times distance in the direction of the force.',
       },
       {
         latex: String.raw`W = \int \vec{F} \cdot d\vec{r}`,
-        description: 'Work is the integral of force dotted with displacement. Only the component of force parallel to motion does work.',
+        description:
+          'Work is the integral of force dotted with displacement. Only the component of force parallel to motion does work.',
       },
     ],
     variables: [
@@ -46,11 +49,13 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`E_{total} = K + U + Q = \text{constant}`,
-        description: 'Total mechanical energy plus thermal energy is conserved. Energy can convert between forms but total amount stays the same.',
+        description:
+          'Total mechanical energy plus thermal energy is conserved. Energy can convert between forms but total amount stays the same.',
       },
       {
         latex: String.raw`K = \frac{1}{2}mv^2, \quad U = mgh, \quad Q = \int |f_k| dx`,
-        description: 'Kinetic energy from motion, potential energy from height, thermal energy from friction (dissipates as heat).',
+        description:
+          'Kinetic energy from motion, potential energy from height, thermal energy from friction (dissipates as heat).',
       },
     ],
   },
@@ -59,17 +64,20 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`P = \frac{dW}{dt} = \vec{F} \cdot \vec{v}`,
-        description: 'Power is the rate of doing work. It\'s force times velocity (component in direction of force).',
+        description:
+          "Power is the rate of doing work. It's force times velocity (component in direction of force).",
       },
     ],
   },
   {
     title: 'How to Use',
-    content: '1. Adjust the applied force - positive pushes up the ramp, negative pulls down.\n2. Change the incline angle - steeper ramps make gravity more important.\n3. Set friction coefficient - higher friction converts more energy to heat.\n4. Modify mass - heavier objects need more force to move.\n5. Watch the energy graphs - see how work converts to different energy forms.\n6. Try to conserve total energy by minimizing friction.',
+    content:
+      '1. Adjust the applied force - positive pushes up the ramp, negative pulls down.\n2. Change the incline angle - steeper ramps make gravity more important.\n3. Set friction coefficient - higher friction converts more energy to heat.\n4. Modify mass - heavier objects need more force to move.\n5. Watch the energy graphs - see how work converts to different energy forms.\n6. Try to conserve total energy by minimizing friction.',
   },
   {
     title: 'Beginner Tips',
-    content: 'Start with no friction to see pure mechanical energy conservation. Add friction to see energy dissipation. The work you do with applied force should equal the change in kinetic energy (minus friction losses). Power shows how quickly you\'re doing work. Try different combinations to understand energy flow.',
+    content:
+      "Start with no friction to see pure mechanical energy conservation. Add friction to see energy dissipation. The work you do with applied force should equal the change in kinetic energy (minus friction losses). Power shows how quickly you're doing work. Try different combinations to understand energy flow.",
   },
 ];
 
@@ -115,7 +123,7 @@ export function create(canvas, initParams = {}) {
       const g_parallel = p.gravity * Math.sin(p.angle);
       const g_normal = p.gravity * Math.cos(p.angle);
       const f_max_static = p.frictionMu * p.mass * g_normal;
-      
+
       let f_kinetic = 0;
       if (Math.abs(v) > 0.01) {
         f_kinetic = -Math.sign(v) * p.frictionMu * p.mass * g_normal;
@@ -142,18 +150,25 @@ export function create(canvas, initParams = {}) {
       if (Math.abs(v) > 0) {
         thermalEnergy += Math.abs(f_kinetic * dx);
       }
-      
+
       simTime += h;
     }
 
     // Hard stops at ends of track
-    if (x < -8) { x = -8; v = 0; }
-    if (x > 8) { x = 8; v = 0; }
+    if (x < -8) {
+      x = -8;
+      v = 0;
+    }
+    if (x > 8) {
+      x = 8;
+      v = 0;
+    }
   }
 
   function render() {
-    const W = canvas.width, H = canvas.height;
-    
+    const W = canvas.width,
+      H = canvas.height;
+
     // 1. Sky / Space Gradient
     const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
     skyGrad.addColorStop(0, '#050510');
@@ -164,14 +179,14 @@ export function create(canvas, initParams = {}) {
 
     // 2. Stars
     ctx.fillStyle = '#ffffff';
-    for(let i=0; i<150; i++) {
-        const sx = Math.abs((Math.sin(i * 12.9898) * 43758.5453) % 1);
-        const sy = Math.abs((Math.sin(i * 78.233) * 43758.5453) % 1);
-        if (sy > 0.6) continue; // Stars only in space
-        ctx.globalAlpha = 0.2 + (Math.abs((Math.sin(i * 12.3 + simTime*2) * 43758.5453) % 1) * 0.8);
-        ctx.beginPath();
-        ctx.arc(sx * W, sy * H, i % 3 === 0 ? 1.5 : 1.0, 0, Math.PI * 2);
-        ctx.fill();
+    for (let i = 0; i < 150; i++) {
+      const sx = Math.abs((Math.sin(i * 12.9898) * 43758.5453) % 1);
+      const sy = Math.abs((Math.sin(i * 78.233) * 43758.5453) % 1);
+      if (sy > 0.6) continue; // Stars only in space
+      ctx.globalAlpha = 0.2 + Math.abs((Math.sin(i * 12.3 + simTime * 2) * 43758.5453) % 1) * 0.8;
+      ctx.beginPath();
+      ctx.arc(sx * W, sy * H, i % 3 === 0 ? 1.5 : 1.0, 0, Math.PI * 2);
+      ctx.fill();
     }
     ctx.globalAlpha = 1.0;
 
@@ -188,7 +203,7 @@ export function create(canvas, initParams = {}) {
     ctx.shadowBlur = 60;
     ctx.shadowColor = '#dc2626';
     ctx.fill();
-    
+
     // Sun 2 (smaller, warm yellow/white)
     ctx.beginPath();
     ctx.arc(centerX + 150, centerY - 120, 50, 0, Math.PI * 2);
@@ -200,12 +215,12 @@ export function create(canvas, initParams = {}) {
 
     // 4. Ground (Symmetrical Desert Dunes)
     // Symmetrical dune at the center
-    ctx.fillStyle = '#b45309'; 
+    ctx.fillStyle = '#b45309';
     ctx.beginPath();
     ctx.moveTo(0, H);
     ctx.quadraticCurveTo(centerX, H - 250, W, H);
     ctx.fill();
-    
+
     // Left dune
     ctx.fillStyle = '#92400e';
     ctx.beginPath();
@@ -229,11 +244,11 @@ export function create(canvas, initParams = {}) {
     // Mechanical Pillar supporting the track
     const pillarW = 60;
     ctx.fillStyle = '#0f172a'; // dark metal
-    ctx.fillRect(-pillarW/2, 0, pillarW, H - centerY);
+    ctx.fillRect(-pillarW / 2, 0, pillarW, H - centerY);
     // Pillar details
     ctx.fillStyle = '#1e293b';
-    ctx.fillRect(-pillarW/2 + 10, 0, 10, H - centerY);
-    ctx.fillRect(pillarW/2 - 20, 0, 10, H - centerY);
+    ctx.fillRect(-pillarW / 2 + 10, 0, 10, H - centerY);
+    ctx.fillRect(pillarW / 2 - 20, 0, 10, H - centerY);
 
     // Pivot joint
     ctx.beginPath();
@@ -246,59 +261,60 @@ export function create(canvas, initParams = {}) {
 
     // Rotate the track frame
     ctx.rotate(-p.angle);
-    
+
     // The Track itself (Sleek sci-fi platform)
     const trackLen = 18 * scale;
     const trackH = 15;
-    
+
     ctx.fillStyle = '#1e293b';
     ctx.beginPath();
-    ctx.roundRect(-trackLen/2, -trackH/2, trackLen, trackH, 5);
+    ctx.roundRect(-trackLen / 2, -trackH / 2, trackLen, trackH, 5);
     ctx.fill();
 
     // Glowing energy rails
     ctx.shadowBlur = 10;
     ctx.shadowColor = '#06b6d4';
     ctx.fillStyle = '#22d3ee';
-    ctx.fillRect(-trackLen/2, -trackH/2 - 2, trackLen, 2);
-    ctx.fillRect(-trackLen/2, trackH/2, trackLen, 2);
+    ctx.fillRect(-trackLen / 2, -trackH / 2 - 2, trackLen, 2);
+    ctx.fillRect(-trackLen / 2, trackH / 2, trackLen, 2);
     ctx.shadowBlur = 0;
 
     // Track tick marks (distance)
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
     for (let i = -8; i <= 8; i++) {
-        ctx.fillRect(i * scale, -trackH/2, 2, trackH);
-        if (i !== 0 && i % 2 === 0) {
-           ctx.font = '10px monospace';
-           ctx.fillText(i.toString(), i * scale - 4, trackH/2 + 14);
-        }
+      ctx.fillRect(i * scale, -trackH / 2, 2, trackH);
+      if (i !== 0 && i % 2 === 0) {
+        ctx.font = '10px monospace';
+        ctx.fillText(i.toString(), i * scale - 4, trackH / 2 + 14);
+      }
     }
 
     // The Block (Kyber Crystal)
-    const blockW = 1.2 * scale, blockH = 0.8 * scale;
+    const blockW = 1.2 * scale,
+      blockH = 0.8 * scale;
     const bx = x * scale;
     // block sits ON TOP of the augmented track
-    const by = -trackH/2 - blockH/2 - 2; 
-    
+    const by = -trackH / 2 - blockH / 2 - 2;
+
     // Force field/aura around block if moving
     if (Math.abs(v) > 0.1) {
-        ctx.shadowBlur = 30;
-        ctx.shadowColor = '#22d3ee';
-        ctx.fillStyle = 'rgba(34, 211, 238, 0.15)';
-        ctx.beginPath();
-        ctx.arc(bx, by, blockW, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
+      ctx.shadowBlur = 30;
+      ctx.shadowColor = '#22d3ee';
+      ctx.fillStyle = 'rgba(34, 211, 238, 0.15)';
+      ctx.beginPath();
+      ctx.arc(bx, by, blockW, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
     }
 
     ctx.shadowBlur = 20;
     ctx.shadowColor = '#00ffff';
     ctx.fillStyle = '#e0ffff';
-    ctx.fillRect(bx - blockW/2, by - blockH/2, blockW, blockH);
+    ctx.fillRect(bx - blockW / 2, by - blockH / 2, blockW, blockH);
     ctx.shadowBlur = 0;
     ctx.strokeStyle = '#00ffff';
     ctx.lineWidth = 2;
-    ctx.strokeRect(bx - blockW/2, by - blockH/2, blockW, blockH);
+    ctx.strokeRect(bx - blockW / 2, by - blockH / 2, blockW, blockH);
 
     // Applied Force Vector (The Force)
     if (Math.abs(p.appliedForce) > 0.1) {
@@ -307,7 +323,7 @@ export function create(canvas, initParams = {}) {
       drawArrow(ctx, bx, by, bx + p.appliedForce * (scale * 0.1), by, '#60a5fa', 'The Force');
       ctx.shadowBlur = 0;
     }
-    
+
     ctx.restore();
 
     // ── HUD Dashboard ────────────────────────────────────────
@@ -321,7 +337,7 @@ export function create(canvas, initParams = {}) {
     ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
     ctx.strokeStyle = '#1e3a8a';
     ctx.lineWidth = 2;
-    
+
     // Top Left (JEDI TELEMETRY)
     ctx.beginPath();
     ctx.roundRect(20, 20, 240, 160, 8);
@@ -346,7 +362,7 @@ export function create(canvas, initParams = {}) {
     drawEnergyBar(ctx, 35, 155, thermalEnergy, '#ef4444', 'Sith Thermal');
 
     drawGauge(ctx, W - 120, 100, power, 'Power [W]');
-    
+
     // Readouts
     ctx.fillStyle = '#fff';
     ctx.font = '11px monospace';
@@ -366,11 +382,17 @@ export function create(canvas, initParams = {}) {
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
     ctx.stroke();
-    
+
     ctx.beginPath();
     ctx.moveTo(x2, y2);
-    ctx.lineTo(x2 - headlen * Math.cos(angle - Math.PI / 6), y2 - headlen * Math.sin(angle - Math.PI / 6));
-    ctx.lineTo(x2 - headlen * Math.cos(angle + Math.PI / 6), y2 - headlen * Math.sin(angle + Math.PI / 6));
+    ctx.lineTo(
+      x2 - headlen * Math.cos(angle - Math.PI / 6),
+      y2 - headlen * Math.sin(angle - Math.PI / 6),
+    );
+    ctx.lineTo(
+      x2 - headlen * Math.cos(angle + Math.PI / 6),
+      y2 - headlen * Math.sin(angle + Math.PI / 6),
+    );
     ctx.closePath();
     ctx.fillStyle = color;
     ctx.fill();
@@ -402,8 +424,8 @@ export function create(canvas, initParams = {}) {
     ctx.stroke();
 
     const normalized = (Math.min(150, Math.max(-150, val)) + 150) / 300;
-    const angle = Math.PI * 0.8 + (Math.PI * 1.4 * normalized);
-    
+    const angle = Math.PI * 0.8 + Math.PI * 1.4 * normalized;
+
     ctx.beginPath();
     ctx.arc(x, y, radius, Math.PI * 0.8, angle);
     ctx.strokeStyle = '#fde047';
@@ -420,11 +442,13 @@ export function create(canvas, initParams = {}) {
     ctx.fillText(label, x, y + 25);
   }
 
-  let rafId, lastTs, running = false;
+  let rafId,
+    lastTs,
+    running = false;
 
   function loop(ts) {
     if (!running) return;
-    const dt = lastTs === undefined ? 1/60 : Math.min((ts - lastTs) / 1000, 1/20);
+    const dt = lastTs === undefined ? 1 / 60 : Math.min((ts - lastTs) / 1000, 1 / 20);
     lastTs = ts;
     tick(dt);
     render();
@@ -437,19 +461,34 @@ export function create(canvas, initParams = {}) {
   return {
     start() {
       if (running) return;
-      running = true; lastTs = undefined;
+      running = true;
+      lastTs = undefined;
       rafId = requestAnimationFrame(loop);
     },
-    stop() { running = false; cancelAnimationFrame(rafId); },
-    reset() { this.stop(); initState(); render(); this.start(); },
-    setParams(next) { Object.assign(p, next); render(); },
-    destroy() { this.stop(); },
+    stop() {
+      running = false;
+      cancelAnimationFrame(rafId);
+    },
+    reset() {
+      this.stop();
+      initState();
+      render();
+      this.start();
+    },
+    setParams(next) {
+      Object.assign(p, next);
+      render();
+    },
+    destroy() {
+      this.stop();
+    },
     getData() {
       const ke = 0.5 * p.mass * v * v;
       const pe = p.mass * p.gravity * (x + 8) * Math.sin(p.angle);
       return {
         time: simTime,
-        ke, pe,
+        ke,
+        pe,
         thermal: thermalEnergy,
         power: p.appliedForce * v,
         totalEnergy: ke + pe + thermalEnergy,

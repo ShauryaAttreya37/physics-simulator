@@ -1,5 +1,20 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { ArrowLeft, Play, Pause, RotateCcw, LineChart as LineChartIcon, BookOpen, Sliders, Download, Crosshair, Gauge, FlaskConical, Layers, Video, Square } from 'lucide-react';
+import {
+  ArrowLeft,
+  Play,
+  Pause,
+  RotateCcw,
+  LineChart as LineChartIcon,
+  BookOpen,
+  Sliders,
+  Download,
+  Crosshair,
+  Gauge,
+  FlaskConical,
+  Layers,
+  Video,
+  Square,
+} from 'lucide-react';
 import MakieGraph, { drawMakieGraph } from './MakieGraph';
 import DataReadout from './DataReadout';
 import TheoryChalkboard, { legacyToSections } from './TheoryChalkboard';
@@ -27,9 +42,19 @@ function ParamControl({ control, value, onChange }) {
   if (control.type === 'toggle') {
     return (
       <div className="form-group toggle-group">
-        <label style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <label
+          style={{
+            cursor: 'pointer',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
           <span>{control.label}</span>
-          <div className={`toggle-switch ${value ? 'active' : ''}`} onClick={() => onChange(!value)}>
+          <div
+            className={`toggle-switch ${value ? 'active' : ''}`}
+            onClick={() => onChange(!value)}
+          >
             <div className="toggle-handle" />
           </div>
         </label>
@@ -58,7 +83,9 @@ function ParamControl({ control, value, onChange }) {
         <div className={`slider-stack${markers.length > 0 ? ' has-markers' : ''}`}>
           <input
             type="range"
-            min={control.min} max={control.max} step={step}
+            min={control.min}
+            max={control.max}
+            step={step}
             value={value}
             className="slider-input"
             onChange={(e) => onChange(Number.parseFloat(e.target.value))}
@@ -81,7 +108,9 @@ function ParamControl({ control, value, onChange }) {
         </div>
         <input
           type="number"
-          min={control.min} max={control.max} step={step}
+          min={control.min}
+          max={control.max}
+          step={step}
           value={value}
           className="form-input number-input"
           onChange={(e) => {
@@ -98,7 +127,9 @@ function TileControl({ control, value, onChange }) {
   const tiles = control.tiles ?? [];
   return (
     <div className="form-group">
-      <label><span>{control.label}</span></label>
+      <label>
+        <span>{control.label}</span>
+      </label>
       <div className="tile-grid">
         {tiles.map((tile) => (
           <button
@@ -130,7 +161,15 @@ function formatOverlayValue(value) {
   return String(value);
 }
 
-function drawExportOverlayFrame({ targetCanvas, sourceCanvas, sim, controls, params, readoutData, speed }) {
+function drawExportOverlayFrame({
+  targetCanvas,
+  sourceCanvas,
+  sim,
+  controls,
+  params,
+  readoutData,
+  speed,
+}) {
   if (!targetCanvas || !sourceCanvas) return;
   const ctx = targetCanvas.getContext('2d');
   const width = 1280;
@@ -204,14 +243,18 @@ function drawExportOverlayFrame({ targetCanvas, sourceCanvas, sim, controls, par
   };
 
   section('Parameters');
-  const visibleControls = controls.length ? controls : Object.keys(params).map((key) => ({ key, label: key }));
+  const visibleControls = controls.length
+    ? controls
+    : Object.keys(params).map((key) => ({ key, label: key }));
   visibleControls.slice(0, 12).forEach((control) => {
     row(control.label || control.key, params[control.key]);
   });
 
   section('Stats');
   const entries = readoutData
-    ? Object.entries(readoutData).filter(([, value]) => typeof value === 'number' && Number.isFinite(value))
+    ? Object.entries(readoutData).filter(
+        ([, value]) => typeof value === 'number' && Number.isFinite(value),
+      )
     : [];
   entries.slice(0, 12).forEach(([key, value]) => {
     row(key, value, key.toLowerCase().includes('error') ? '#FFD166' : '#7dd3a8');
@@ -245,7 +288,11 @@ export default function SimulationRunner({ sim, onBack }) {
   const lastPanPosRef = useRef({ x: 0, y: 0 });
 
   const isModern = !!(sim.init && sim.update);
-  const engine = usePhysicsEngine(isModern ? sim : null, { ...params, panX: globalPan.x, panY: globalPan.y }, canvasRef);
+  const engine = usePhysicsEngine(
+    isModern ? sim : null,
+    { ...params, panX: globalPan.x, panY: globalPan.y },
+    canvasRef,
+  );
 
   const controls = useMemo(() => sim.controls ?? [], [sim.controls]);
   const paramsRef = useRef(params);
@@ -253,10 +300,18 @@ export default function SimulationRunner({ sim, onBack }) {
   const controlsRef = useRef(controls);
   const speedRef = useRef(speed);
 
-  useEffect(() => { paramsRef.current = params; }, [params]);
-  useEffect(() => { readoutDataRef.current = readoutData; }, [readoutData]);
-  useEffect(() => { controlsRef.current = controls; }, [controls]);
-  useEffect(() => { speedRef.current = speed; }, [speed]);
+  useEffect(() => {
+    paramsRef.current = params;
+  }, [params]);
+  useEffect(() => {
+    readoutDataRef.current = readoutData;
+  }, [readoutData]);
+  useEffect(() => {
+    controlsRef.current = controls;
+  }, [controls]);
+  useEffect(() => {
+    speedRef.current = speed;
+  }, [speed]);
 
   // Collect graph data
   useEffect(() => {
@@ -264,7 +319,7 @@ export default function SimulationRunner({ sim, onBack }) {
       if (engine.state) {
         const d = sim.getData ? sim.getData(engine.state, params) : engine.state;
         setReadoutData(d);
-        setGraphData(prev => {
+        setGraphData((prev) => {
           const next = [...prev, d];
           if (next.length > 300) next.shift();
           return next;
@@ -278,7 +333,7 @@ export default function SimulationRunner({ sim, onBack }) {
           const d = simRef.current.getData();
           if (!d) return;
           setReadoutData(d);
-          setGraphData(prev => {
+          setGraphData((prev) => {
             const next = [...prev, d];
             if (next.length > 300) next.shift();
             return next;
@@ -302,7 +357,10 @@ export default function SimulationRunner({ sim, onBack }) {
     let resizeRaf = null;
 
     const destroyCurrent = () => {
-      if (simRef.current) { simRef.current.destroy(); simRef.current = null; }
+      if (simRef.current) {
+        simRef.current.destroy();
+        simRef.current = null;
+      }
     };
 
     const resizeCanvas = () => {
@@ -356,7 +414,7 @@ export default function SimulationRunner({ sim, onBack }) {
       window.removeEventListener('resize', onResize);
       destroyCurrent();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sim, reloadNonce]);
 
   // Push params to the live simulation instance *without* destroying it
@@ -376,9 +434,13 @@ export default function SimulationRunner({ sim, onBack }) {
     const instance = simRef.current;
     if (!instance) return;
     if (runningRef.current) {
-      instance.stop(); runningRef.current = false; setRunning(false);
+      instance.stop();
+      runningRef.current = false;
+      setRunning(false);
     } else {
-      instance.start(); runningRef.current = true; setRunning(true);
+      instance.start();
+      runningRef.current = true;
+      setRunning(true);
     }
   }, [isModern, engine, running]);
 
@@ -411,12 +473,13 @@ export default function SimulationRunner({ sim, onBack }) {
     }
     const keys = Object.keys(graphData[0]);
     const header = keys.join(',');
-    const rows = graphData.map(d => keys.map(k => d[k] ?? '').join(','));
+    const rows = graphData.map((d) => keys.map((k) => d[k] ?? '').join(','));
     const csv = [header, ...rows].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `${sim.id}_data.csv`;
+    a.href = url;
+    a.download = `${sim.id}_data.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -424,38 +487,41 @@ export default function SimulationRunner({ sim, onBack }) {
     setExportToast('Exported. Open in Sheets or Excel and plot velocity vs time to compare runs.');
   }, [graphData, sim.id]);
 
-  const downloadGraphPlot = useCallback(({ series, title, xLabel = 't [s]', yLabel, phaseSpace = false, filename }) => {
-    if (graphData.length < 2) {
-      setExportToast('No graph data yet. Press Play for a few seconds, then export again.');
-      return false;
-    }
-    const canvas = document.createElement('canvas');
-    const ok = drawMakieGraph(canvas, {
-      data: graphData,
-      series,
-      xKey: 'time',
-      xLabel,
-      yLabel,
-      title,
-      width: 960,
-      height: phaseSpace ? 960 : 600,
-      colormap: phaseSpace ? 'plasma' : 'viridis',
-      phaseSpace,
-      showLegend: !phaseSpace && series.length > 1,
-      dpr: 2,
-    });
-    if (!ok) {
-      setExportToast('Could not render that graph from the current data.');
-      return false;
-    }
-    const a = document.createElement('a');
-    a.href = canvas.toDataURL('image/png');
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    return true;
-  }, [graphData]);
+  const downloadGraphPlot = useCallback(
+    ({ series, title, xLabel = 't [s]', yLabel, phaseSpace = false, filename }) => {
+      if (graphData.length < 2) {
+        setExportToast('No graph data yet. Press Play for a few seconds, then export again.');
+        return false;
+      }
+      const canvas = document.createElement('canvas');
+      const ok = drawMakieGraph(canvas, {
+        data: graphData,
+        series,
+        xKey: 'time',
+        xLabel,
+        yLabel,
+        title,
+        width: 960,
+        height: phaseSpace ? 960 : 600,
+        colormap: phaseSpace ? 'plasma' : 'viridis',
+        phaseSpace,
+        showLegend: !phaseSpace && series.length > 1,
+        dpr: 2,
+      });
+      if (!ok) {
+        setExportToast('Could not render that graph from the current data.');
+        return false;
+      }
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return true;
+    },
+    [graphData],
+  );
 
   const exportCurrentGraphPlot = useCallback(() => {
     const gp = sim.graphParams?.find((item) => item.key === graphKey);
@@ -474,18 +540,19 @@ export default function SimulationRunner({ sim, onBack }) {
     if (!plots.length) return;
     let count = 0;
     plots.forEach((gp) => {
-      if (downloadGraphPlot({
-        series: [{ key: gp.key, label: gp.label }],
-        title: `${sim.title} - ${gp.label}`,
-        yLabel: gp.label,
-        filename: `${sim.id}_${gp.key}_plot.png`,
-      })) {
+      if (
+        downloadGraphPlot({
+          series: [{ key: gp.key, label: gp.label }],
+          title: `${sim.title} - ${gp.label}`,
+          yLabel: gp.label,
+          filename: `${sim.id}_${gp.key}_plot.png`,
+        })
+      ) {
         count += 1;
       }
     });
     if (count > 0) setExportToast(`Downloaded ${count} graph plot${count === 1 ? '' : 's'}.`);
   }, [downloadGraphPlot, sim]);
-
 
   const clearRecordingFrameTimer = useCallback(() => {
     if (recordingFrameTimerRef.current !== null) {
@@ -574,7 +641,9 @@ export default function SimulationRunner({ sim, onBack }) {
 
     const preferredTypes = ['video/webm', 'video/mp4'];
     const mimeType = preferredTypes.find((type) => MediaRecorder.isTypeSupported(type));
-    const options = mimeType ? { mimeType, videoBitsPerSecond: 3000000 } : { videoBitsPerSecond: 3000000 };
+    const options = mimeType
+      ? { mimeType, videoBitsPerSecond: 3000000 }
+      : { videoBitsPerSecond: 3000000 };
 
     let recorder;
     try {
@@ -629,7 +698,9 @@ export default function SimulationRunner({ sim, onBack }) {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      setExportToast(`Video exported (${formatClock((Date.now() - recordingStartedAtRef.current) / 1000)}).`);
+      setExportToast(
+        `Video exported (${formatClock((Date.now() - recordingStartedAtRef.current) / 1000)}).`,
+      );
     };
 
     if (!runningRef.current && simRef.current) {
@@ -664,7 +735,7 @@ export default function SimulationRunner({ sim, onBack }) {
   // Apply scenario preset
   const applyScenario = useCallback((scenario) => {
     if (scenario.params) {
-      setParams(prev => ({ ...prev, ...scenario.params }));
+      setParams((prev) => ({ ...prev, ...scenario.params }));
     }
     if (scenario.setup && simRef.current) {
       scenario.setup(simRef.current);
@@ -673,7 +744,7 @@ export default function SimulationRunner({ sim, onBack }) {
 
   // Apply params from guided experiment step (no auto-play)
   const handleGuideApplyParams = useCallback((stepParams) => {
-    setParams(prev => ({ ...prev, ...stepParams }));
+    setParams((prev) => ({ ...prev, ...stepParams }));
   }, []);
 
   useEffect(() => {
@@ -695,10 +766,15 @@ export default function SimulationRunner({ sim, onBack }) {
   const graphSeries = useMemo(() => {
     if (!sim.graphParams) return [];
     if (sideTab === 'phase' && sim.graphParams.length >= 2) {
-      return sim.graphParams.slice(0, 2).map(gp => ({ key: gp.key, label: gp.label }));
+      return sim.graphParams.slice(0, 2).map((gp) => ({ key: gp.key, label: gp.label }));
     }
     if (graphKey) {
-      return [{ key: graphKey, label: sim.graphParams.find(gp => gp.key === graphKey)?.label || graphKey }];
+      return [
+        {
+          key: graphKey,
+          label: sim.graphParams.find((gp) => gp.key === graphKey)?.label || graphKey,
+        },
+      ];
     }
     return [];
   }, [sim.graphParams, graphKey, sideTab]);
@@ -735,13 +811,40 @@ export default function SimulationRunner({ sim, onBack }) {
             <ArrowLeft size={16} />
           </button>
           <div style={{ flex: 1, minWidth: 120 }}>
-            <div style={{ fontFamily: 'var(--font-serif)', fontSize: 15, fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <div
+              style={{
+                fontFamily: 'var(--font-serif)',
+                fontSize: 15,
+                fontWeight: 600,
+                color: 'var(--text)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
               {sim.title}
             </div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2, display: 'flex', gap: 6, alignItems: 'center' }}>
+            <div
+              style={{
+                fontSize: 11,
+                color: 'var(--text-muted)',
+                marginTop: 2,
+                display: 'flex',
+                gap: 6,
+                alignItems: 'center',
+              }}
+            >
               {sim.method && (
-                <span className={`method-badge ${sim.method === 'rk45' ? 'rk45' : sim.method === 'yoshida4' ? 'symplectic' : sim.method === 'fdm' ? 'fdm' : 'rk45'}`}>
-                  {sim.method === 'rk45' ? 'RK45' : sim.method === 'yoshida4' ? 'Yoshida⁴' : sim.method === 'fdm' ? 'FDM' : 'RK4'}
+                <span
+                  className={`method-badge ${sim.method === 'rk45' ? 'rk45' : sim.method === 'yoshida4' ? 'symplectic' : sim.method === 'fdm' ? 'fdm' : 'rk45'}`}
+                >
+                  {sim.method === 'rk45'
+                    ? 'RK45'
+                    : sim.method === 'yoshida4'
+                      ? 'Yoshida⁴'
+                      : sim.method === 'fdm'
+                        ? 'FDM'
+                        : 'RK4'}
                 </span>
               )}
             </div>
@@ -772,7 +875,13 @@ export default function SimulationRunner({ sim, onBack }) {
           </div>
           {/* Speed control */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginLeft: 2 }}>
-            <Gauge size={13} style={{ color: speed !== 1 ? '#FFD166' : 'var(--text-muted)', transition: 'color 0.2s' }} />
+            <Gauge
+              size={13}
+              style={{
+                color: speed !== 1 ? '#FFD166' : 'var(--text-muted)',
+                transition: 'color 0.2s',
+              }}
+            />
             <select
               className={`speed-select${speed !== 1 ? ' active' : ''}`}
               value={speed}
@@ -791,7 +900,7 @@ export default function SimulationRunner({ sim, onBack }) {
         </div>
 
         {/* Canvas with figure frame */}
-        <div 
+        <div
           className="sim-canvas-wrapper"
           onPointerDown={(e) => {
             if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
@@ -812,17 +921,15 @@ export default function SimulationRunner({ sim, onBack }) {
           onPointerLeave={() => setIsPanning(false)}
           style={{ cursor: isPanning ? 'grabbing' : undefined }}
         >
-          <canvas 
-            ref={canvasRef} 
-            className="sim-runner-canvas" 
-            style={{ touchAction: 'none' }}
-          />
+          <canvas ref={canvasRef} className="sim-runner-canvas" style={{ touchAction: 'none' }} />
           <canvas ref={recordingCanvasRef} className="recording-export-canvas" aria-hidden="true" />
           {runnerError && (
             <div className="sim-runner-error">
               <div className="sim-runner-error-title">Simulation paused</div>
               <div className="sim-runner-error-msg">{runnerError}</div>
-              <button className="btn" onClick={() => setReloadNonce((n) => n + 1)}>Retry</button>
+              <button className="btn" onClick={() => setReloadNonce((n) => n + 1)}>
+                Retry
+              </button>
             </div>
           )}
           <DataReadout data={readoutData} method={sim.method || 'rk4'} />
@@ -877,25 +984,44 @@ export default function SimulationRunner({ sim, onBack }) {
           {/* ── Controls tab ────────────────────────────────── */}
           {sideTab === 'controls' && (
             <div style={{ padding: '14px 16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--text-muted)' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 14,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.12em',
+                    color: 'var(--text-muted)',
+                  }}
+                >
                   Parameters
                 </span>
-                <button className="btn" style={{ padding: '3px 8px', fontSize: 10 }} onClick={resetParams}>
+                <button
+                  className="btn"
+                  style={{ padding: '3px 8px', fontSize: 10 }}
+                  onClick={resetParams}
+                >
                   Defaults
                 </button>
               </div>
               {controls.length > 0 ? (
                 <div className="property-section" style={{ paddingTop: 0, borderBottom: 'none' }}>
-                  {controls.map(control => {
+                  {controls.map((control) => {
                     const handleChange = (next) => {
-                      setParams(prev => {
+                      setParams((prev) => {
                         const updated = { ...prev, [control.key]: next };
                         // Sync linked angle controls (rad ↔ deg)
                         if (control.key === 'theta0' && 'theta0Deg' in prev) {
-                          updated.theta0Deg = parseFloat((next * 180 / Math.PI).toFixed(1));
+                          updated.theta0Deg = parseFloat(((next * 180) / Math.PI).toFixed(1));
                         } else if (control.key === 'theta0Deg' && 'theta0' in prev) {
-                          updated.theta0 = parseFloat((next * Math.PI / 180).toFixed(4));
+                          updated.theta0 = parseFloat(((next * Math.PI) / 180).toFixed(4));
                         }
                         return updated;
                       });
@@ -923,8 +1049,23 @@ export default function SimulationRunner({ sim, onBack }) {
                 </div>
               )}
               {/* Sim description */}
-              <div style={{ marginTop: 16, padding: '12px 14px', background: 'rgba(0,0,0,0.2)', borderRadius: 'var(--r-sm)', border: '1px solid rgba(255,255,255,0.04)' }}>
-                <p style={{ fontSize: 12, color: 'var(--text-sub)', lineHeight: 1.6, fontFamily: 'var(--font-serif)' }}>
+              <div
+                style={{
+                  marginTop: 16,
+                  padding: '12px 14px',
+                  background: 'rgba(0,0,0,0.2)',
+                  borderRadius: 'var(--r-sm)',
+                  border: '1px solid rgba(255,255,255,0.04)',
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--text-sub)',
+                    lineHeight: 1.6,
+                    fontFamily: 'var(--font-serif)',
+                  }}
+                >
                   {sim.description}
                 </p>
               </div>
@@ -941,16 +1082,26 @@ export default function SimulationRunner({ sim, onBack }) {
                   value={graphKey}
                   onChange={(e) => setGraphKey(e.target.value)}
                 >
-                  {sim.graphParams.map(gp => (
-                    <option key={gp.key} value={gp.key}>{gp.label}</option>
+                  {sim.graphParams.map((gp) => (
+                    <option key={gp.key} value={gp.key}>
+                      {gp.label}
+                    </option>
                   ))}
                 </select>
               </div>
               <div className="graph-export-actions">
-                <button className="btn-export" onClick={exportCurrentGraphPlot} title="Download selected plot">
+                <button
+                  className="btn-export"
+                  onClick={exportCurrentGraphPlot}
+                  title="Download selected plot"
+                >
                   <Download size={12} /> Plot PNG
                 </button>
-                <button className="btn-export" onClick={exportAllGraphPlots} title="Download one plot for each graph variable">
+                <button
+                  className="btn-export"
+                  onClick={exportAllGraphPlots}
+                  title="Download one plot for each graph variable"
+                >
                   <Download size={12} /> All Plots
                 </button>
               </div>
@@ -967,7 +1118,17 @@ export default function SimulationRunner({ sim, onBack }) {
                 showLegend={false}
               />
               {graphData.length > 0 && graphData[graphData.length - 1] && (
-                <div style={{ marginTop: 8, padding: '8px 10px', background: 'rgba(0,0,0,0.2)', borderRadius: 6, fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-sub)' }}>
+                <div
+                  style={{
+                    marginTop: 8,
+                    padding: '8px 10px',
+                    background: 'rgba(0,0,0,0.2)',
+                    borderRadius: 6,
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 10,
+                    color: 'var(--text-sub)',
+                  }}
+                >
                   Current: {(graphData[graphData.length - 1][graphKey] ?? 0).toFixed(6)}
                 </div>
               )}
@@ -977,11 +1138,24 @@ export default function SimulationRunner({ sim, onBack }) {
           {/* ── Phase space tab ──────────────────────────────── */}
           {sideTab === 'phase' && sim.graphParams?.length >= 2 && (
             <div style={{ padding: '14px 12px' }}>
-              <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--text-muted)', marginBottom: 8 }}>
+              <div
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.12em',
+                  color: 'var(--text-muted)',
+                  marginBottom: 8,
+                }}
+              >
                 Phase Space Plot
               </div>
               <div className="graph-export-actions">
-                <button className="btn-export" onClick={exportPhasePlot} title="Download phase plot">
+                <button
+                  className="btn-export"
+                  onClick={exportPhasePlot}
+                  title="Download phase plot"
+                >
                   <Download size={12} /> Phase PNG
                 </button>
               </div>
@@ -1009,8 +1183,9 @@ export default function SimulationRunner({ sim, onBack }) {
 
           {/* ── Guide tab (Scenarios + Guided Experiments) ──── */}
           {sideTab === 'guide' && (
-            <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-
+            <div
+              style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 16 }}
+            >
               {/* Active guided experiment */}
               {activeExperiment && (
                 <GuidedExperiment
@@ -1023,7 +1198,16 @@ export default function SimulationRunner({ sim, onBack }) {
               {/* Scenarios section */}
               {!activeExperiment && sim.scenarios?.length > 0 && (
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--accent)', marginBottom: 10 }}>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.12em',
+                      color: 'var(--accent)',
+                      marginBottom: 10,
+                    }}
+                  >
                     Preset Scenarios
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -1062,7 +1246,16 @@ export default function SimulationRunner({ sim, onBack }) {
               {/* Guided experiments launcher */}
               {!activeExperiment && sim.guidedExperiments?.length > 0 && (
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--sci-green)', marginBottom: 10 }}>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.12em',
+                      color: 'var(--sci-green)',
+                      marginBottom: 10,
+                    }}
+                  >
                     Guided Experiments
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -1084,7 +1277,10 @@ export default function SimulationRunner({ sim, onBack }) {
                         }}
                         className="scenario-btn"
                       >
-                        <FlaskConical size={14} style={{ color: 'var(--sci-green)', flexShrink: 0 }} />
+                        <FlaskConical
+                          size={14}
+                          style={{ color: 'var(--sci-green)', flexShrink: 0 }}
+                        />
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                           <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>
                             {exp.title}

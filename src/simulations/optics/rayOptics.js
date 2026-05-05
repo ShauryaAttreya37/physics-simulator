@@ -53,37 +53,57 @@ export const controls = [
     key: 'showNormals',
     label: 'Normals',
     type: 'tiles',
-    tiles: [{ value: 0, label: 'Off' }, { value: 1, label: 'On' }],
+    tiles: [
+      { value: 0, label: 'Off' },
+      { value: 1, label: 'On' },
+    ],
   },
   {
     key: 'showConstruction',
     label: 'Construction Rays',
     type: 'tiles',
-    tiles: [{ value: 0, label: 'Off' }, { value: 1, label: 'On' }],
+    tiles: [
+      { value: 0, label: 'Off' },
+      { value: 1, label: 'On' },
+    ],
   },
 ];
 
 export const equationSections = [
   {
     title: 'Introduction',
-    content: 'Geometrical optics uses light rays to understand how lenses, mirrors, and prisms bend and focus light. This simulation traces rays through optical systems to show how images are formed. You can experiment with lenses, mirrors, and refractive materials to understand cameras, telescopes, and eyeglasses.',
+    content:
+      'Geometrical optics uses light rays to understand how lenses, mirrors, and prisms bend and focus light. This simulation traces rays through optical systems to show how images are formed. You can experiment with lenses, mirrors, and refractive materials to understand cameras, telescopes, and eyeglasses.',
   },
   {
     title: 'Thin Lens and Mirror Equation',
     equations: [
       {
         latex: String.raw`\frac{1}{f} = \frac{1}{d_o} + \frac{1}{d_i}`,
-        description: 'The lens/mirror equation. It tells you where the image forms. If d_i is negative, the image is virtual (on the same side as object).',
+        description:
+          'The lens/mirror equation. It tells you where the image forms. If d_i is negative, the image is virtual (on the same side as object).',
       },
       {
         latex: String.raw`m = -\frac{d_i}{d_o} = \frac{h_i}{h_o}`,
-        description: 'Magnification shows how much bigger/smaller the image is. Negative magnification means the image is upside down.',
+        description:
+          'Magnification shows how much bigger/smaller the image is. Negative magnification means the image is upside down.',
       },
     ],
     variables: [
-      { symbol: 'f', description: 'Focal length - distance from lens/mirror to focal point (positive for converging, negative for diverging)' },
-      { symbol: 'd_o', description: 'Object distance - how far the object is from the lens/mirror' },
-      { symbol: 'd_i', description: 'Image distance - where the image forms (positive = real image, negative = virtual)' },
+      {
+        symbol: 'f',
+        description:
+          'Focal length - distance from lens/mirror to focal point (positive for converging, negative for diverging)',
+      },
+      {
+        symbol: 'd_o',
+        description: 'Object distance - how far the object is from the lens/mirror',
+      },
+      {
+        symbol: 'd_i',
+        description:
+          'Image distance - where the image forms (positive = real image, negative = virtual)',
+      },
       { symbol: 'm', description: 'Magnification - image height divided by object height' },
     ],
   },
@@ -92,30 +112,39 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`n_1 \sin\theta_1 = n_2 \sin\theta_2`,
-        description: 'Snell\'s Law: When light crosses from one material to another, it bends. Higher index of refraction bends light more.',
+        description:
+          "Snell's Law: When light crosses from one material to another, it bends. Higher index of refraction bends light more.",
       },
       {
         latex: String.raw`s = t \frac{\sin(\theta_1-\theta_2)}{\cos\theta_2}`,
-        description: 'For a parallel slab, light exits parallel to incident ray but shifted sideways by amount s.',
+        description:
+          'For a parallel slab, light exits parallel to incident ray but shifted sideways by amount s.',
       },
     ],
     variables: [
-      { symbol: 'n', description: 'Index of refraction - how much the material slows down light (air=1, glass=1.5, diamond=2.4)' },
+      {
+        symbol: 'n',
+        description:
+          'Index of refraction - how much the material slows down light (air=1, glass=1.5, diamond=2.4)',
+      },
       { symbol: 'θ', description: 'Angle of incidence/refraction from normal' },
       { symbol: 't', description: 'Thickness of the slab' },
     ],
   },
   {
     title: 'Ray Tracing Rules',
-    content: '1. Light rays are straight lines in uniform media.\n2. At mirrors: angle of incidence = angle of reflection.\n3. At lenses: rays parallel to axis pass through focal point; rays through center go straight.\n4. At interfaces: use Snell\'s law for refraction.',
+    content:
+      "1. Light rays are straight lines in uniform media.\n2. At mirrors: angle of incidence = angle of reflection.\n3. At lenses: rays parallel to axis pass through focal point; rays through center go straight.\n4. At interfaces: use Snell's law for refraction.",
   },
   {
     title: 'How to Use',
-    content: '1. Select different optical elements (lens, mirror, prism, slab).\n2. Adjust object distance and height.\n3. Change focal length for lenses/mirrors.\n4. Try different refractive indices for prisms and slabs.\n5. Watch how rays bend and where images form.\n6. Use scenarios like "Camera Lens" or "Magnifying Glass" for examples.',
+    content:
+      '1. Select different optical elements (lens, mirror, prism, slab).\n2. Adjust object distance and height.\n3. Change focal length for lenses/mirrors.\n4. Try different refractive indices for prisms and slabs.\n5. Watch how rays bend and where images form.\n6. Use scenarios like "Camera Lens" or "Magnifying Glass" for examples.',
   },
   {
     title: 'Beginner Tips',
-    content: 'Real images can be projected on a screen, virtual images cannot. Converging lenses (positive f) focus light, diverging lenses (negative f) spread it out. The human eye is like a camera lens. Rainbows form from refraction in raindrops.',
+    content:
+      'Real images can be projected on a screen, virtual images cannot. Converging lenses (positive f) focus light, diverging lenses (negative f) spread it out. The human eye is like a camera lens. Rainbows form from refraction in raindrops.',
   },
 ];
 
@@ -131,27 +160,64 @@ export const scenarios = [
   {
     name: 'Camera Lens',
     description: 'A distant object forms a small real image near the focal plane.',
-    params: { elementIdx: 0, objectDistance: 390, focalLength: 85, objectHeight: 120, aperture: 145, rayCount: 9 },
+    params: {
+      elementIdx: 0,
+      objectDistance: 390,
+      focalLength: 85,
+      objectHeight: 120,
+      aperture: 145,
+      rayCount: 9,
+    },
   },
   {
     name: 'Magnifying Glass',
-    description: 'Place the object inside the focal length to create a large upright virtual image.',
-    params: { elementIdx: 0, objectDistance: 85, focalLength: 130, objectHeight: 70, aperture: 160, rayCount: 11 },
+    description:
+      'Place the object inside the focal length to create a large upright virtual image.',
+    params: {
+      elementIdx: 0,
+      objectDistance: 85,
+      focalLength: 130,
+      objectHeight: 70,
+      aperture: 160,
+      rayCount: 11,
+    },
   },
   {
     name: 'Diverging Lens',
     description: 'Concave lenses always form upright virtual images for real objects.',
-    params: { elementIdx: 1, objectDistance: 220, focalLength: 115, objectHeight: 90, aperture: 170, rayCount: 9 },
+    params: {
+      elementIdx: 1,
+      objectDistance: 220,
+      focalLength: 115,
+      objectHeight: 90,
+      aperture: 170,
+      rayCount: 9,
+    },
   },
   {
     name: 'Shaving Mirror',
-    description: 'A concave mirror used inside its focal length gives an enlarged upright virtual image.',
-    params: { elementIdx: 2, objectDistance: 80, focalLength: 135, objectHeight: 75, aperture: 165, rayCount: 9 },
+    description:
+      'A concave mirror used inside its focal length gives an enlarged upright virtual image.',
+    params: {
+      elementIdx: 2,
+      objectDistance: 80,
+      focalLength: 135,
+      objectHeight: 75,
+      aperture: 165,
+      rayCount: 9,
+    },
   },
   {
     name: 'Security Mirror',
     description: 'Convex mirrors provide a wide field of view with small upright virtual images.',
-    params: { elementIdx: 3, objectDistance: 150, focalLength: 100, objectHeight: 120, aperture: 200, rayCount: 13 },
+    params: {
+      elementIdx: 3,
+      objectDistance: 150,
+      focalLength: 100,
+      objectHeight: 120,
+      aperture: 200,
+      rayCount: 13,
+    },
   },
 ];
 
@@ -170,7 +236,7 @@ function lensImage(p) {
     const theta1 = (p.incidenceAngle * Math.PI) / 180;
     const sinTheta2 = Math.sin(theta1) / Math.max(1.0, p.refractiveIndex);
     const theta2 = Math.asin(clamp(sinTheta2, -0.999, 0.999));
-    const shift = p.slabThickness * Math.sin(theta1 - theta2) / Math.max(0.1, Math.cos(theta2));
+    const shift = (p.slabThickness * Math.sin(theta1 - theta2)) / Math.max(0.1, Math.cos(theta2));
     return {
       imageDistance: 0,
       magnification: 1,
@@ -183,10 +249,10 @@ function lensImage(p) {
 
   const f = signedFocalLength(p);
   const doSafe = Math.max(1, p.objectDistance);
-  const denom = (1 / f) - (1 / doSafe);
-  
+  const denom = 1 / f - 1 / doSafe;
+
   const di = Math.abs(denom) < 1e-7 ? Infinity : 1 / denom;
-  const m = Number.isFinite(di) ? -di / doSafe : (denom > 0 ? Infinity : -Infinity);
+  const m = Number.isFinite(di) ? -di / doSafe : denom > 0 ? Infinity : -Infinity;
   const hi = p.objectHeight * m;
 
   return {
@@ -263,7 +329,8 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
         const nextHeight = clamp((L.axisY - hover.y) / L.pixelsPerCm, -155, 155);
         p.objectDistance = nextDist;
         p.objectHeight = nextHeight;
-        if (onParamChange) onParamChange({ objectDistance: p.objectDistance, objectHeight: p.objectHeight });
+        if (onParamChange)
+          onParamChange({ objectDistance: p.objectDistance, objectHeight: p.objectHeight });
       } else if (dragging.type === 'focal') {
         const nextF = clamp(Math.abs(hover.x - L.elementX) / L.pixelsPerCm, 20, 300);
         p.focalLength = nextF;
@@ -316,11 +383,17 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
     ctx.strokeStyle = 'rgba(255,255,255,0.04)';
     ctx.lineWidth = 1;
     const spacing = 10 * L.pixelsPerCm; // 10cm grid
-    for (let x = (L.elementX % spacing); x < L.w; x += spacing) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, L.h); ctx.stroke();
+    for (let x = L.elementX % spacing; x < L.w; x += spacing) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, L.h);
+      ctx.stroke();
     }
-    for (let y = (L.axisY % spacing); y < L.h; y += spacing) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(L.w, y); ctx.stroke();
+    for (let y = L.axisY % spacing; y < L.h; y += spacing) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(L.w, y);
+      ctx.stroke();
     }
 
     // Optical Axis
@@ -363,7 +436,7 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
           const t = (y - L.axisY) / (aperturePx / 2);
           if (Math.abs(t) > 1) return null;
           return L.elementX + bulge * (1 - t * t);
-        }
+        },
       };
     } else if (element.kind === 'mirror') {
       const curve = element.focalSign > 0 ? 35 : -35;
@@ -373,7 +446,7 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
           if (Math.abs(t) > 1) return null;
           return L.elementX + curve * (1 - t * t);
         },
-        back: null
+        back: null,
       };
     }
     return null;
@@ -429,10 +502,10 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
       ctx.lineWidth = 1;
       const hashDir = element.focalSign > 0 ? 1 : -1;
       for (let y = -aperturePx / 2; y <= aperturePx / 2; y += 20) {
-        ctx.beginPath(); 
-        const curveX = x + curve * (1 - (y/(aperturePx/2))**2);
-        ctx.moveTo(curveX, L.axisY + y); 
-        ctx.lineTo(curveX + 12 * hashDir, L.axisY + y + 8); 
+        ctx.beginPath();
+        const curveX = x + curve * (1 - (y / (aperturePx / 2)) ** 2);
+        ctx.moveTo(curveX, L.axisY + y);
+        ctx.lineTo(curveX + 12 * hashDir, L.axisY + y + 8);
         ctx.stroke();
       }
     }
@@ -460,7 +533,7 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
   function rayAt(p1, p2, targetX) {
     const dx = p2.x - p1.x;
     if (Math.abs(dx) < 1e-6) return p2.y;
-    return p1.y + (p2.y - p1.y) * (targetX - p1.x) / dx;
+    return p1.y + ((p2.y - p1.y) * (targetX - p1.x)) / dx;
   }
 
   function rayEndpoint(p1, p2, targetX) {
@@ -477,7 +550,7 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
     const imageY = Number.isFinite(di) ? yWorldToScreen(optics.imageHeight, L) : null;
     const virtual = di < 0;
     const surfaces = getElementSurfaces(L, element);
-    
+
     const count = Math.max(1, Math.round(p.rayCount));
     const apertureHalf = p.aperture / 2;
     const rayColor = '#facc15';
@@ -486,7 +559,7 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
       const t = count === 1 ? 0.5 : i / (count - 1);
       const targetYWorld = -apertureHalf * 0.85 + t * apertureHalf * 1.7;
       const targetY = yWorldToScreen(targetYWorld, L);
-      
+
       const hitX = surfaces.front(targetY);
       if (hitX === null) continue;
       const hit = { x: hitX, y: targetY };
@@ -515,7 +588,8 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
           drawRay(exit.x, exit.y, end.x, end.y, rayColor, 0.8);
           drawRay(exit.x, exit.y, img.x, img.y, rayColor, 0.4, true);
         }
-      } else { // Mirror
+      } else {
+        // Mirror
         if (!virtual) {
           drawRay(hit.x, hit.y, img.x, img.y, rayColor, 0.8);
           const end = rayEndpoint(hit, img, 10);
@@ -539,13 +613,13 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
         const e1 = surfaces.back(objectTipY);
         drawRay(objectX, objectTipY, h1, objectTipY, c1, 0.8);
         drawRay(h1, objectTipY, e1, objectTipY, c1, 0.8);
-        
+
         if (!virtual) {
           drawRay(e1, objectTipY, img.x, img.y, c1, 0.8);
-          const end = rayEndpoint({x: e1, y: objectTipY}, img, L.w - 10);
+          const end = rayEndpoint({ x: e1, y: objectTipY }, img, L.w - 10);
           drawRay(img.x, img.y, end.x, end.y, c1, 0.4);
         } else {
-          const end = rayEndpoint(img, {x: e1, y: objectTipY}, L.w - 10);
+          const end = rayEndpoint(img, { x: e1, y: objectTipY }, L.w - 10);
           drawRay(e1, objectTipY, end.x, end.y, c1, 0.8);
           drawRay(e1, objectTipY, img.x, img.y, c1, 0.4, true);
         }
@@ -554,10 +628,10 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
         drawRay(objectX, objectTipY, L.elementX, L.axisY, c2, 0.8);
         if (!virtual) {
           drawRay(L.elementX, L.axisY, img.x, img.y, c2, 0.8);
-          const end = rayEndpoint({x: L.elementX, y: L.axisY}, img, L.w - 10);
+          const end = rayEndpoint({ x: L.elementX, y: L.axisY }, img, L.w - 10);
           drawRay(img.x, img.y, end.x, end.y, c2, 0.4);
         } else {
-          const end = rayEndpoint(img, {x: L.elementX, y: L.axisY}, L.w - 10);
+          const end = rayEndpoint(img, { x: L.elementX, y: L.axisY }, L.w - 10);
           drawRay(L.elementX, L.axisY, end.x, end.y, c2, 0.8);
           drawRay(L.elementX, L.axisY, img.x, img.y, c2, 0.4, true);
         }
@@ -565,13 +639,13 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
         // Parallel ray
         const h1 = surfaces.front(objectTipY);
         drawRay(objectX, objectTipY, h1, objectTipY, c1, 0.8);
-        
+
         if (!virtual) {
           drawRay(h1, objectTipY, img.x, img.y, c1, 0.8);
-          const end = rayEndpoint({x: h1, y: objectTipY}, img, 10);
+          const end = rayEndpoint({ x: h1, y: objectTipY }, img, 10);
           drawRay(img.x, img.y, end.x, end.y, c1, 0.4);
         } else {
-          const end = rayEndpoint(img, {x: h1, y: objectTipY}, 10);
+          const end = rayEndpoint(img, { x: h1, y: objectTipY }, 10);
           drawRay(h1, objectTipY, end.x, end.y, c1, 0.8);
           drawRay(h1, objectTipY, img.x, img.y, c1, 0.4, true);
         }
@@ -580,10 +654,10 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
         drawRay(objectX, objectTipY, L.elementX, L.axisY, c2, 0.8);
         if (!virtual) {
           drawRay(L.elementX, L.axisY, img.x, img.y, c2, 0.8);
-          const end = rayEndpoint({x: L.elementX, y: L.axisY}, img, 10);
+          const end = rayEndpoint({ x: L.elementX, y: L.axisY }, img, 10);
           drawRay(img.x, img.y, end.x, end.y, c2, 0.4);
         } else {
-          const end = rayEndpoint(img, {x: L.elementX, y: L.axisY}, 10);
+          const end = rayEndpoint(img, { x: L.elementX, y: L.axisY }, 10);
           drawRay(L.elementX, L.axisY, end.x, end.y, c2, 0.8);
           drawRay(L.elementX, L.axisY, img.x, img.y, c2, 0.4, true);
         }
@@ -594,7 +668,7 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
       ctx.globalAlpha = di < 0 ? 0.5 : 1;
       drawArrow(ctx, imageX, L.axisY, imageX, imageY, {
         color: di > 0 ? '#4ade80' : '#fb7185',
-        label: di > 0 ? 'real image' : 'virtual image'
+        label: di > 0 ? 'real image' : 'virtual image',
       });
       ctx.globalAlpha = 1;
     }
@@ -607,7 +681,8 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
     const centerY = L.axisY - 50;
     const count = Math.max(1, Math.round(p.rayCount));
     const spacing = 18;
-    const t1 = optics.theta1, t2 = optics.theta2;
+    const t1 = optics.theta1,
+      t2 = optics.theta2;
     const rayColor = '#facc15';
 
     for (let i = 0; i < count; i++) {
@@ -626,8 +701,11 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
       if (p.showNormals && i === Math.floor(count / 2)) {
         ctx.strokeStyle = 'rgba(255,255,255,0.4)';
         ctx.setLineDash([5, 5]);
-        [left, right].forEach(x => {
-          ctx.beginPath(); ctx.moveTo(x, y1 - 80); ctx.lineTo(x, y1 + 80); ctx.stroke();
+        [left, right].forEach((x) => {
+          ctx.beginPath();
+          ctx.moveTo(x, y1 - 80);
+          ctx.lineTo(x, y1 + 80);
+          ctx.stroke();
         });
         ctx.setLineDash([]);
       }
@@ -637,7 +715,7 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
   function render() {
     const L = layout();
     drawGrid(L);
-    
+
     const element = ELEMENTS[Math.round(p.elementIdx)] || ELEMENTS[0];
     const optics = lensImage(p);
 
@@ -646,11 +724,16 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
       [xWorldToScreen(-fAbs, L), xWorldToScreen(fAbs, L)].forEach((x, i) => {
         ctx.strokeStyle = i === 0 ? '#fb7185' : '#4ade80';
         ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(x, L.axisY - 12); ctx.lineTo(x, L.axisY + 12); ctx.stroke();
-        ctx.font = 'bold 11px monospace'; ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center';
+        ctx.beginPath();
+        ctx.moveTo(x, L.axisY - 12);
+        ctx.lineTo(x, L.axisY + 12);
+        ctx.stroke();
+        ctx.font = 'bold 11px monospace';
+        ctx.fillStyle = '#94a3b8';
+        ctx.textAlign = 'center';
         ctx.fillText(i === 0 ? 'F' : "F'", x, L.axisY + 28);
       });
-      
+
       const ox = xWorldToScreen(-p.objectDistance, L);
       const oy = yWorldToScreen(p.objectHeight, L);
       drawArrow(ctx, ox, L.axisY, ox, oy, { color: '#e2e8f0', label: 'object' });
@@ -662,8 +745,9 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
     drawElement(L, element);
 
     // HUD
-    const hudX = 25, hudY = 30;
-    
+    const hudX = 25,
+      hudY = 30;
+
     // Glassmorphic HUD background
     ctx.save();
     ctx.fillStyle = 'rgba(15, 23, 42, 0.6)';
@@ -673,17 +757,22 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
     ctx.roundRect(hudX - 10, hudY - 20, 220, element.kind === 'slab' ? 70 : 90, 8);
     ctx.fill();
     ctx.stroke();
-    
-    ctx.font = '700 16px "Inter", sans-serif'; 
-    ctx.fillStyle = element.color; 
+
+    ctx.font = '700 16px "Inter", sans-serif';
+    ctx.fillStyle = element.color;
     ctx.textAlign = 'left';
     ctx.fillText(element.name.toUpperCase(), hudX, hudY);
-    
-    const hud = element.kind === 'slab' 
-      ? [`θ₁: ${p.incidenceAngle.toFixed(1)}°`, `Shift: ${optics.lateralShift.toFixed(2)} cm`]
-      : [`dₒ: ${p.objectDistance.toFixed(1)} cm`, `dᵢ: ${Number.isFinite(optics.imageDistance) ? optics.imageDistance.toFixed(1) : '∞'} cm`, `m: ${Number.isFinite(optics.magnification) ? optics.magnification.toFixed(2) : '∞'}`];
-    
-    ctx.font = '500 13px "JetBrains Mono", monospace'; 
+
+    const hud =
+      element.kind === 'slab'
+        ? [`θ₁: ${p.incidenceAngle.toFixed(1)}°`, `Shift: ${optics.lateralShift.toFixed(2)} cm`]
+        : [
+            `dₒ: ${p.objectDistance.toFixed(1)} cm`,
+            `dᵢ: ${Number.isFinite(optics.imageDistance) ? optics.imageDistance.toFixed(1) : '∞'} cm`,
+            `m: ${Number.isFinite(optics.magnification) ? optics.magnification.toFixed(2) : '∞'}`,
+          ];
+
+    ctx.font = '500 13px "JetBrains Mono", monospace';
     ctx.fillStyle = '#f8fafc';
     hud.forEach((text, i) => {
       ctx.fillText(text, hudX, hudY + 24 + i * 20);
@@ -691,8 +780,9 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
     ctx.restore();
 
     if (hover && !dragging) {
-      ctx.beginPath(); ctx.arc(hover.x, hover.y, 5, 0, Math.PI * 2); 
-      ctx.strokeStyle = 'rgba(250, 204, 21, 0.8)'; 
+      ctx.beginPath();
+      ctx.arc(hover.x, hover.y, 5, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(250, 204, 21, 0.8)';
       ctx.fillStyle = 'rgba(250, 204, 21, 0.2)';
       ctx.lineWidth = 2;
       ctx.fill();
@@ -703,10 +793,19 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
   render();
 
   return {
-    start() { running = true; },
-    stop() { running = false; },
-    reset() { render(); },
-    setParams(next) { p = { ...p, ...next }; render(); },
+    start() {
+      running = true;
+    },
+    stop() {
+      running = false;
+    },
+    reset() {
+      render();
+    },
+    setParams(next) {
+      p = { ...p, ...next };
+      render();
+    },
     destroy() {
       canvas.removeEventListener('mousedown', onDown);
       window.removeEventListener('mousemove', onMove);
@@ -720,6 +819,6 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
         magnification: Number.isFinite(optics.magnification) ? optics.magnification : 0,
         lateralShift: optics.lateralShift,
       };
-    }
+    },
   };
 }

@@ -55,42 +55,76 @@ export default function DataReadout({ data, method }) {
     rows.push({ key: 'energyError', label: '|ΔE/E₀|', value: err.toExponential(2), status });
   }
   if (data.totalEnergy !== undefined) {
-    rows.push({ key: 'totalEnergy', label: 'E_total', value: formatSci(data.totalEnergy, 'J'), status: 'ok' });
+    rows.push({
+      key: 'totalEnergy',
+      label: 'E_total',
+      value: formatSci(data.totalEnergy, 'J'),
+      status: 'ok',
+    });
   }
   if (data.angularMomentum !== undefined) {
-    rows.push({ key: 'angularMomentum', label: 'L_total', value: formatSci(data.angularMomentum, ''), status: 'ok' });
+    rows.push({
+      key: 'angularMomentum',
+      label: 'L_total',
+      value: formatSci(data.angularMomentum, ''),
+      status: 'ok',
+    });
   }
   if (data.cfl !== undefined) {
     const status = data.cfl < 0.5 ? 'ok' : data.cfl < 1.0 ? 'warn' : 'err';
     rows.push({ key: 'cfl', label: 'CFL', value: data.cfl.toFixed(3), status });
   }
   if (data.maxVelocity !== undefined) {
-    rows.push({ key: 'maxVelocity', label: 'v_max', value: formatSci(data.maxVelocity, 'm/s'), status: 'ok' });
+    rows.push({
+      key: 'maxVelocity',
+      label: 'v_max',
+      value: formatSci(data.maxVelocity, 'm/s'),
+      status: 'ok',
+    });
   }
   if (data.lyapunov !== undefined) {
-    rows.push({ key: 'lyapunov', label: 'Lyapunov exp.', value: data.lyapunov.toFixed(4), status: 'ok' });
+    rows.push({
+      key: 'lyapunov',
+      label: 'Lyapunov exp.',
+      value: data.lyapunov.toFixed(4),
+      status: 'ok',
+    });
   }
 
   const methodBadge = METHOD_BADGES[method] || null;
 
   return (
-    <div 
+    <div
       className="data-readout"
       style={{
         transform: `translate(calc(-50% + ${position.x}px), ${position.y}px)`,
         cursor: isDragging ? 'grabbing' : 'grab',
-        touchAction: 'none'
+        touchAction: 'none',
       }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
     >
-      <div className="data-readout-title" style={{ cursor: 'inherit', pointerEvents: 'none' }}>Simulation Telemetry</div>
+      <div className="data-readout-title" style={{ cursor: 'inherit', pointerEvents: 'none' }}>
+        Simulation Telemetry
+      </div>
       {rows.map((row, i) => (
         <div key={i} className="data-readout-row" style={{ pointerEvents: 'none' }}>
-          <span className="data-readout-label" title={inferReadoutTooltip(row.key, row.label)} style={{ pointerEvents: 'auto' }}>{row.label}</span>
-          <span className={`data-readout-value ${row.status}`} title={inferReadoutTooltip(row.key, row.label)} style={{ pointerEvents: 'auto' }}>{row.value}</span>
+          <span
+            className="data-readout-label"
+            title={inferReadoutTooltip(row.key, row.label)}
+            style={{ pointerEvents: 'auto' }}
+          >
+            {row.label}
+          </span>
+          <span
+            className={`data-readout-value ${row.status}`}
+            title={inferReadoutTooltip(row.key, row.label)}
+            style={{ pointerEvents: 'auto' }}
+          >
+            {row.value}
+          </span>
         </div>
       ))}
       {methodBadge && (
@@ -113,12 +147,12 @@ function formatSci(value, unit) {
 }
 
 const METHOD_BADGES = {
-  'rk4':       { label: 'RK4',          cls: 'rk45' },
-  'rk45':      { label: 'RK45 Adaptive', cls: 'rk45' },
-  'yoshida4':  { label: 'Yoshida⁴',     cls: 'symplectic' },
-  'leapfrog':  { label: 'Leapfrog',     cls: 'symplectic' },
-  'sph':       { label: 'SPH',          cls: 'sph' },
-  'sph-xsph':  { label: 'SPH+XSPH',    cls: 'sph' },
-  'fdm':       { label: 'FDM',          cls: 'fdm' },
-  'fdm-pml':   { label: 'FDM+PML',     cls: 'fdm' },
+  rk4: { label: 'RK4', cls: 'rk45' },
+  rk45: { label: 'RK45 Adaptive', cls: 'rk45' },
+  yoshida4: { label: 'Yoshida⁴', cls: 'symplectic' },
+  leapfrog: { label: 'Leapfrog', cls: 'symplectic' },
+  sph: { label: 'SPH', cls: 'sph' },
+  'sph-xsph': { label: 'SPH+XSPH', cls: 'sph' },
+  fdm: { label: 'FDM', cls: 'fdm' },
+  'fdm-pml': { label: 'FDM+PML', cls: 'fdm' },
 };

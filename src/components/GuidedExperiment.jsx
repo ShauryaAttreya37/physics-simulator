@@ -1,5 +1,14 @@
 import { useState, useCallback } from 'react';
-import { Lightbulb, ChevronRight, ChevronLeft, Eye, CheckCircle, XCircle, RotateCcw, FlaskConical } from 'lucide-react';
+import {
+  Lightbulb,
+  ChevronRight,
+  ChevronLeft,
+  Eye,
+  CheckCircle,
+  XCircle,
+  RotateCcw,
+  FlaskConical,
+} from 'lucide-react';
 
 /**
  * GuidedExperiment — Predict → Observe → Explain learning loop
@@ -35,23 +44,25 @@ export default function GuidedExperiment({ experiment, onApplyParams, onClose })
   const [selectedChoice, setSelectedChoice] = useState(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
 
-  if (!experiment || !experiment.steps?.length) return null;
 
-  const step = experiment.steps[stepIdx];
-  const isLast = stepIdx === experiment.steps.length - 1;
+  const step = experiment?.steps?.[stepIdx] || {};
+  const isLast = stepIdx === (experiment?.steps?.length || 1) - 1;
   const isCorrect = selectedChoice === step.correctIndex;
 
-  const handlePredict = useCallback((choiceIdx) => {
-    setSelectedChoice(choiceIdx);
-    // Apply the params so simulation shows the scenario
-    if (step.params && onApplyParams) {
-      onApplyParams(step.params);
-    }
-    setPhase('observe');
-  }, [step, onApplyParams]);
+  const handlePredict = useCallback(
+    (choiceIdx) => {
+      setSelectedChoice(choiceIdx);
+      // Apply the params so simulation shows the scenario
+      if (step.params && onApplyParams) {
+        onApplyParams(step.params);
+      }
+      setPhase('observe');
+    },
+    [step, onApplyParams],
+  );
 
   const handleObserved = useCallback(() => {
-    setScore(prev => ({
+    setScore((prev) => ({
       correct: prev.correct + (isCorrect ? 1 : 0),
       total: prev.total + 1,
     }));
@@ -63,7 +74,7 @@ export default function GuidedExperiment({ experiment, onApplyParams, onClose })
       onClose?.();
       return;
     }
-    setStepIdx(prev => prev + 1);
+    setStepIdx((prev) => prev + 1);
     setPhase('predict');
     setSelectedChoice(null);
   }, [isLast, onClose]);
@@ -74,6 +85,8 @@ export default function GuidedExperiment({ experiment, onApplyParams, onClose })
     setSelectedChoice(null);
     setScore({ correct: 0, total: 0 });
   }, []);
+
+  if (!experiment || !experiment.steps?.length) return null;
 
   return (
     <div className="guided-exp">
@@ -91,15 +104,18 @@ export default function GuidedExperiment({ experiment, onApplyParams, onClose })
 
       {/* Progress bar */}
       <div className="guided-exp-bar">
-        <div className="guided-exp-bar-fill" style={{ width: `${((stepIdx + (phase === 'explain' ? 1 : 0.5)) / experiment.steps.length) * 100}%` }} />
+        <div
+          className="guided-exp-bar-fill"
+          style={{
+            width: `${((stepIdx + (phase === 'explain' ? 1 : 0.5)) / experiment.steps.length) * 100}%`,
+          }}
+        />
       </div>
 
       {/* Step content */}
       <div className="guided-exp-body">
         {/* Instruction */}
-        <div className="guided-exp-instruction">
-          {step.instruction}
-        </div>
+        <div className="guided-exp-instruction">{step.instruction}</div>
 
         {/* PREDICT phase */}
         {phase === 'predict' && (
@@ -110,14 +126,8 @@ export default function GuidedExperiment({ experiment, onApplyParams, onClose })
             </div>
             <div className="guided-exp-choices">
               {step.choices.map((choice, i) => (
-                <button
-                  key={i}
-                  className="guided-exp-choice"
-                  onClick={() => handlePredict(i)}
-                >
-                  <span className="guided-exp-choice-letter">
-                    {String.fromCharCode(65 + i)}
-                  </span>
+                <button key={i} className="guided-exp-choice" onClick={() => handlePredict(i)}>
+                  <span className="guided-exp-choice-letter">{String.fromCharCode(65 + i)}</span>
                   {choice}
                 </button>
               ))}
@@ -147,9 +157,13 @@ export default function GuidedExperiment({ experiment, onApplyParams, onClose })
             {/* Result banner */}
             <div className={`guided-exp-result ${isCorrect ? 'correct' : 'wrong'}`}>
               {isCorrect ? (
-                <><CheckCircle size={16} /> <span>Correct! Nice intuition.</span></>
+                <>
+                  <CheckCircle size={16} /> <span>Correct! Nice intuition.</span>
+                </>
               ) : (
-                <><XCircle size={16} /> <span>Not quite — but that's a common misconception!</span></>
+                <>
+                  <XCircle size={16} /> <span>Not quite — but that's a common misconception!</span>
+                </>
               )}
             </div>
 
@@ -161,9 +175,7 @@ export default function GuidedExperiment({ experiment, onApplyParams, onClose })
             )}
 
             {/* Explanation */}
-            <div className="guided-exp-explanation">
-              {step.explanation}
-            </div>
+            <div className="guided-exp-explanation">{step.explanation}</div>
 
             {/* Try this */}
             {step.tryThis && (
@@ -176,7 +188,9 @@ export default function GuidedExperiment({ experiment, onApplyParams, onClose })
             <div className="guided-exp-nav">
               {isLast ? (
                 <div className="guided-exp-summary">
-                  <span>Score: {score.correct}/{score.total} correct</span>
+                  <span>
+                    Score: {score.correct}/{score.total} correct
+                  </span>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button className="guided-exp-btn secondary" onClick={handleRestart}>
                       <RotateCcw size={12} /> Redo

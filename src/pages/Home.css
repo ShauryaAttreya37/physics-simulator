@@ -7,7 +7,8 @@
   --ease-apple: cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   background-color: var(--home-bg);
@@ -22,7 +23,13 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'SF Pro Display',
+    system-ui,
+    sans-serif;
   color: #fff;
   transition: opacity 0.6s var(--ease-apple);
   animation: fade-in 1.2s var(--ease-apple);
@@ -43,8 +50,12 @@ html, body {
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .home-container {
@@ -54,11 +65,15 @@ html, body {
   background: #0d0f17;
   background: linear-gradient(135deg, #1a1b26 0%, #05050a 100%);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 0 120px rgba(10, 132, 255, 0.15), inset 0 2px 2px rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 0 120px rgba(10, 132, 255, 0.15),
+    inset 0 2px 2px rgba(255, 255, 255, 0.2);
   border-radius: 42px; /* Apple-style squircle radius approximation */
   height: auto;
   min-height: max(720px, calc(100vh - 5.236rem)); /* Golden ratio padding accommodation */
-  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4), inset 0 2px 2px rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 40px 100px rgba(0, 0, 0, 0.4),
+    inset 0 2px 2px rgba(255, 255, 255, 0.2);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -68,7 +83,10 @@ html, body {
 /* Abstract Lighting Orbs */
 .bg-mesh {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   z-index: 0;
   pointer-events: none;
@@ -83,28 +101,39 @@ html, body {
 }
 
 .orb-1 {
-  width: 600px; height: 600px;
-  background: #0A84FF; /* Vibrant Apple Blue */
-  top: -10%; left: -20%;
+  width: 600px;
+  height: 600px;
+  background: #0a84ff; /* Vibrant Apple Blue */
+  top: -10%;
+  left: -20%;
   opacity: 0.35;
 }
 
 .orb-2 {
-  width: 800px; height: 800px;
-  background: #5E5CE6; /* Vibrant Apple Indigo */
-  bottom: -30%; right: -20%;
+  width: 800px;
+  height: 800px;
+  background: #5e5ce6; /* Vibrant Apple Indigo */
+  bottom: -30%;
+  right: -20%;
   animation-delay: -5s;
   opacity: 0.35;
 }
 
 @keyframes float {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(50px, 80px) scale(1.1); }
-  100% { transform: translate(-30px, 50px) scale(0.9); }
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(50px, 80px) scale(1.1);
+  }
+  100% {
+    transform: translate(-30px, 50px) scale(0.9);
+  }
 }
 
 /* Thin Grid and Axes */
-.horizontal-axis, .vertical-axis {
+.horizontal-axis,
+.vertical-axis {
   position: absolute;
   background: rgba(255, 255, 255, 0.08);
   z-index: 1;
@@ -139,7 +168,7 @@ html, body {
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border-radius: 9999px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
 }
 
 .nav-brand {
@@ -203,9 +232,11 @@ html, body {
 .nav-btn::after {
   content: '';
   position: absolute;
-  top: 0; left: -100%;
-  width: 50%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   transform: skewX(-20deg);
   transition: left 0.5s ease;
 }
@@ -231,7 +262,7 @@ html, body {
   flex: 1;
   text-align: center;
   padding: 2rem 2rem 4rem 2rem;
-  margin-top: 0; 
+  margin-top: 0;
 }
 
 .hero-title {
@@ -242,11 +273,16 @@ html, body {
   line-height: 1.02;
   margin-bottom: 2.618rem; /* Golden Ratio */
   letter-spacing: -0.04em;
-  text-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  text-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .hero-sub {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'SF Pro Text',
+    sans-serif;
   font-size: 1.15rem;
   color: rgba(255, 255, 255, 0.75);
   line-height: 1.618; /* Golden Ratio */
@@ -275,9 +311,11 @@ html, body {
 .primary-btn::after {
   content: '';
   position: absolute;
-  top: 0; left: -100%;
-  width: 50%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   transform: skewX(-20deg);
   transition: left 0.6s ease;
 }
@@ -330,7 +368,9 @@ html, body {
   padding: 1.2rem 1.8rem;
   max-width: 520px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  transition: transform 0.4s var(--ease-apple), border-color 0.4s var(--ease-apple);
+  transition:
+    transform 0.4s var(--ease-apple),
+    border-color 0.4s var(--ease-apple);
 }
 
 .discord-banner:hover {
@@ -350,7 +390,7 @@ html, body {
   height: 36px;
   flex-shrink: 0;
   opacity: 0.9;
-  color: #5865F2; /* Discord brand color */
+  color: #5865f2; /* Discord brand color */
 }
 
 .discord-text {
@@ -399,18 +439,21 @@ html, body {
 }
 
 .user-avatar-btn {
-  width: 36px; height: 36px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #0A84FF, #5E5CE6);
-  border: 2px solid rgba(255,255,255,0.15);
-  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #0a84ff, #5e5ce6);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
   padding: 0;
 }
 
 .user-avatar-btn:hover {
-  border-color: rgba(255,255,255,0.35);
+  border-color: rgba(255, 255, 255, 0.35);
   transform: scale(1.05);
   box-shadow: 0 4px 16px rgba(10, 132, 255, 0.3);
 }
@@ -429,19 +472,25 @@ html, body {
   right: 0;
   min-width: 220px;
   background: rgba(20, 20, 28, 0.95);
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   backdrop-filter: blur(40px) saturate(200%);
   -webkit-backdrop-filter: blur(40px) saturate(200%);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   overflow: hidden;
   animation: dropdown-enter 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   z-index: 100;
 }
 
 @keyframes dropdown-enter {
-  from { opacity: 0; transform: translateY(-8px) scale(0.96); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .dropdown-header {
@@ -460,7 +509,7 @@ html, body {
 
 .dropdown-role {
   font-size: 0.68rem;
-  color: rgba(255,255,255,0.35);
+  color: rgba(255, 255, 255, 0.35);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 500;
@@ -468,17 +517,19 @@ html, body {
 
 .dropdown-divider {
   height: 1px;
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.06);
   margin: 0;
 }
 
 .dropdown-item {
-  display: flex; align-items: center; gap: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   width: 100%;
   padding: 0.75rem 1.1rem;
   background: transparent;
   border: none;
-  color: rgba(255,255,255,0.7);
+  color: rgba(255, 255, 255, 0.7);
   font-family: inherit;
   font-size: 0.82rem;
   font-weight: 500;
@@ -488,26 +539,48 @@ html, body {
 }
 
 .dropdown-item:hover {
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.06);
   color: #fff;
 }
 
 .dropdown-item.danger {
-  color: #FF453A;
+  color: #ff453a;
 }
 
 .dropdown-item.danger:hover {
   background: rgba(255, 69, 58, 0.08);
-  color: #FF6961;
+  color: #ff6961;
 }
 
 @media (max-width: 768px) {
-  .home-wrapper { padding: 1rem; }
-  .home-container { height: calc(100vh - 2rem); border-radius: 20px; }
-  .hero-title { font-size: 3rem; }
-  .glass-nav { flex-direction: column; gap: 1rem; padding: 1rem; }
-  .nav-links { display: none; }
-  .discord-content { flex-direction: column; text-align: center; gap: 1rem; }
-  .discord-btn { width: 100%; text-align: center; }
-  .user-dropdown { right: -1rem; }
+  .home-wrapper {
+    padding: 1rem;
+  }
+  .home-container {
+    height: calc(100vh - 2rem);
+    border-radius: 20px;
+  }
+  .hero-title {
+    font-size: 3rem;
+  }
+  .glass-nav {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  .nav-links {
+    display: none;
+  }
+  .discord-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  .discord-btn {
+    width: 100%;
+    text-align: center;
+  }
+  .user-dropdown {
+    right: -1rem;
+  }
 }

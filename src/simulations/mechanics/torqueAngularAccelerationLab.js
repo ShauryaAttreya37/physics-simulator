@@ -29,18 +29,21 @@ export const graphParams = [
 export const equationSections = [
   {
     title: 'Introduction',
-    content: 'Torque and rotation are the angular equivalents of force and linear motion. This simulation shows a rotor that you can apply torques to, demonstrating how rotational inertia affects angular acceleration. It\'s like Newton\'s second law but for spinning objects.',
+    content:
+      "Torque and rotation are the angular equivalents of force and linear motion. This simulation shows a rotor that you can apply torques to, demonstrating how rotational inertia affects angular acceleration. It's like Newton's second law but for spinning objects.",
   },
   {
     title: 'Rotational Dynamics',
     equations: [
       {
         latex: String.raw`\tau = rF_t`,
-        description: 'Torque is force times the perpendicular distance from the axis (lever arm). It causes rotation.',
+        description:
+          'Torque is force times the perpendicular distance from the axis (lever arm). It causes rotation.',
       },
       {
         latex: String.raw`\sum \tau = I\alpha`,
-        description: 'Net torque equals moment of inertia times angular acceleration. This is Newton\'s second law for rotation.',
+        description:
+          "Net torque equals moment of inertia times angular acceleration. This is Newton's second law for rotation.",
       },
     ],
     variables: [
@@ -56,7 +59,8 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`K_{rot} = \frac{1}{2}I\omega^2`,
-        description: 'Rotational kinetic energy. Like linear KE but with moment of inertia and angular velocity.',
+        description:
+          'Rotational kinetic energy. Like linear KE but with moment of inertia and angular velocity.',
       },
     ],
   },
@@ -65,17 +69,20 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`I = \sum m_i r_i^2`,
-        description: 'Moment of inertia depends on mass distribution. Mass farther from axis has more effect.',
+        description:
+          'Moment of inertia depends on mass distribution. Mass farther from axis has more effect.',
       },
     ],
   },
   {
     title: 'How to Use',
-    content: '1. Apply tangential forces by clicking and dragging on the rotor.\n2. Adjust the moment of inertia - higher I means harder to spin.\n3. Add damping to see realistic slowing down.\n4. Watch angular velocity and acceleration graphs.\n5. See how torque relates to angular acceleration.\n6. Compare rotational KE to the work done.',
+    content:
+      '1. Apply tangential forces by clicking and dragging on the rotor.\n2. Adjust the moment of inertia - higher I means harder to spin.\n3. Add damping to see realistic slowing down.\n4. Watch angular velocity and acceleration graphs.\n5. See how torque relates to angular acceleration.\n6. Compare rotational KE to the work done.',
   },
   {
     title: 'Beginner Tips',
-    content: 'Torque is like force for rotation. The farther from the center you apply force, the more torque. Heavy objects or mass far from axis have high moment of inertia. Try spinning it fast then letting it slow - see conservation of energy. Compare to linear motion analogies.',
+    content:
+      'Torque is like force for rotation. The farther from the center you apply force, the more torque. Heavy objects or mass far from axis have high moment of inertia. Try spinning it fast then letting it slow - see conservation of energy. Compare to linear motion analogies.',
   },
 ];
 
@@ -122,7 +129,6 @@ export function create(canvas, initParams = {}) {
       simTime += h;
     }
   }
-
 
   function render() {
     const W = canvas.width;
@@ -178,19 +184,15 @@ export function create(canvas, initParams = {}) {
       handleY,
       handleX + tangentX * sign * forceScale,
       handleY + tangentY * sign * forceScale,
-      { color: '#f59e0b', lineWidth: 3 }
+      { color: '#f59e0b', lineWidth: 3 },
     );
 
     const currentTorque = p.force * p.radius - p.damping * omega;
     const omegaScale = Math.min(52, Math.abs(omega) * 4);
-    drawArrow(
-      ctx,
-      cx - diskR - 20,
-      cy,
-      cx - diskR - 20,
-      cy - (omega >= 0 ? 1 : -1) * omegaScale,
-      { color: '#22d3ee', lineWidth: 3 }
-    );
+    drawArrow(ctx, cx - diskR - 20, cy, cx - diskR - 20, cy - (omega >= 0 ? 1 : -1) * omegaScale, {
+      color: '#22d3ee',
+      lineWidth: 3,
+    });
 
     ctx.fillStyle = 'rgba(10,15,30,0.8)';
     ctx.fillRect(20, 20, 300, 160);
@@ -220,7 +222,7 @@ export function create(canvas, initParams = {}) {
     ctx.fillText('LEGEND', 34, 215);
 
     ctx.font = '12px "JetBrains Mono", monospace';
-    
+
     // Orange - Force
     ctx.fillStyle = '#f59e0b';
     ctx.fillRect(34, 226, 12, 3);

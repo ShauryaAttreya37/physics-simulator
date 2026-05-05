@@ -1,6 +1,6 @@
 /**
  * Lorenz Attractor — Makie-Quality Smooth Rendering
- * 
+ *
  * The classic Lorenz system: three coupled ODEs that produce the
  * iconic "butterfly" attractor.
  *
@@ -29,27 +29,39 @@ export const defaultParams = { ...DEFAULTS };
 export const equationSections = [
   {
     title: 'Introduction',
-    content: 'The Lorenz attractor is a famous example of chaotic behavior in a simple system. It models atmospheric convection and shows how deterministic equations can produce unpredictable results. Tiny changes in initial conditions lead to completely different outcomes - the "butterfly effect".',
+    content:
+      'The Lorenz attractor is a famous example of chaotic behavior in a simple system. It models atmospheric convection and shows how deterministic equations can produce unpredictable results. Tiny changes in initial conditions lead to completely different outcomes - the "butterfly effect".',
   },
   {
     title: 'Lorenz System',
     equations: [
       {
         latex: String.raw`\dot{x} = \sigma(y - x)`,
-        description: 'How the convective intensity changes. σ controls how quickly temperature differences are smoothed out.',
+        description:
+          'How the convective intensity changes. σ controls how quickly temperature differences are smoothed out.',
       },
       {
         latex: String.raw`\dot{y} = x(\rho - z) - y`,
-        description: 'Horizontal temperature variation. ρ is the key parameter - above a critical value, convection becomes chaotic.',
+        description:
+          'Horizontal temperature variation. ρ is the key parameter - above a critical value, convection becomes chaotic.',
       },
       {
         latex: String.raw`\dot{z} = xy - \beta z`,
-        description: 'Vertical temperature difference. β affects the shape of the convection rolls.',
+        description:
+          'Vertical temperature difference. β affects the shape of the convection rolls.',
       },
     ],
     variables: [
-      { symbol: 'σ', description: 'Prandtl number - ratio of fluid viscosity to thermal diffusivity (typically 10 for air)' },
-      { symbol: 'ρ', description: 'Rayleigh number - measures temperature difference driving convection (chaos starts around 24.74)' },
+      {
+        symbol: 'σ',
+        description:
+          'Prandtl number - ratio of fluid viscosity to thermal diffusivity (typically 10 for air)',
+      },
+      {
+        symbol: 'ρ',
+        description:
+          'Rayleigh number - measures temperature difference driving convection (chaos starts around 24.74)',
+      },
       { symbol: 'β', description: 'Aspect ratio of convection rolls (usually 8/3)' },
     ],
   },
@@ -58,21 +70,25 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\text{Divergence: } \nabla \cdot \mathbf{F} = -(\sigma + 1 + \beta) < 0`,
-        description: 'The system contracts phase space volume over time - it\'s dissipative, like real physical systems.',
+        description:
+          "The system contracts phase space volume over time - it's dissipative, like real physical systems.",
       },
       {
         latex: String.raw`\text{Lyapunov exponents: } \lambda_1 \approx 0.906, \; \lambda_2 = 0, \; \lambda_3 \approx -14.57`,
-        description: 'Quantifies chaos. Positive exponent means trajectories diverge exponentially - sensitive dependence on initial conditions.',
+        description:
+          'Quantifies chaos. Positive exponent means trajectories diverge exponentially - sensitive dependence on initial conditions.',
       },
     ],
   },
   {
     title: 'How to Use',
-    content: '1. Adjust ρ (Rayleigh number) - increase above ~25 to see chaos emerge.\n2. Change σ and β to see how they affect the attractor shape.\n3. Set different initial conditions - see how trajectories diverge.\n4. Watch the 3D butterfly shape and projections.\n5. Look at time series for periodic vs chaotic behavior.',
+    content:
+      '1. Adjust ρ (Rayleigh number) - increase above ~25 to see chaos emerge.\n2. Change σ and β to see how they affect the attractor shape.\n3. Set different initial conditions - see how trajectories diverge.\n4. Watch the 3D butterfly shape and projections.\n5. Look at time series for periodic vs chaotic behavior.',
   },
   {
     title: 'Beginner Tips',
-    content: 'Start with ρ=28, σ=10, β=8/3 (classic parameters). See the butterfly wings. Lower ρ for simpler behavior. Try ρ just above 24.74 - transition to chaos. Notice how close trajectories eventually diverge completely.',
+    content:
+      'Start with ρ=28, σ=10, β=8/3 (classic parameters). See the butterfly wings. Lower ρ for simpler behavior. Try ρ just above 24.74 - transition to chaos. Notice how close trajectories eventually diverge completely.',
   },
 ];
 
@@ -104,23 +120,21 @@ export const method = 'rk4';
 // ── Lorenz derivatives ─────────────────────────────────────────────────────
 function lorenzDerivs(state, p) {
   const [x, y, z] = state;
-  return [
-    p.sigma * (y - x),
-    x * (p.rho - z) - y,
-    x * y - p.beta * z,
-  ];
+  return [p.sigma * (y - x), x * (p.rho - z) - y, x * y - p.beta * z];
 }
 
 // ── 3D Projection with dual-axis rotation ──────────────────────────────────
 function project3D(x, y, z, yaw, pitch, cx, cy, scale) {
   // Rotate around Z axis (yaw)
-  const cosY = Math.cos(yaw), sinY = Math.sin(yaw);
+  const cosY = Math.cos(yaw),
+    sinY = Math.sin(yaw);
   let rx = x * cosY - y * sinY;
   let ry = x * sinY + y * cosY;
   let rz = z;
 
   // Rotate around X axis (pitch/tilt)
-  const cosP = Math.cos(pitch), sinP = Math.sin(pitch);
+  const cosP = Math.cos(pitch),
+    sinP = Math.sin(pitch);
   const ry2 = ry * cosP - rz * sinP;
   const rz2 = ry * sinP + rz * cosP;
   ry = ry2;
@@ -144,19 +158,22 @@ export function create(canvas, initParams = {}) {
   const p = { ...DEFAULTS, ...initParams };
 
   let x, y, z;
-  let trail;       // Float64Array ring buffer for performance
+  let trail; // Float64Array ring buffer for performance
   let trailLen, trailHead, trailCap;
   let simTime, stepCount;
-  let yaw, pitch;  // view angles
+  let yaw, pitch; // view angles
   let speedScale = 1.0;
 
   // Mouse interaction state
   let isDragging = false;
-  let lastMouseX = 0, lastMouseY = 0;
+  let lastMouseX = 0,
+    lastMouseY = 0;
   let userZoom = 1.0;
 
   function initState() {
-    x = 1; y = 1; z = 1;
+    x = 1;
+    y = 1;
+    z = 1;
     trailCap = Math.max(200, Math.floor(p.trailMax));
     trail = new Float64Array(trailCap * 3);
     trailLen = 0;
@@ -196,7 +213,8 @@ export function create(canvas, initParams = {}) {
   }
 
   function render() {
-    const W = canvas.width, H = canvas.height;
+    const W = canvas.width,
+      H = canvas.height;
 
     // Background with subtle gradient
     const bgGrad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, W * 0.7);
@@ -321,7 +339,8 @@ export function create(canvas, initParams = {}) {
     }
 
     // --- 3D Axis gizmo (bottom-left) ---
-    const axGx = 55, axGy = H - 55;
+    const axGx = 55,
+      axGy = H - 55;
     const axScale = 14;
     const axOrigin = project3D(0, 0, 0, yaw, pitch, axGx, axGy, axScale);
     const axisData = [
@@ -448,7 +467,9 @@ export function create(canvas, initParams = {}) {
     canvas.removeEventListener('touchend', onTouchEnd);
   }
 
-  let rafId, lastTs, running = false;
+  let rafId,
+    lastTs,
+    running = false;
 
   function loop(ts) {
     if (!running) return;
@@ -466,20 +487,39 @@ export function create(canvas, initParams = {}) {
   return {
     start() {
       if (running) return;
-      running = true; lastTs = undefined;
+      running = true;
+      lastTs = undefined;
       rafId = requestAnimationFrame(loop);
     },
-    stop() { running = false; cancelAnimationFrame(rafId); },
-    reset() { this.stop(); initState(); render(); this.start(); },
-    setParams(next) { Object.assign(p, next); render(); },
-    destroy() { this.stop(); detachListeners(); },
-    setSpeed(s) { speedScale = s; },
+    stop() {
+      running = false;
+      cancelAnimationFrame(rafId);
+    },
+    reset() {
+      this.stop();
+      initState();
+      render();
+      this.start();
+    },
+    setParams(next) {
+      Object.assign(p, next);
+      render();
+    },
+    destroy() {
+      this.stop();
+      detachListeners();
+    },
+    setSpeed(s) {
+      speedScale = s;
+    },
     getData() {
       const [dx, dy, dz] = lorenzDerivs(x, y, z, p);
       const speed = Math.sqrt(dx * dx + dy * dy + dz * dz);
       return {
         time: simTime,
-        x, y, z,
+        x,
+        y,
+        z,
         speed,
         steps: stepCount,
       };

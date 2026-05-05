@@ -21,11 +21,11 @@ export default function App() {
     useSandboxStore.setState({ bodies: {}, constraints: {}, selectedId: null });
     const eng = resetEngine();
     engineRef.current = eng;
-    const floor = Matter.Bodies.rectangle(
-      window.innerWidth / 2, 580,
-      window.innerWidth + 200, 20,
-      { isStatic: true, friction: 0.5, restitution: 0.3 }
-    );
+    const floor = Matter.Bodies.rectangle(window.innerWidth / 2, 580, window.innerWidth + 200, 20, {
+      isStatic: true,
+      friction: 0.5,
+      restitution: 0.3,
+    });
     floor._isFloor = true;
     Matter.Composite.add(eng.world, floor);
   }

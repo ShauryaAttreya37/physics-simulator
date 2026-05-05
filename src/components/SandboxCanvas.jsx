@@ -2,11 +2,27 @@ import { useEffect, useRef, useCallback } from 'react';
 import Matter from 'matter-js';
 import { useSandboxStore } from '../store/sandboxStore';
 import {
-  createEngine, getEngine, startEngine, stopEngine,
-  createCircle, createBox, createWall, createWedge, createPulley, createSpring, createString,
-  createBeam, createWoodBlock, createPivot, createOscillator,
-  spawnCar, spawnBridge, spawnNewtonCradle,
-  addToWorld, removeFromWorld, setGravity as engineSetGravity,
+  createEngine,
+  getEngine,
+  startEngine,
+  stopEngine,
+  createCircle,
+  createBox,
+  createWall,
+  createWedge,
+  createPulley,
+  createSpring,
+  createString,
+  createBeam,
+  createWoodBlock,
+  createPivot,
+  createOscillator,
+  spawnCar,
+  spawnBridge,
+  spawnNewtonCradle,
+  addToWorld,
+  removeFromWorld,
+  setGravity as engineSetGravity,
 } from '../physics/engine';
 
 const { Body, Composite, Vector } = Matter;
@@ -45,27 +61,39 @@ export default function SandboxCanvas({ engineRef }) {
     const spacingMajor = 100 * cam.zoom;
     const ox = ((cam.x % spacing) + spacing) % spacing;
     const oy = ((cam.y % spacing) + spacing) % spacing;
-    
+
     ctx.lineWidth = 1;
-    
+
     // minor grid
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
     for (let x = ox; x < canvas.width; x += spacing) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
     }
     for (let y = oy; y < canvas.height; y += spacing) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
     }
-    
+
     // major grid
     const oxMajor = ((cam.x % spacingMajor) + spacingMajor) % spacingMajor;
     const oyMajor = ((cam.y % spacingMajor) + spacingMajor) % spacingMajor;
     ctx.strokeStyle = '#2A3441';
     for (let x = oxMajor; x < canvas.width; x += spacingMajor) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
     }
     for (let y = oyMajor; y < canvas.height; y += spacingMajor) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
     }
   }
 
@@ -82,10 +110,10 @@ export default function SandboxCanvas({ engineRef }) {
     ctx.closePath();
 
     // Get bounding box for gradient
-    const minX = Math.min(...verts.map(v => worldToScreen(v.x, v.y).x));
-    const maxX = Math.max(...verts.map(v => worldToScreen(v.x, v.y).x));
-    const minY = Math.min(...verts.map(v => worldToScreen(v.x, v.y).y));
-    const maxY = Math.max(...verts.map(v => worldToScreen(v.x, v.y).y));
+    const minX = Math.min(...verts.map((v) => worldToScreen(v.x, v.y).x));
+    const maxX = Math.max(...verts.map((v) => worldToScreen(v.x, v.y).x));
+    const minY = Math.min(...verts.map((v) => worldToScreen(v.x, v.y).y));
+    const maxY = Math.max(...verts.map((v) => worldToScreen(v.x, v.y).y));
 
     // Gradient fill: dark stone look
     const grad = ctx.createLinearGradient(minX, minY, minX, maxY);
@@ -195,7 +223,7 @@ export default function SandboxCanvas({ engineRef }) {
     }
 
     // End-cap dots
-    [a, b].forEach(pt => {
+    [a, b].forEach((pt) => {
       ctx.beginPath();
       ctx.arc(pt.x, pt.y, 3, 0, Math.PI * 2);
       ctx.fillStyle = selected ? '#93c5fd' : '#60a5fa';
@@ -230,7 +258,7 @@ export default function SandboxCanvas({ engineRef }) {
         ctx.lineWidth = isSelected ? 3.5 : 2;
         ctx.stroke();
 
-        [sA, sB].forEach(pt => {
+        [sA, sB].forEach((pt) => {
           ctx.beginPath();
           ctx.arc(pt.x, pt.y, 3, 0, Math.PI * 2);
           ctx.fillStyle = isSelected ? '#fde68a' : '#f59e0b';
@@ -261,7 +289,7 @@ export default function SandboxCanvas({ engineRef }) {
         ctx.stroke();
         ctx.setLineDash([]);
 
-        [sA, sB].forEach(pt => {
+        [sA, sB].forEach((pt) => {
           ctx.beginPath();
           ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
           ctx.fillStyle = isSelected ? '#a7f3d0' : '#10b981';
@@ -306,17 +334,17 @@ export default function SandboxCanvas({ engineRef }) {
             const dy = (closestWall.position.y - body.position.y) * cam.zoom;
             const angle = Math.atan2(dy, dx);
             const distRender = Math.sqrt(dx * dx + dy * dy);
-            
+
             ctx.save();
             ctx.rotate(angle - body.angle);
-            
+
             // Bracket metal bar
             ctx.fillStyle = '#64748b';
             ctx.fillRect(0, -5, distRender, 10);
             ctx.strokeStyle = '#334155';
             ctx.lineWidth = 1;
             ctx.strokeRect(0, -5, distRender, 10);
-            
+
             // Pivot bolt
             ctx.beginPath();
             ctx.arc(0, 0, r * 0.45, 0, Math.PI * 2);
@@ -381,7 +409,7 @@ export default function SandboxCanvas({ engineRef }) {
         ctx.beginPath();
         for (let i = 0; i < 4; i++) {
           ctx.moveTo(0, 0);
-          ctx.lineTo(r * Math.cos(i * Math.PI/2), r * Math.sin(i * Math.PI/2));
+          ctx.lineTo(r * Math.cos((i * Math.PI) / 2), r * Math.sin((i * Math.PI) / 2));
         }
         ctx.strokeStyle = '#0f172a';
         ctx.lineWidth = 2;
@@ -403,8 +431,12 @@ export default function SandboxCanvas({ engineRef }) {
       ctx.beginPath();
       ctx.arc(0, 0, r, 0, Math.PI * 2);
       ctx.strokeStyle = isStatic
-        ? (isSelected ? '#e9d5ff' : '#9333ea')
-        : (isSelected ? '#ffffff' : 'rgba(148,163,184,0.6)');
+        ? isSelected
+          ? '#e9d5ff'
+          : '#9333ea'
+        : isSelected
+          ? '#ffffff'
+          : 'rgba(148,163,184,0.6)';
       ctx.lineWidth = isSelected ? 2 : 1.5;
       ctx.stroke();
 
@@ -413,20 +445,22 @@ export default function SandboxCanvas({ engineRef }) {
       ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
       ctx.fillStyle = isStatic ? 'rgba(233,213,255,0.7)' : 'rgba(255,255,255,0.6)';
       ctx.fill();
-
     } else {
       // ── POLYGON / BOX / WALL ──
-      const localVerts = body.vertices.map(v => ({
+      const localVerts = body.vertices.map((v) => ({
         x: (v.x - body.position.x) * cam.zoom,
         y: (v.y - body.position.y) * cam.zoom,
       }));
 
       // Compute local bounding box
-      const xs = localVerts.map(v => v.x);
-      const ys = localVerts.map(v => v.y);
-      const bx0 = Math.min(...xs), bx1 = Math.max(...xs);
-      const by0 = Math.min(...ys), by1 = Math.max(...ys);
-      const bw = bx1 - bx0, bh = by1 - by0;
+      const xs = localVerts.map((v) => v.x);
+      const ys = localVerts.map((v) => v.y);
+      const bx0 = Math.min(...xs),
+        bx1 = Math.max(...xs);
+      const by0 = Math.min(...ys),
+        by1 = Math.max(...ys);
+      const bw = bx1 - bx0,
+        bh = by1 - by0;
 
       const buildPath = () => {
         ctx.beginPath();
@@ -491,18 +525,26 @@ export default function SandboxCanvas({ engineRef }) {
         ctx.strokeStyle = 'rgba(0,0,0,0.15)';
         ctx.lineWidth = 1;
         for (let di = by0; di < by1; di += 6) {
-          ctx.beginPath(); ctx.moveTo(bx0, di); ctx.lineTo(bx1, di + (Math.random()*4-2)); ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(bx0, di);
+          ctx.lineTo(bx1, di + (Math.random() * 4 - 2));
+          ctx.stroke();
         }
       } else if (body.label === 'beam') {
         ctx.fillStyle = 'rgba(0,0,0,0.4)';
         for (let dx = bx0 + 8; dx < bx1; dx += 20) {
-          ctx.beginPath(); ctx.arc(dx, (by0+by1)/2, 2.5, 0, Math.PI*2); ctx.fill();
+          ctx.beginPath();
+          ctx.arc(dx, (by0 + by1) / 2, 2.5, 0, Math.PI * 2);
+          ctx.fill();
         }
       } else {
         ctx.strokeStyle = 'rgba(255,255,255,0.03)';
         ctx.lineWidth = 1;
         for (let di = bx0 - bh; di < bx1 + bh; di += 10) {
-          ctx.beginPath(); ctx.moveTo(di, by0); ctx.lineTo(di + bh, by1); ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(di, by0);
+          ctx.lineTo(di + bh, by1);
+          ctx.stroke();
         }
       }
       ctx.restore();
@@ -519,13 +561,19 @@ export default function SandboxCanvas({ engineRef }) {
       // ── Top edge white highlight ──
       const n = localVerts.length;
       // Find the edge with the most upward normal
-      let topEdgeI = 0, topDotMin = Infinity;
+      let topEdgeI = 0,
+        topDotMin = Infinity;
       for (let i = 0; i < n; i++) {
-        const a = localVerts[i], bv = localVerts[(i + 1) % n];
+        const a = localVerts[i],
+          bv = localVerts[(i + 1) % n];
         const midY = (a.y + bv.y) / 2;
-        if (midY < topDotMin) { topDotMin = midY; topEdgeI = i; }
+        if (midY < topDotMin) {
+          topDotMin = midY;
+          topEdgeI = i;
+        }
       }
-      const ea = localVerts[topEdgeI], eb = localVerts[(topEdgeI + 1) % n];
+      const ea = localVerts[topEdgeI],
+        eb = localVerts[(topEdgeI + 1) % n];
       ctx.beginPath();
       ctx.moveTo(ea.x, ea.y);
       ctx.lineTo(eb.x, eb.y);
@@ -536,8 +584,12 @@ export default function SandboxCanvas({ engineRef }) {
       // ── Outer stroke ──
       buildPath();
       ctx.strokeStyle = isStatic
-        ? (isSelected ? '#d8b4fe' : '#7c3aed')
-        : (isSelected ? '#cbd5e1' : '#334155');
+        ? isSelected
+          ? '#d8b4fe'
+          : '#7c3aed'
+        : isSelected
+          ? '#cbd5e1'
+          : '#334155';
       ctx.lineWidth = isSelected ? 2 : 1.5;
       ctx.stroke();
     }
@@ -552,9 +604,15 @@ export default function SandboxCanvas({ engineRef }) {
     // Draw non-selected first, then selected on top
     const selected = [];
     for (const body of all) {
-      if (body._isFloor) { drawFloorBody(ctx, body); continue; }
-      const isSel = Object.values(bodies).some(b => b.matterBody === body && b.id === selectedId);
-      if (isSel) { selected.push(body); continue; }
+      if (body._isFloor) {
+        drawFloorBody(ctx, body);
+        continue;
+      }
+      const isSel = Object.values(bodies).some((b) => b.matterBody === body && b.id === selectedId);
+      if (isSel) {
+        selected.push(body);
+        continue;
+      }
       drawBody(ctx, body, false);
     }
     for (const body of selected) drawBody(ctx, body, true);
@@ -573,14 +631,13 @@ export default function SandboxCanvas({ engineRef }) {
   }
 
   // ---- Physics helpers ----
-function addFloor(eng) {
-  const canvas = canvasRef.current;
-  const w = canvas?.width ?? window.innerWidth - 220;
-  const floor = createWall(w / 2, 580, w + 200, 20);
-  floor._isFloor = true;
-  Matter.Composite.add(eng.world, floor);
-}
-
+  function addFloor(eng) {
+    const canvas = canvasRef.current;
+    const w = canvas?.width ?? window.innerWidth - 220;
+    const floor = createWall(w / 2, 580, w + 200, 20);
+    floor._isFloor = true;
+    Matter.Composite.add(eng.world, floor);
+  }
 
   function getBodyAtScreen(sx, sy) {
     const wp = screenToWorld(sx, sy);
@@ -639,7 +696,7 @@ function addFloor(eng) {
           const dy = sB.y - sA.y;
           const lenSq = dx * dx + dy * dy;
           if (lenSq < 1) continue;
-          
+
           const t = Math.max(0, Math.min(1, ((sx - sA.x) * dx + (sy - sA.y) * dy) / lenSq));
           const closestX = sA.x + t * dx;
           const closestY = sA.y + t * dy;
@@ -658,7 +715,9 @@ function addFloor(eng) {
     if (!mb) return;
     for (const [cid, c] of Object.entries(constraints)) {
       const mc = c.matterConstraint;
-      const isConnected = mc.isStringRope ? (mc.bodyA === mb || mc.bodyB === mb) : (mc.bodyA === mb || mc.bodyB === mb);
+      const isConnected = mc.isStringRope
+        ? mc.bodyA === mb || mc.bodyB === mb
+        : mc.bodyA === mb || mc.bodyB === mb;
       if (isConnected) {
         removeFromWorld(mc);
         removeConstraint(cid);
@@ -677,7 +736,7 @@ function addFloor(eng) {
     addFloor(eng);
     startEngine(drawFrame, () => storeRef.current.isRunning);
     return () => stopEngine();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Sync gravity to engine
@@ -688,7 +747,7 @@ function addFloor(eng) {
   // Trigger a render when paused and state changes
   useEffect(() => {
     if (!storeRef.current.isRunning) drawFrame();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [store.selectedId, store.bodies, store.constraints, store.isRunning]);
 
   // Keyboard delete with cascading constraint removal
@@ -748,13 +807,18 @@ function addFloor(eng) {
     resize();
 
     return () => observer.disconnect();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const cursorMap = {
-    select: 'default', circle: 'crosshair', box: 'crosshair',
-    wall: 'crosshair', wedge: 'crosshair', pulley: 'crosshair',
-    spring: 'crosshair', string: 'crosshair',
+    select: 'default',
+    circle: 'crosshair',
+    box: 'crosshair',
+    wall: 'crosshair',
+    wedge: 'crosshair',
+    pulley: 'crosshair',
+    spring: 'crosshair',
+    string: 'crosshair',
   };
 
   // ---- Interaction handlers ----
@@ -794,14 +858,14 @@ function addFloor(eng) {
             pointA: { x: wp.x, y: wp.y },
             stiffness: 0.2, // soft physical pull
             damping: 0.1,
-            length: 0
+            length: 0,
           });
           Matter.Composite.add(eng.world, dragConstraint);
-          sr.dragging = { 
-            body: hit, 
+          sr.dragging = {
+            body: hit,
             constraint: dragConstraint,
             offX: wp.x - hit.position.x,
-            offY: wp.y - hit.position.y
+            offY: wp.y - hit.position.y,
           };
           canvas.style.cursor = 'grabbing';
         }
@@ -818,8 +882,20 @@ function addFloor(eng) {
       const mb = createCircle(wp.x, wp.y, 25, {});
       addToWorld(mb);
       const id = uid();
-      addBody(id, { id, type: 'circle', matterBody: mb,
-        props: { restitution: 0.6, friction: 0.1, frictionAir: 0.01, density: 0.001, isStatic: false, velocityX: 0, velocityY: 0 } });
+      addBody(id, {
+        id,
+        type: 'circle',
+        matterBody: mb,
+        props: {
+          restitution: 0.6,
+          friction: 0.1,
+          frictionAir: 0.01,
+          density: 0.001,
+          isStatic: false,
+          velocityX: 0,
+          velocityY: 0,
+        },
+      });
       setSelectedId(id);
       return;
     }
@@ -828,8 +904,20 @@ function addFloor(eng) {
       const mb = createBox(wp.x, wp.y, 60, 40, {});
       addToWorld(mb);
       const id = uid();
-      addBody(id, { id, type: 'box', matterBody: mb,
-        props: { restitution: 0.3, friction: 0.3, frictionAir: 0.01, density: 0.001, isStatic: false, velocityX: 0, velocityY: 0 } });
+      addBody(id, {
+        id,
+        type: 'box',
+        matterBody: mb,
+        props: {
+          restitution: 0.3,
+          friction: 0.3,
+          frictionAir: 0.01,
+          density: 0.001,
+          isStatic: false,
+          velocityX: 0,
+          velocityY: 0,
+        },
+      });
       setSelectedId(id);
       return;
     }
@@ -838,8 +926,20 @@ function addFloor(eng) {
       const mb = createBox(wp.x, wp.y, 150, 15, { isStatic: true });
       addToWorld(mb);
       const id = uid();
-      addBody(id, { id, type: 'wall', matterBody: mb,
-        props: { restitution: 0.3, friction: 0.5, frictionAir: 0, density: 0, isStatic: true, velocityX: 0, velocityY: 0 } });
+      addBody(id, {
+        id,
+        type: 'wall',
+        matterBody: mb,
+        props: {
+          restitution: 0.3,
+          friction: 0.5,
+          frictionAir: 0,
+          density: 0,
+          isStatic: true,
+          velocityX: 0,
+          velocityY: 0,
+        },
+      });
       setSelectedId(id);
       return;
     }
@@ -848,8 +948,20 @@ function addFloor(eng) {
       const mb = createWedge(wp.x, wp.y, 60, 40, {});
       addToWorld(mb);
       const id = uid();
-      addBody(id, { id, type: 'wedge', matterBody: mb,
-        props: { restitution: 0.3, friction: 0.3, frictionAir: 0.01, density: 0.001, isStatic: false, velocityX: 0, velocityY: 0 } });
+      addBody(id, {
+        id,
+        type: 'wedge',
+        matterBody: mb,
+        props: {
+          restitution: 0.3,
+          friction: 0.3,
+          frictionAir: 0.01,
+          density: 0.001,
+          isStatic: false,
+          velocityX: 0,
+          velocityY: 0,
+        },
+      });
       setSelectedId(id);
       return;
     }
@@ -858,8 +970,20 @@ function addFloor(eng) {
       const mb = createBeam(wp.x, wp.y, 160, 20, {});
       addToWorld(mb);
       const id = uid();
-      addBody(id, { id, type: 'beam', matterBody: mb,
-        props: { restitution: 0.1, friction: 0.6, frictionAir: 0.015, density: 0.008, isStatic: false, velocityX: 0, velocityY: 0 } });
+      addBody(id, {
+        id,
+        type: 'beam',
+        matterBody: mb,
+        props: {
+          restitution: 0.1,
+          friction: 0.6,
+          frictionAir: 0.015,
+          density: 0.008,
+          isStatic: false,
+          velocityX: 0,
+          velocityY: 0,
+        },
+      });
       setSelectedId(id);
       return;
     }
@@ -868,8 +992,20 @@ function addFloor(eng) {
       const mb = createWoodBlock(wp.x, wp.y, 50, 50, {});
       addToWorld(mb);
       const id = uid();
-      addBody(id, { id, type: 'wood', matterBody: mb,
-        props: { restitution: 0.4, friction: 0.4, frictionAir: 0.01, density: 0.0006, isStatic: false, velocityX: 0, velocityY: 0 } });
+      addBody(id, {
+        id,
+        type: 'wood',
+        matterBody: mb,
+        props: {
+          restitution: 0.4,
+          friction: 0.4,
+          frictionAir: 0.01,
+          density: 0.0006,
+          isStatic: false,
+          velocityX: 0,
+          velocityY: 0,
+        },
+      });
       setSelectedId(id);
       return;
     }
@@ -878,8 +1014,12 @@ function addFloor(eng) {
       const mb = createPulley(wp.x, wp.y, 18, {});
       addToWorld(mb);
       const id = uid();
-      addBody(id, { id, type: 'pulley', matterBody: mb,
-        props: { restitution: 0.1, friction: 0.05, isStatic: true, velocityX: 0, velocityY: 0 } });
+      addBody(id, {
+        id,
+        type: 'pulley',
+        matterBody: mb,
+        props: { restitution: 0.1, friction: 0.05, isStatic: true, velocityX: 0, velocityY: 0 },
+      });
       setSelectedId(id);
       return;
     }
@@ -889,14 +1029,19 @@ function addFloor(eng) {
       if (activeTool === 'car') sys = spawnCar(wp.x, wp.y);
       if (activeTool === 'bridge') sys = spawnBridge(wp.x, wp.y);
       if (activeTool === 'cradle') sys = spawnNewtonCradle(wp.x, wp.y);
-      
+
       addToWorld(...sys.bodies, ...sys.constraints);
-      sys.bodies.forEach(b => {
+      sys.bodies.forEach((b) => {
         const id = uid();
-        const typeMap = { 'circle': 'circle', 'wood': 'wood', 'beam': 'beam' };
-        addBody(id, { id, type: typeMap[b.label] || 'box', matterBody: b, props: { isStatic: b.isStatic } });
+        const typeMap = { circle: 'circle', wood: 'wood', beam: 'beam' };
+        addBody(id, {
+          id,
+          type: typeMap[b.label] || 'box',
+          matterBody: b,
+          props: { isStatic: b.isStatic },
+        });
       });
-      sys.constraints.forEach(c => {
+      sys.constraints.forEach((c) => {
         const id = uid();
         addConstraint(id, { id, type: c.label || 'spring', matterConstraint: c, props: {} });
       });
@@ -904,7 +1049,12 @@ function addFloor(eng) {
       return;
     }
 
-    if (activeTool === 'spring' || activeTool === 'string' || activeTool === 'pivot' || activeTool === 'oscillator') {
+    if (
+      activeTool === 'spring' ||
+      activeTool === 'string' ||
+      activeTool === 'pivot' ||
+      activeTool === 'oscillator'
+    ) {
       const hit = getBodyAtScreen(sx, sy);
       if (!sr.springStart) {
         // First click: set start point (Strictly forcing to Center of Mass)
@@ -923,13 +1073,21 @@ function addFloor(eng) {
 
         let createFn, stiffness, damping;
         if (activeTool === 'spring') {
-          createFn = createSpring; stiffness = 0.05; damping = 0.01;
+          createFn = createSpring;
+          stiffness = 0.05;
+          damping = 0.01;
         } else if (activeTool === 'string') {
-          createFn = createString; stiffness = 1; damping = 0;
+          createFn = createString;
+          stiffness = 1;
+          damping = 0;
         } else if (activeTool === 'pivot') {
-          createFn = createPivot; stiffness = 1; damping = 0;
+          createFn = createPivot;
+          stiffness = 1;
+          damping = 0;
         } else if (activeTool === 'oscillator') {
-          createFn = createOscillator; stiffness = 1; damping = 0.1;
+          createFn = createOscillator;
+          stiffness = 1;
+          damping = 0.1;
         }
 
         const opts = { stiffness, damping };
@@ -937,14 +1095,19 @@ function addFloor(eng) {
         if (start.body) opts.pointA = start.localPt;
         else opts.pointA = start.worldPt;
 
-        if (hit) opts.pointB = { x: 0, y: 0 }; // Force center of mass
+        if (hit)
+          opts.pointB = { x: 0, y: 0 }; // Force center of mass
         else opts.pointB = { x: wp.x, y: wp.y };
 
         const mc = createFn(start.body, hit, opts);
         addToWorld(mc);
         const id = uid();
-        addConstraint(id, { id, type: activeTool, matterConstraint: mc,
-          props: { stiffness, damping, length: mc.length } });
+        addConstraint(id, {
+          id,
+          type: activeTool,
+          matterConstraint: mc,
+          props: { stiffness, damping, length: mc.length },
+        });
         setSelectedId(id);
         setActiveTool('select');
       }
@@ -968,10 +1131,13 @@ function addFloor(eng) {
     if (sr.dragging) {
       const wp = screenToWorld(sx, sy);
       const isPaused = !storeRef.current.isRunning;
-      
+
       if (isPaused) {
         // Direct teleport while paused for easy building
-        Body.setPosition(sr.dragging.body, { x: wp.x - sr.dragging.offX, y: wp.y - sr.dragging.offY });
+        Body.setPosition(sr.dragging.body, {
+          x: wp.x - sr.dragging.offX,
+          y: wp.y - sr.dragging.offY,
+        });
         Body.setVelocity(sr.dragging.body, { x: 0, y: 0 });
         drawFrame();
       } else {
@@ -988,7 +1154,10 @@ function addFloor(eng) {
         // Draw ghost line for spring/string placement
         const ctx = canvas.getContext('2d');
         const startPos = springStart.body
-          ? worldToScreen(springStart.body.position.x + springStart.worldPt.x, springStart.body.position.y + springStart.worldPt.y)
+          ? worldToScreen(
+              springStart.body.position.x + springStart.worldPt.x,
+              springStart.body.position.y + springStart.worldPt.y,
+            )
           : worldToScreen(springStart.worldPt.x, springStart.worldPt.y);
         ctx.beginPath();
         ctx.moveTo(startPos.x, startPos.y);
@@ -1000,7 +1169,7 @@ function addFloor(eng) {
         ctx.setLineDash([]);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onWheel = useCallback((e) => {
@@ -1014,13 +1183,18 @@ function addFloor(eng) {
     cam.y = my - (my - cam.y) * factor;
     cam.zoom = Math.max(0.2, Math.min(5, cam.zoom * factor));
     drawFrame();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <canvas
       ref={canvasRef}
-      style={{ display: 'block', width: '100%', height: '100%', cursor: cursorMap[store.activeTool] ?? 'default' }}
+      style={{
+        display: 'block',
+        width: '100%',
+        height: '100%',
+        cursor: cursorMap[store.activeTool] ?? 'default',
+      }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onWheel={onWheel}

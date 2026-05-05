@@ -35,7 +35,8 @@ const READOUT_KEY_TOOLTIPS = {
   angularMomentum: 'Total angular momentum of the system.',
   cfl: 'Courant-Friedrichs-Lewy number: should remain below 1 for stability.',
   maxVelocity: 'Maximum velocity magnitude currently observed in the domain.',
-  lyapunov: 'Lyapunov exponent: positive values indicate sensitive dependence on initial conditions.',
+  lyapunov:
+    'Lyapunov exponent: positive values indicate sensitive dependence on initial conditions.',
 };
 
 function normalize(value) {
@@ -50,7 +51,8 @@ function inferFromLabel(label) {
   if (text.includes('reynolds') || /^re(\b|\s)/.test(text)) return CONTROL_KEY_TOOLTIPS.re;
   if (text.includes('strouhal') || /^st(\b|\s)/.test(text)) return CONTROL_KEY_TOOLTIPS.st;
   if (text.includes('drag b/m') || text.includes('b/m')) return CONTROL_KEY_TOOLTIPS.dragcoeff;
-  if (text.includes('v₀') || text.includes('v0') || text.includes('launch speed')) return CONTROL_KEY_TOOLTIPS.launchspeed;
+  if (text.includes('v₀') || text.includes('v0') || text.includes('launch speed'))
+    return CONTROL_KEY_TOOLTIPS.launchspeed;
   if (text.includes('c_d') || text.includes('drag coefficient')) return CONTROL_KEY_TOOLTIPS.cd;
   if (text.includes('c_l') || text.includes('lift coefficient')) return CONTROL_KEY_TOOLTIPS.cl;
   if (text.includes('dyn press') || text.includes('dynamic pressure')) {

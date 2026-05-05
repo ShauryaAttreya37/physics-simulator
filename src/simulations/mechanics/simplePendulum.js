@@ -3,7 +3,7 @@ import { drawArrow } from '../../utils/canvas';
 
 /**
  * Simple Pendulum (Nonlinear) — Enhanced Research-Grade
- * 
+ *
  * Features:
  *  - Full nonlinear EOM (no small-angle approximation)
  *  - Force vector visualisation (gravity, tension, tangential, centripetal)
@@ -34,23 +34,26 @@ export const defaultParams = { ...DEFAULTS };
 export const equationSections = [
   {
     title: 'Introduction',
-    content: 'A simple pendulum consists of a weight (bob) attached to a string or rod that swings back and forth under gravity. It\'s a great example of oscillatory motion, where the pendulum repeats its motion over time. This simulation shows how the pendulum behaves with different lengths, masses, and starting angles. You can observe how gravity pulls the bob down, and how friction (damping) slows it down over time. The motion is described by angles and speeds, and we can see patterns in the energy.',
+    content:
+      "A simple pendulum consists of a weight (bob) attached to a string or rod that swings back and forth under gravity. It's a great example of oscillatory motion, where the pendulum repeats its motion over time. This simulation shows how the pendulum behaves with different lengths, masses, and starting angles. You can observe how gravity pulls the bob down, and how friction (damping) slows it down over time. The motion is described by angles and speeds, and we can see patterns in the energy.",
   },
   {
     title: 'Equation of Motion',
     equations: [
       {
         latex: String.raw`\ddot{\theta} + \frac{g}{L}\sin\theta + \frac{c}{mL^2}\dot{\theta} = 0`,
-        description: 'This equation describes how the angle of the pendulum changes over time. The first term shows gravity pulling it back (stronger for larger angles), the second term is damping that slows it down. θ (theta) is the angle from vertical, with dots meaning derivatives (speed and acceleration).',
+        description:
+          'This equation describes how the angle of the pendulum changes over time. The first term shows gravity pulling it back (stronger for larger angles), the second term is damping that slows it down. θ (theta) is the angle from vertical, with dots meaning derivatives (speed and acceleration).',
       },
       {
         latex: String.raw`T \approx 2\pi\sqrt{\frac{L}{g}} \left(1 + \frac{1}{16}\theta_0^2 + \dots\right)`,
-        description: 'This gives the time for one full swing (period). For small angles, it\'s about 2π times square root of length over gravity. For larger angles, the period gets longer because the motion isn\'t simple harmonic anymore.',
+        description:
+          "This gives the time for one full swing (period). For small angles, it's about 2π times square root of length over gravity. For larger angles, the period gets longer because the motion isn't simple harmonic anymore.",
       },
     ],
     variables: [
       { symbol: 'L', description: 'Length of the pendulum rod (longer means slower swings)' },
-      { symbol: 'm', description: 'Mass of the bob (doesn\'t affect period in vacuum)' },
+      { symbol: 'm', description: "Mass of the bob (doesn't affect period in vacuum)" },
       { symbol: 'g', description: 'Gravity strength (9.81 m/s² on Earth)' },
       { symbol: 'c', description: 'Damping coefficient (higher means more friction)' },
     ],
@@ -60,7 +63,8 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`E = K + U = \frac{1}{2}mL^2\dot{\theta}^2 + mgL(1 - \cos\theta)`,
-        description: 'Total energy is kinetic (from motion) plus potential (from height). In an ideal pendulum without damping, energy is conserved. With damping, energy decreases over time as heat. Watch the energy graph to see this.',
+        description:
+          'Total energy is kinetic (from motion) plus potential (from height). In an ideal pendulum without damping, energy is conserved. With damping, energy decreases over time as heat. Watch the energy graph to see this.',
       },
     ],
   },
@@ -69,21 +73,25 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`T = mg\cos\theta + \frac{mv^2}{L}`,
-        description: 'Tension in the rod equals the radial component of gravity plus the centripetal acceleration term. Tension is always along the rod, pointing toward the pivot.',
+        description:
+          'Tension in the rod equals the radial component of gravity plus the centripetal acceleration term. Tension is always along the rod, pointing toward the pivot.',
       },
       {
         latex: String.raw`F_{\text{tan}} = -mg\sin\theta`,
-        description: 'The tangential force is the component of gravity perpendicular to the rod. This is the restoring force that drives the oscillation.',
+        description:
+          'The tangential force is the component of gravity perpendicular to the rod. This is the restoring force that drives the oscillation.',
       },
     ],
   },
   {
     title: 'How to Use',
-    content: '1. Adjust the length (L) to see how longer pendulums swing slower.\n2. Change the initial angle using either the degree or radian slider — they stay synced.\n3. Toggle "Show Forces" to see gravity (purple), tension (cyan), and tangential/centripetal components.\n4. Toggle "Show Energy" for real-time KE/PE/Total energy bars.\n5. Increase damping (c) to see how friction affects the motion.\n6. Watch the HUD for live period measurement and state data.',
+    content:
+      '1. Adjust the length (L) to see how longer pendulums swing slower.\n2. Change the initial angle using either the degree or radian slider — they stay synced.\n3. Toggle "Show Forces" to see gravity (purple), tension (cyan), and tangential/centripetal components.\n4. Toggle "Show Energy" for real-time KE/PE/Total energy bars.\n5. Increase damping (c) to see how friction affects the motion.\n6. Watch the HUD for live period measurement and state data.',
   },
   {
     title: 'Beginner Tips',
-    content: 'Start with small angles to see simple harmonic motion. Notice the period stays constant. Then try large angles - the period changes! Experiment with damping: it makes the pendulum stop eventually. Look for energy conservation in scenarios with low damping. Try the "Over-the-Top" scenario to see the pendulum go upside down.',
+    content:
+      'Start with small angles to see simple harmonic motion. Notice the period stays constant. Then try large angles - the period changes! Experiment with damping: it makes the pendulum stop eventually. Look for energy conservation in scenarios with low damping. Try the "Over-the-Top" scenario to see the pendulum go upside down.',
   },
 ];
 
@@ -164,7 +172,9 @@ export function create(canvas, initParams = {}) {
 
   function derivs(state, params) {
     const [th, om] = state;
-    const dom = -(params.gravity / params.length) * Math.sin(th) - (params.damping / (params.mass * params.length * params.length)) * om;
+    const dom =
+      -(params.gravity / params.length) * Math.sin(th) -
+      (params.damping / (params.mass * params.length * params.length)) * om;
     return [om, dom];
   }
 
@@ -194,7 +204,8 @@ export function create(canvas, initParams = {}) {
   }
 
   function render() {
-    const W = canvas.width, H = canvas.height;
+    const W = canvas.width,
+      H = canvas.height;
 
     // Sky gradient
     const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
@@ -208,10 +219,16 @@ export function create(canvas, initParams = {}) {
     ctx.strokeStyle = 'rgba(255,255,255,0.025)';
     ctx.lineWidth = 0.5;
     for (let gx = 0; gx < W; gx += 60) {
-      ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(gx, 0);
+      ctx.lineTo(gx, H);
+      ctx.stroke();
     }
     for (let gy = 0; gy < H; gy += 60) {
-      ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, gy);
+      ctx.lineTo(W, gy);
+      ctx.stroke();
     }
 
     const centerX = W / 2 + (p.panX || 0);
@@ -231,7 +248,7 @@ export function create(canvas, initParams = {}) {
     // Trail
     if (p.showTrail && trail.length > 2) {
       for (let i = 1; i < trail.length; i++) {
-        const alpha = (i / trail.length);
+        const alpha = i / trail.length;
         const tx0 = centerX + trail[i - 1].x * scale;
         const ty0 = centerY + trail[i - 1].y * scale;
         const tx1 = centerX + trail[i].x * scale;
@@ -274,7 +291,7 @@ export function create(canvas, initParams = {}) {
       ctx.fillStyle = 'rgba(253, 224, 71, 0.8)';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      const degVal = (theta * 180 / Math.PI).toFixed(1);
+      const degVal = ((theta * 180) / Math.PI).toFixed(1);
       const radVal = theta.toFixed(3);
       ctx.fillText(`${degVal}°`, lx, ly);
       ctx.font = '9px "JetBrains Mono", monospace';
@@ -297,27 +314,39 @@ export function create(canvas, initParams = {}) {
     if (p.showForces && simTime > 0) {
       const v = p.length * omega;
       const gForce = p.mass * p.gravity;
-      const tension = gForce * Math.cos(theta) + p.mass * v * v / p.length;
+      const tension = gForce * Math.cos(theta) + (p.mass * v * v) / p.length;
       const tangentialF = -gForce * Math.sin(theta);
       const vecScale = scale * 0.012;
 
       // Gravity (always straight down) — purple
       const gLen = gForce * vecScale;
-      drawArrow(ctx, px, py, px, py + gLen,
-        { color: '#a78bfa', lineWidth: 2.5, headLength: 8, label: 'mg' });
+      drawArrow(ctx, px, py, px, py + gLen, {
+        color: '#a78bfa',
+        lineWidth: 2.5,
+        headLength: 8,
+        label: 'mg',
+      });
 
       // Tension (along rod toward pivot) — cyan
       const rodAngle = Math.atan2(centerY - py, centerX - px);
       const tLen = tension * vecScale;
-      drawArrow(ctx, px, py, px + tLen * Math.cos(rodAngle), py + tLen * Math.sin(rodAngle),
-        { color: '#22d3ee', lineWidth: 2.5, headLength: 8, label: 'T' });
+      drawArrow(ctx, px, py, px + tLen * Math.cos(rodAngle), py + tLen * Math.sin(rodAngle), {
+        color: '#22d3ee',
+        lineWidth: 2.5,
+        headLength: 8,
+        label: 'T',
+      });
 
       // Tangential component (perpendicular to rod) — green
       const tanAngle = rodAngle + Math.PI / 2;
       const tanLen = tangentialF * vecScale;
       if (Math.abs(tanLen) > 2) {
-        drawArrow(ctx, px, py, px + tanLen * Math.cos(tanAngle), py + tanLen * Math.sin(tanAngle),
-          { color: '#4ade80', lineWidth: 2, headLength: 7, label: 'Ftan' });
+        drawArrow(ctx, px, py, px + tanLen * Math.cos(tanAngle), py + tanLen * Math.sin(tanAngle), {
+          color: '#4ade80',
+          lineWidth: 2,
+          headLength: 7,
+          label: 'Ftan',
+        });
       }
     }
 
@@ -473,7 +502,11 @@ export function create(canvas, initParams = {}) {
 
     const hudLines = [
       { label: 'Time', value: `${simTime.toFixed(2)} s`, color: '#e4e4e7' },
-      { label: 'Angle', value: `${(theta * 180 / Math.PI).toFixed(1)}° (${theta.toFixed(3)} rad)`, color: '#fde047' },
+      {
+        label: 'Angle',
+        value: `${((theta * 180) / Math.PI).toFixed(1)}° (${theta.toFixed(3)} rad)`,
+        color: '#fde047',
+      },
       { label: 'Velocity', value: `${omega.toFixed(3)} rad/s`, color: '#60a5fa' },
       { label: 'Speed', value: `${Math.abs(v).toFixed(2)} m/s`, color: '#22d3ee' },
       { label: 'KE', value: `${ke.toFixed(3)} J`, color: '#93c5fd' },
@@ -517,7 +550,9 @@ export function create(canvas, initParams = {}) {
     }
   }
 
-  let rafId, lastTs, running = false;
+  let rafId,
+    lastTs,
+    running = false;
 
   function loop(ts) {
     if (!running) return;
@@ -534,22 +569,33 @@ export function create(canvas, initParams = {}) {
   return {
     start() {
       if (running) return;
-      running = true; lastTs = undefined;
+      running = true;
+      lastTs = undefined;
       rafId = requestAnimationFrame(loop);
     },
-    stop() { running = false; cancelAnimationFrame(rafId); },
-    reset() { this.stop(); initState(); render(); this.start(); },
+    stop() {
+      running = false;
+      cancelAnimationFrame(rafId);
+    },
+    reset() {
+      this.stop();
+      initState();
+      render();
+      this.start();
+    },
     setParams(next) {
       // Sync degree ↔ radian
       if ('theta0Deg' in next && !('theta0' in next)) {
-        next.theta0 = next.theta0Deg * Math.PI / 180;
+        next.theta0 = (next.theta0Deg * Math.PI) / 180;
       } else if ('theta0' in next && !('theta0Deg' in next)) {
-        next.theta0Deg = next.theta0 * 180 / Math.PI;
+        next.theta0Deg = (next.theta0 * 180) / Math.PI;
       }
       Object.assign(p, next);
       render();
     },
-    destroy() { this.stop(); },
+    destroy() {
+      this.stop();
+    },
     getData() {
       const v = p.length * omega;
       const h = p.length * (1 - Math.cos(theta));
@@ -557,7 +603,8 @@ export function create(canvas, initParams = {}) {
       const potential = p.mass * p.gravity * h;
       return {
         time: simTime,
-        theta, omega,
+        theta,
+        omega,
         energy: kinetic + potential,
       };
     },

@@ -21,12 +21,15 @@ When adding or modifying code, we ask contributors to adhere to the following pr
 There are several ways you can actively improve the Physics Simulator.
 
 ### 1. Proposing a New Simulation
+
 We highly encourage the expansion of our physics library. Before writing code for a complex new simulation:
+
 - Please open an issue using the **[New Simulation Proposal template](.github/ISSUE_TEMPLATE/new_simulation_proposal.md)**.
 - Outline the governing equations, the necessary user parameters (e.g., toggles, mass sliders), and the targeted topic directory (`mechanics`, `quantum`, `fluid`, or `electromagnetism`).
 - Once the architecture is discussed and approved by maintainers, proceed with the implementation!
 
 ### 2. Engineering a New Simulation (Implementation Guide)
+
 If you are developing a new module, please ensure it follows the repository's structural pattern:
 
 1. **File Location:** Place your logic file in the appropriate domain folder: `src/simulations/[domain]/yourSimulationName.js`.
@@ -40,13 +43,15 @@ If you are developing a new module, please ensure it follows the repository's st
      },
      teardown: () => {
        // Clean up listeners or memory when component unmounts
-     }
-   }
+     },
+   };
    ```
 3. **Integrate into the UI:** Register your new simulation within `src/simulations/index.js` or attach it to the `TopicsPage.jsx` directory.
 
 ### 3. Reporting and Fixing Bugs
+
 If you encounter a physics engine anomaly or a UI breakdown:
+
 1. Check the [Issues tracker](https://github.com/[PLACEHOLDER_USER]/physics_simulator/issues) to ensure it hasn't already been reported.
 2. If it's a new bug, submit an issue via the **[Bug Report template](.github/ISSUE_TEMPLATE/bug_report.md)**.
 3. If you'd like to fix it yourself, fork the repository, resolve the issue, and reference the Issue ID in your Pull Request.

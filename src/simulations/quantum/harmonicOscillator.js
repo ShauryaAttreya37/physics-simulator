@@ -1,6 +1,6 @@
 /**
  * Quantum Harmonic Oscillator — Hermite-Gauss Wavefunctions
- * 
+ *
  * Time-evolving superposition of QHO eigenstates.
  * Renders: probability density |ψ|², Wigner quasi-probability phase space,
  * energy ladder diagram, and coherent state dynamics.
@@ -12,7 +12,7 @@ const DEFAULTS = {
   n1Amp: 0.7,
   n2Amp: 0.3,
   n3Amp: 0.0,
-  omega: 2.0,        // Angular frequency
+  omega: 2.0, // Angular frequency
   mass: 1.0,
   hbar: 1.0,
   trailMax: 300,
@@ -23,23 +23,32 @@ export const defaultParams = { ...DEFAULTS };
 export const equationSections = [
   {
     title: 'Introduction',
-    content: 'The quantum harmonic oscillator describes a particle in a potential that increases quadratically with distance, like a spring or atoms in a molecule. In quantum mechanics, the energy levels are equally spaced, unlike classical oscillators. Even the ground state has some energy (zero-point energy). This simulation shows how quantum states combine and evolve, revealing the rich structure of quantum motion.',
+    content:
+      'The quantum harmonic oscillator describes a particle in a potential that increases quadratically with distance, like a spring or atoms in a molecule. In quantum mechanics, the energy levels are equally spaced, unlike classical oscillators. Even the ground state has some energy (zero-point energy). This simulation shows how quantum states combine and evolve, revealing the rich structure of quantum motion.',
   },
   {
     title: 'Quantum Harmonic Oscillator',
     equations: [
       {
         latex: String.raw`\hat{H} = \frac{\hat{p}^2}{2m} + \frac{1}{2}m\omega^2\hat{x}^2`,
-        description: 'The total energy operator (Hamiltonian) includes kinetic energy (p²/2m) and potential energy (½mω²x²). This is the quantum version of E = p²/2m + ½kx².',
+        description:
+          'The total energy operator (Hamiltonian) includes kinetic energy (p²/2m) and potential energy (½mω²x²). This is the quantum version of E = p²/2m + ½kx².',
       },
       {
         latex: String.raw`E_n = \hbar\omega\left(n + \frac{1}{2}\right), \quad n = 0, 1, 2, \ldots`,
-        description: 'Energy levels are equally spaced by ℏω. Notice the ½ - even at absolute zero temperature, there\'s residual energy. n=0 is ground state, n=1 first excited, etc.',
+        description:
+          "Energy levels are equally spaced by ℏω. Notice the ½ - even at absolute zero temperature, there's residual energy. n=0 is ground state, n=1 first excited, etc.",
       },
     ],
     variables: [
-      { symbol: 'ω', description: 'Oscillation frequency - higher ω means stiffer spring and higher energies' },
-      { symbol: 'n', description: 'Energy level number - determines how many "bumps" in the wavefunction' },
+      {
+        symbol: 'ω',
+        description: 'Oscillation frequency - higher ω means stiffer spring and higher energies',
+      },
+      {
+        symbol: 'n',
+        description: 'Energy level number - determines how many "bumps" in the wavefunction',
+      },
       { symbol: 'ℏ', description: 'Quantum constant - sets the scale of quantum effects' },
     ],
   },
@@ -48,7 +57,8 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\psi_n(x) = \left(\frac{m\omega}{\pi\hbar}\right)^{1/4} \frac{1}{\sqrt{2^n n!}} H_n(\xi)\,e^{-\xi^2/2}, \quad \xi = \sqrt{\frac{m\omega}{\hbar}}\,x`,
-        description: 'The probability amplitudes. They look like Gaussians multiplied by Hermite polynomials. Higher n means the particle can be found farther from center.',
+        description:
+          'The probability amplitudes. They look like Gaussians multiplied by Hermite polynomials. Higher n means the particle can be found farther from center.',
       },
     ],
   },
@@ -57,17 +67,20 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`W(x,p) = \frac{1}{\pi\hbar}\int_{-\infty}^{\infty}\psi^*(x+y)\psi(x-y)e^{2ipy/\hbar}\,dy`,
-        description: 'A way to visualize quantum states in position-momentum space. Unlike classical distributions, it can be negative, showing quantum uncertainty.',
+        description:
+          'A way to visualize quantum states in position-momentum space. Unlike classical distributions, it can be negative, showing quantum uncertainty.',
       },
     ],
   },
   {
     title: 'How to Use',
-    content: '1. Start with n=0 amplitude = 1. This is the ground state - particle most likely near center.\n2. Add n=1 amplitude. See how the wave oscillates between stretched and compressed.\n3. Try superposition of n=0 and n=2. Watch the complex motion.\n4. Adjust ω to see how frequency affects the spread.\n5. Look at ⟨x⟩ and ⟨p⟩ - they oscillate, showing quantum beats.\n6. Check the Wigner function to see the phase space distribution.',
+    content:
+      '1. Start with n=0 amplitude = 1. This is the ground state - particle most likely near center.\n2. Add n=1 amplitude. See how the wave oscillates between stretched and compressed.\n3. Try superposition of n=0 and n=2. Watch the complex motion.\n4. Adjust ω to see how frequency affects the spread.\n5. Look at ⟨x⟩ and ⟨p⟩ - they oscillate, showing quantum beats.\n6. Check the Wigner function to see the phase space distribution.',
   },
   {
     title: 'Beginner Tips',
-    content: 'Unlike classical oscillators, quantum ones have discrete energy levels. The zero-point energy means particles never completely stop. Higher states allow the particle to explore larger regions. The Wigner function shows why you can\'t know both position and momentum perfectly.',
+    content:
+      "Unlike classical oscillators, quantum ones have discrete energy levels. The zero-point energy means particles never completely stop. Higher states allow the particle to explore larger regions. The Wigner function shows why you can't know both position and momentum perfectly.",
   },
 ];
 
@@ -96,10 +109,12 @@ export const method = 'exact';
 function hermite(n, x) {
   if (n === 0) return 1;
   if (n === 1) return 2 * x;
-  let h0 = 1, h1 = 2 * x;
+  let h0 = 1,
+    h1 = 2 * x;
   for (let k = 2; k <= n; k++) {
     const h2 = 2 * x * h1 - 2 * (k - 1) * h0;
-    h0 = h1; h1 = h2;
+    h0 = h1;
+    h1 = h2;
   }
   return h1;
 }
@@ -115,11 +130,12 @@ function eigenEnergy(n, omega, hbar) {
 }
 
 function eigenFunc(n, x, p) {
-  const alpha = Math.sqrt(p.mass * p.omega / p.hbar);
+  const alpha = Math.sqrt((p.mass * p.omega) / p.hbar);
   const xi = alpha * x;
-  const norm = Math.pow(p.mass * p.omega / (Math.PI * p.hbar), 0.25)
-    / Math.sqrt(Math.pow(2, n) * factorial(n));
-  return norm * hermite(n, xi) * Math.exp(-xi * xi / 2);
+  const norm =
+    Math.pow((p.mass * p.omega) / (Math.PI * p.hbar), 0.25) /
+    Math.sqrt(Math.pow(2, n) * factorial(n));
+  return norm * hermite(n, xi) * Math.exp((-xi * xi) / 2);
 }
 
 // ── Makie-style colour helpers ─────────────────────────────────────────
@@ -148,7 +164,7 @@ export function create(canvas, initParams = {}) {
   function getCoeffs() {
     const raw = [p.n0Amp, p.n1Amp, p.n2Amp, p.n3Amp];
     const norm = Math.sqrt(raw.reduce((s, a) => s + a * a, 0)) || 1;
-    return raw.map(a => a / norm);
+    return raw.map((a) => a / norm);
   }
 
   function computeWavefunction(t) {
@@ -160,11 +176,12 @@ export function create(canvas, initParams = {}) {
 
     for (let i = 0; i < N_POINTS; i++) {
       const x = -X_RANGE + i * dx;
-      let psiRe = 0, psiIm = 0;
+      let psiRe = 0,
+        psiIm = 0;
       for (let n = 0; n < 4; n++) {
         if (Math.abs(coeffs[n]) < 1e-12) continue;
         const En = eigenEnergy(n, p.omega, p.hbar);
-        const phase = -En * t / p.hbar;
+        const phase = (-En * t) / p.hbar;
         const phi = eigenFunc(n, x, p);
         psiRe += coeffs[n] * phi * Math.cos(phase);
         psiIm += coeffs[n] * phi * Math.sin(phase);
@@ -177,7 +194,9 @@ export function create(canvas, initParams = {}) {
   }
 
   function computeExpectations(wf) {
-    let expectX = 0, expectP = 0, totalProb = 0;
+    let expectX = 0,
+      expectP = 0,
+      totalProb = 0;
     for (let i = 0; i < N_POINTS; i++) {
       const x = -X_RANGE + i * wf.dx;
       expectX += x * wf.prob[i] * wf.dx;
@@ -199,9 +218,11 @@ export function create(canvas, initParams = {}) {
   // ── Compute Wigner function on a coarse grid ─────────────────────
   function computeWigner(t) {
     const coeffs = getCoeffs();
-    const alpha = Math.sqrt(p.mass * p.omega / p.hbar);
-    const NX = 60, NP = 60;
-    const xRange = 4, pRange = 4;
+    const alpha = Math.sqrt((p.mass * p.omega) / p.hbar);
+    const NX = 60,
+      NP = 60;
+    const xRange = 4,
+      pRange = 4;
     const wigner = new Float64Array(NX * NP);
     let wMax = 0;
 
@@ -209,18 +230,18 @@ export function create(canvas, initParams = {}) {
       for (let ip = 0; ip < NP; ip++) {
         const x = -xRange + (2 * xRange * ix) / (NX - 1);
         const pp = -pRange + (2 * pRange * ip) / (NP - 1);
-        
+
         // For QHO eigenstates, the Wigner function has analytical forms per state.
         // We'll linearize for weighted superposition.
         let w = 0;
-        
+
         for (let n = 0; n < 4; n++) {
           for (let m = 0; m < 4; m++) {
             if (Math.abs(coeffs[n]) < 1e-10 || Math.abs(coeffs[m]) < 1e-10) continue;
             const En = eigenEnergy(n, p.omega, p.hbar);
             const Em = eigenEnergy(m, p.omega, p.hbar);
-            const phase = -(En - Em) * t / p.hbar;
-            
+            const phase = (-(En - Em) * t) / p.hbar;
+
             // Approximate W via direct sum — compute overlap integral numerically
             // Simplified: for diagonal terms n==m, use exact formula
             if (n === m) {
@@ -229,11 +250,13 @@ export function create(canvas, initParams = {}) {
               const r2 = 2 * (xi * xi + pi_p * pi_p);
               // Wigner for |n⟩ state: (-1)^n / (π ℏ) * L_n(r²) * exp(-r²/2)
               const Ln = laguerre(n, r2);
-              w += coeffs[n] * coeffs[n] * Math.pow(-1, n) * Ln * Math.exp(-r2 / 2) / (Math.PI * p.hbar);
+              w +=
+                (coeffs[n] * coeffs[n] * Math.pow(-1, n) * Ln * Math.exp(-r2 / 2)) /
+                (Math.PI * p.hbar);
             }
           }
         }
-        
+
         wigner[ix * NP + ip] = w;
         wMax = Math.max(wMax, Math.abs(w));
       }
@@ -244,10 +267,12 @@ export function create(canvas, initParams = {}) {
   function laguerre(n, x) {
     if (n === 0) return 1;
     if (n === 1) return 1 - x;
-    let l0 = 1, l1 = 1 - x;
+    let l0 = 1,
+      l1 = 1 - x;
     for (let k = 2; k <= n; k++) {
       const l2 = ((2 * k - 1 - x) * l1 - (k - 1) * l0) / k;
-      l0 = l1; l1 = l2;
+      l0 = l1;
+      l1 = l2;
     }
     return l1;
   }
@@ -271,11 +296,17 @@ export function create(canvas, initParams = {}) {
     ctx.lineWidth = 0.5;
     for (let i = 1; i < gridLines; i++) {
       const y = gy + (gh * i) / gridLines;
-      ctx.beginPath(); ctx.moveTo(gx, y); ctx.lineTo(gx + gw, y); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(gx, y);
+      ctx.lineTo(gx + gw, y);
+      ctx.stroke();
     }
     for (let i = 1; i < gridLines; i++) {
       const x = gx + (gw * i) / gridLines;
-      ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x, gy + gh); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x, gy);
+      ctx.lineTo(x, gy + gh);
+      ctx.stroke();
     }
 
     if (title) {
@@ -289,14 +320,16 @@ export function create(canvas, initParams = {}) {
     ctx.font = '500 10px "Montserrat", sans-serif';
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
     if (xLabel) {
-      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
       ctx.fillText(xLabel, gx + gw / 2, gy + gh + 4);
     }
     if (yLabel) {
       ctx.save();
       ctx.translate(gx - 6, gy + gh / 2);
       ctx.rotate(-Math.PI / 2);
-      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
       ctx.fillText(yLabel, 0, 0);
       ctx.restore();
     }
@@ -338,7 +371,8 @@ export function create(canvas, initParams = {}) {
 
   // ── Main render ──────────────────────────────────────────────────────
   function render() {
-    const W = canvas.width, H = canvas.height;
+    const W = canvas.width,
+      H = canvas.height;
 
     const mainBg = ctx.createLinearGradient(0, 0, W, H);
     mainBg.addColorStop(0, '#06050f');
@@ -429,7 +463,8 @@ export function create(canvas, initParams = {}) {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    const rePts = [], imPts = [];
+    const rePts = [],
+      imPts = [];
     for (let i = 0; i < N_POINTS; i++) {
       const px = plotX + (i / (N_POINTS - 1)) * plotW;
       rePts.push({ x: px, y: eqLine - (wf.re[i] / wfMax) * (wfPlotH / 2 - 16) });
@@ -441,9 +476,12 @@ export function create(canvas, initParams = {}) {
     // Legend
     ctx.font = '600 9px "JetBrains Mono", monospace';
     ctx.textAlign = 'right';
-    ctx.fillStyle = '#60a5fa'; ctx.fillText('● Re(ψ)', plotX + plotW - 8, wfPlotY + 20);
-    ctx.fillStyle = '#f472b6'; ctx.fillText('● Im(ψ)', plotX + plotW - 8, wfPlotY + 34);
-    ctx.fillStyle = 'rgba(255, 209, 102,0.5)'; ctx.fillText('● V(x)', plotX + plotW - 8, plotY + 20);
+    ctx.fillStyle = '#60a5fa';
+    ctx.fillText('● Re(ψ)', plotX + plotW - 8, wfPlotY + 20);
+    ctx.fillStyle = '#f472b6';
+    ctx.fillText('● Im(ψ)', plotX + plotW - 8, wfPlotY + 34);
+    ctx.fillStyle = 'rgba(255, 209, 102,0.5)';
+    ctx.fillText('● V(x)', plotX + plotW - 8, plotY + 20);
 
     // ── RIGHT TOP: Wigner Function (phase space heat map) ──────────
     const wigX = leftW + margin;
@@ -487,7 +525,8 @@ export function create(canvas, initParams = {}) {
       const tMin = trail[0].t;
       const tMax = trail[trail.length - 1].t;
       if (tMax > tMin) {
-        let xMax = 0, pMax = 0;
+        let xMax = 0,
+          pMax = 0;
         for (const pt of trail) {
           xMax = Math.max(xMax, Math.abs(pt.expectX));
           pMax = Math.max(pMax, Math.abs(pt.expectP));
@@ -495,7 +534,8 @@ export function create(canvas, initParams = {}) {
         xMax = Math.max(xMax, 0.01) * 1.3;
         pMax = Math.max(pMax, 0.01) * 1.3;
 
-        const xPts = [], pPts = [];
+        const xPts = [],
+          pPts = [];
         for (const pt of trail) {
           const tx = tsX + ((pt.t - tMin) / (tMax - tMin)) * tsW;
           xPts.push({ x: tx, y: tsY + tsH / 2 - (pt.expectX / xMax) * (tsH / 2 - 14) });
@@ -506,8 +546,10 @@ export function create(canvas, initParams = {}) {
 
         ctx.font = '600 9px "JetBrains Mono", monospace';
         ctx.textAlign = 'right';
-        ctx.fillStyle = '#FFD166'; ctx.fillText('● ⟨x⟩', tsX + tsW - 8, tsY + 20);
-        ctx.fillStyle = '#34d399'; ctx.fillText('● ⟨p⟩', tsX + tsW - 8, tsY + 34);
+        ctx.fillStyle = '#FFD166';
+        ctx.fillText('● ⟨x⟩', tsX + tsW - 8, tsY + 20);
+        ctx.fillStyle = '#34d399';
+        ctx.fillText('● ⟨p⟩', tsX + tsW - 8, tsY + 34);
       }
     }
 
@@ -527,7 +569,9 @@ export function create(canvas, initParams = {}) {
     if (trail.length > p.trailMax) trail.shift();
   }
 
-  let rafId, lastTs, running = false;
+  let rafId,
+    lastTs,
+    running = false;
 
   function loop(ts) {
     if (!running) return;
@@ -545,13 +589,28 @@ export function create(canvas, initParams = {}) {
   return {
     start() {
       if (running) return;
-      running = true; lastTs = undefined;
+      running = true;
+      lastTs = undefined;
       rafId = requestAnimationFrame(loop);
     },
-    stop() { running = false; cancelAnimationFrame(rafId); },
-    reset() { this.stop(); simTime = 0; trail = []; render(); this.start(); },
-    setParams(next) { Object.assign(p, next); render(); },
-    destroy() { this.stop(); },
+    stop() {
+      running = false;
+      cancelAnimationFrame(rafId);
+    },
+    reset() {
+      this.stop();
+      simTime = 0;
+      trail = [];
+      render();
+      this.start();
+    },
+    setParams(next) {
+      Object.assign(p, next);
+      render();
+    },
+    destroy() {
+      this.stop();
+    },
     getData() {
       const wf = computeWavefunction(simTime);
       const exp = computeExpectations(wf);

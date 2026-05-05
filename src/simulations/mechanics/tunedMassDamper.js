@@ -23,14 +23,16 @@ export const defaultParams = {
 export const equationSections = [
   {
     title: 'Introduction',
-    content: 'A tuned mass damper (TMD) is a secondary mass attached to a primary structure to reduce vibrations. Tall buildings, bridges, and machines use TMDs to dampen oscillations from wind, earthquakes, or mechanical forces. The key is tuning the secondary mass and spring to absorb the primary structure\'s vibrations.',
+    content:
+      "A tuned mass damper (TMD) is a secondary mass attached to a primary structure to reduce vibrations. Tall buildings, bridges, and machines use TMDs to dampen oscillations from wind, earthquakes, or mechanical forces. The key is tuning the secondary mass and spring to absorb the primary structure's vibrations.",
   },
   {
     title: 'System Equations',
     equations: [
       {
         latex: String.raw`m_1 \ddot{x}_1 + c_1 \dot{x}_1 + k_1 x_1 = F_0 \sin(\omega t) + c_2(\dot{x}_2 - \dot{x}_1) + k_2(x_2 - x_1)`,
-        description: 'Primary structure: external force, primary damping/spring, plus coupling forces from the secondary mass.',
+        description:
+          'Primary structure: external force, primary damping/spring, plus coupling forces from the secondary mass.',
       },
       {
         latex: String.raw`m_2 \ddot{x}_2 + c_2(\dot{x}_2 - \dot{x}_1) + k_2(x_2 - x_1) = 0`,
@@ -49,7 +51,8 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\omega_{TMD} = \omega_{primary} = \sqrt{k_2/m_2} = \sqrt{k_1/m_1}`,
-        description: 'Optimal tuning: the TMD natural frequency matches the primary frequency for maximum energy transfer.',
+        description:
+          'Optimal tuning: the TMD natural frequency matches the primary frequency for maximum energy transfer.',
       },
       {
         latex: String.raw`m_2/m_1 = 0.01 \text{ to } 0.1`,
@@ -59,22 +62,24 @@ export const equationSections = [
   },
   {
     title: 'How to Use',
-    content: '1. Set the primary mass m₁ and stiffness k₁ (determines natural frequency).\n2. Set secondary mass m₂ (usually smaller than m₁).\n3. Adjust secondary stiffness k₂ to tune the TMD frequency.\n4. Set damping c₂ for the damper - balances energy absorption vs stability.\n5. Apply forcing and watch x₁ and x₂ graphs.\n6. Try to minimize x₁ amplitude by tuning.',
+    content:
+      '1. Set the primary mass m₁ and stiffness k₁ (determines natural frequency).\n2. Set secondary mass m₂ (usually smaller than m₁).\n3. Adjust secondary stiffness k₂ to tune the TMD frequency.\n4. Set damping c₂ for the damper - balances energy absorption vs stability.\n5. Apply forcing and watch x₁ and x₂ graphs.\n6. Try to minimize x₁ amplitude by tuning.',
   },
   {
     title: 'Beginner Tips',
-    content: 'Start with "Optimal TMD" scenario to see full suppression. Then switch to "No Damper" to see resonance without TMD. Understand that the damper reduces primary amplitude by amplifying secondary displacement. Tuning is critical - slightly off-tune can reduce effectiveness. Many real-world structures use TMDs.',
+    content:
+      'Start with "Optimal TMD" scenario to see full suppression. Then switch to "No Damper" to see resonance without TMD. Understand that the damper reduces primary amplitude by amplifying secondary displacement. Tuning is critical - slightly off-tune can reduce effectiveness. Many real-world structures use TMDs.',
   },
 ];
 
 export const equations = [
   String.raw`m_1 \ddot{x}_1 + c_1 \dot{x}_1 + k_1 x_1 = F_0 \sin(\omega t) + c_2(\dot{x}_2 - \dot{x}_1) + k_2(x_2 - x_1)`,
-  String.raw`m_2 \ddot{x}_2 + c_2(\dot{x}_2 - \dot{x}_1) + k_2(x_2 - x_1) = 0`
+  String.raw`m_2 \ddot{x}_2 + c_2(\dot{x}_2 - \dot{x}_1) + k_2(x_2 - x_1) = 0`,
 ];
 
 export const graphParams = [
   { key: 'x1', label: 'Primary Displacement ($x_1$)' },
-  { key: 'x2', label: 'Damper Displacement ($x_2$)' }
+  { key: 'x2', label: 'Damper Displacement ($x_2$)' },
 ];
 
 export const controls = [
@@ -116,22 +121,62 @@ export const scenarios = [
   {
     name: 'No Damper (Resonance)',
     description: 'Driving at natural frequency with no tuned mass — amplitude grows dramatically.',
-    params: { m1: 10, k1: 100, c1: 0.5, m2: 0.5, k2: 5, c2: 0.1, F0: 5, driveFreq: 3.16, damperOn: false },
+    params: {
+      m1: 10,
+      k1: 100,
+      c1: 0.5,
+      m2: 0.5,
+      k2: 5,
+      c2: 0.1,
+      F0: 5,
+      driveFreq: 3.16,
+      damperOn: false,
+    },
   },
   {
     name: 'Optimal TMD',
     description: 'TMD tuned to match the primary natural frequency — vibration suppressed.',
-    params: { m1: 10, k1: 100, c1: 0.5, m2: 1.0, k2: 10, c2: 2.0, F0: 5, driveFreq: 3.16, damperOn: true },
+    params: {
+      m1: 10,
+      k1: 100,
+      c1: 0.5,
+      m2: 1.0,
+      k2: 10,
+      c2: 2.0,
+      F0: 5,
+      driveFreq: 3.16,
+      damperOn: true,
+    },
   },
   {
     name: 'Off-Tune TMD',
     description: 'TMD frequency mismatched — partial suppression with split-peak resonance.',
-    params: { m1: 10, k1: 100, c1: 0.5, m2: 1.0, k2: 25, c2: 1.5, F0: 5, driveFreq: 3.16, damperOn: true },
+    params: {
+      m1: 10,
+      k1: 100,
+      c1: 0.5,
+      m2: 1.0,
+      k2: 25,
+      c2: 1.5,
+      F0: 5,
+      driveFreq: 3.16,
+      damperOn: true,
+    },
   },
   {
     name: 'Earthquake Excitation',
     description: 'Low-frequency high-amplitude driving — simulating seismic ground motion.',
-    params: { m1: 10, k1: 100, c1: 0.5, m2: 1.5, k2: 10, c2: 3.0, F0: 15, driveFreq: 1.5, damperOn: true },
+    params: {
+      m1: 10,
+      k1: 100,
+      c1: 0.5,
+      m2: 1.5,
+      k2: 10,
+      c2: 3.0,
+      F0: 15,
+      driveFreq: 1.5,
+      damperOn: true,
+    },
   },
 ];
 
@@ -140,21 +185,49 @@ export const guidedExperiments = [
     title: 'Taming Resonance',
     steps: [
       {
-        instruction: 'The building is being driven at its natural frequency with no TMD. Press Play and watch the amplitude.',
-        params: { m1: 10, k1: 100, c1: 0.5, m2: 0.5, k2: 5, c2: 0.1, F0: 5, driveFreq: 3.16, damperOn: false },
+        instruction:
+          'The building is being driven at its natural frequency with no TMD. Press Play and watch the amplitude.',
+        params: {
+          m1: 10,
+          k1: 100,
+          c1: 0.5,
+          m2: 0.5,
+          k2: 5,
+          c2: 0.1,
+          F0: 5,
+          driveFreq: 3.16,
+          damperOn: false,
+        },
         question: 'What happens when driving frequency equals natural frequency?',
-        choices: ['Small steady oscillation', 'Amplitude grows continuously (resonance)', 'The system becomes still'],
+        choices: [
+          'Small steady oscillation',
+          'Amplitude grows continuously (resonance)',
+          'The system becomes still',
+        ],
         correctIndex: 1,
-        explanation: 'At resonance (ω_drive = ωₙ), energy input exceeds dissipation. Without damping, amplitude grows without bound — in reality, structures fail. This is why the Tacoma Narrows Bridge collapsed.',
+        explanation:
+          'At resonance (ω_drive = ωₙ), energy input exceeds dissipation. Without damping, amplitude grows without bound — in reality, structures fail. This is why the Tacoma Narrows Bridge collapsed.',
       },
       {
         instruction: 'Now enable the tuned mass damper with optimal parameters. Reset and play.',
-        params: { m1: 10, k1: 100, c1: 0.5, m2: 1.0, k2: 10, c2: 2.0, F0: 5, driveFreq: 3.16, damperOn: true },
+        params: {
+          m1: 10,
+          k1: 100,
+          c1: 0.5,
+          m2: 1.0,
+          k2: 10,
+          c2: 2.0,
+          F0: 5,
+          driveFreq: 3.16,
+          damperOn: true,
+        },
         question: 'With the TMD active, what happens to the primary mass amplitude?',
         choices: ['No change', 'Dramatically reduced', 'It oscillates faster'],
         correctIndex: 1,
-        explanation: 'The TMD absorbs energy at the resonant frequency. The secondary mass oscillates in anti-phase with the primary, canceling the driving force. Taipei 101 uses a 730-ton TMD for exactly this purpose.',
-        tryThis: 'Watch how the secondary mass swings wildly — it\'s absorbing all the energy so the building doesn\'t have to.',
+        explanation:
+          'The TMD absorbs energy at the resonant frequency. The secondary mass oscillates in anti-phase with the primary, canceling the driving force. Taipei 101 uses a 730-ton TMD for exactly this purpose.',
+        tryThis:
+          "Watch how the secondary mass swings wildly — it's absorbing all the energy so the building doesn't have to.",
       },
     ],
   },
@@ -243,7 +316,7 @@ export function create(canvas, initParams = {}) {
         ctx.beginPath();
         for (let i = 0; i < trace.length; i++) {
           const [tt, p1, p2] = trace[i];
-          const xx = gx + ((tt - minT) / Math.max(1e-6, (maxT - minT))) * gw;
+          const xx = gx + ((tt - minT) / Math.max(1e-6, maxT - minT)) * gw;
           const yy = gy + gh / 2 - (k === 1 ? p1 : p2) * scaleY;
           if (i === 0) ctx.moveTo(xx, yy);
           else ctx.lineTo(xx, yy);
@@ -288,7 +361,10 @@ export function create(canvas, initParams = {}) {
       render();
       this.start();
     },
-    setParams(next) { Object.assign(p, next); render(); },
+    setParams(next) {
+      Object.assign(p, next);
+      render();
+    },
     destroy() {
       this.stop();
     },
@@ -296,8 +372,8 @@ export function create(canvas, initParams = {}) {
       return {
         time,
         x1: state[0],
-        x2: state[2]
+        x2: state[2],
       };
-    }
+    },
   };
 }

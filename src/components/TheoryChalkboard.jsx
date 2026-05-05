@@ -12,31 +12,27 @@ import 'katex/dist/katex.min.css';
 export default function TheoryChalkboard({ sections = [], title = 'Governing Equations' }) {
   const renderedSections = useMemo(() => {
     if (!sections || sections.length === 0) return null;
-    
+
     return sections.map((s, sIdx) => {
       return (
         <div key={sIdx} className="chalkboard-section">
           {s.title && <h3 className="chalkboard-section-title">{s.title}</h3>}
-          
-          {s.equations && s.equations.map((eq, eqIdx) => (
-            <div key={eqIdx} className="chalkboard-equation-block">
-              <div className="chalkboard-math">
-                <ReactMarkdown 
-                  remarkPlugins={[remarkMath]}
-                  rehypePlugins={[rehypeKatex]}
-                >
-                  {`$$\n${eq.latex || eq}\n$$`}
-                </ReactMarkdown>
-              </div>
-              {eq.description && (
-                <div className="chalkboard-note">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {eq.description}
+
+          {s.equations &&
+            s.equations.map((eq, eqIdx) => (
+              <div key={eqIdx} className="chalkboard-equation-block">
+                <div className="chalkboard-math">
+                  <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+                    {`$$\n${eq.latex || eq}\n$$`}
                   </ReactMarkdown>
                 </div>
-              )}
-            </div>
-          ))}
+                {eq.description && (
+                  <div className="chalkboard-note">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{eq.description}</ReactMarkdown>
+                  </div>
+                )}
+              </div>
+            ))}
 
           {s.variables && s.variables.length > 0 && (
             <div className="chalkboard-variables">
@@ -71,10 +67,13 @@ export default function TheoryChalkboard({ sections = [], title = 'Governing Equ
 /**
  * Legacy wrapper logic to retain compatibility with old flat equation arrays
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function legacyToSections(equations, simTitle) {
   if (!equations || equations.length === 0) return [];
-  return [{
-    title: simTitle || 'Equations of Motion',
-    equations: equations.map(eq => typeof eq === 'string' ? { latex: eq } : eq),
-  }];
+  return [
+    {
+      title: simTitle || 'Equations of Motion',
+      equations: equations.map((eq) => (typeof eq === 'string' ? { latex: eq } : eq)),
+    },
+  ];
 }

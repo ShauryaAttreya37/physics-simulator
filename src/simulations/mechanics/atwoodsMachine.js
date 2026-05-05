@@ -1,6 +1,6 @@
 /**
  * Atwood's Machine — Proper Physics Simulation
- * 
+ *
  * Physics:     Constant acceleration a = g(m₂−m₁)/(m₁+m₂),
  *              exact kinematic equations (constant-a Verlet),
  *              proper tension T = 2m₁m₂g/(m₁+m₂),
@@ -14,11 +14,11 @@
 import { drawArrow } from '../../utils/canvas';
 
 const DEFAULTS = {
-  m1: 2.0,       // kg (lighter mass, left side)
-  m2: 5.0,       // kg (heavier mass, right side)
+  m1: 2.0, // kg (lighter mass, left side)
+  m2: 5.0, // kg (heavier mass, right side)
   gravity: 9.81, // m/s²
   pulleyRadius: 30, // px (visual only)
-  friction: 0,   // coefficient of kinetic friction at pulley
+  friction: 0, // coefficient of kinetic friction at pulley
 };
 
 export const defaultParams = { ...DEFAULTS };
@@ -26,18 +26,21 @@ export const defaultParams = { ...DEFAULTS };
 export const equationSections = [
   {
     title: 'Introduction',
-    content: 'Atwood\'s machine is a pulley system with two masses connected by a string over a pulley. It demonstrates Newton\'s laws and energy conservation. When masses are different, the heavier one pulls the lighter one up. This is a classic physics experiment that shows how gravity creates acceleration and tension.',
+    content:
+      "Atwood's machine is a pulley system with two masses connected by a string over a pulley. It demonstrates Newton's laws and energy conservation. When masses are different, the heavier one pulls the lighter one up. This is a classic physics experiment that shows how gravity creates acceleration and tension.",
   },
   {
     title: 'Equations of Motion',
     equations: [
       {
         latex: String.raw`a = g \frac{m_2 - m_1}{m_1 + m_2}`,
-        description: 'The acceleration of the system depends on the mass difference. If m₂ > m₁, acceleration is positive (m₂ goes down). If equal masses, no motion. This comes from Newton\'s second law applied to the system.',
+        description:
+          "The acceleration of the system depends on the mass difference. If m₂ > m₁, acceleration is positive (m₂ goes down). If equal masses, no motion. This comes from Newton's second law applied to the system.",
       },
       {
         latex: String.raw`T = \frac{2 m_1 m_2 g}{m_1 + m_2}`,
-        description: 'Tension in the string. It\'s the same throughout the string. Notice it\'s always between the weights of the two masses - makes sense for equilibrium.',
+        description:
+          "Tension in the string. It's the same throughout the string. Notice it's always between the weights of the two masses - makes sense for equilibrium.",
       },
     ],
     variables: [
@@ -50,7 +53,8 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`E = \frac{1}{2}(m_1+m_2)v^2 + (m_1 - m_2) g \, s`,
-        description: 'Total energy = kinetic + potential. s is how far the system has moved. Potential energy depends on height difference. Energy should be conserved (constant) over time.',
+        description:
+          'Total energy = kinetic + potential. s is how far the system has moved. Potential energy depends on height difference. Energy should be conserved (constant) over time.',
       },
     ],
   },
@@ -59,17 +63,20 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\Delta y_1 = -\Delta y_2, \quad v_1 = -v_2, \quad a_1 = -a_2`,
-        description: 'The string connects the masses, so they move together. If one goes up, the other goes down by the same amount. This is the key constraint that makes the system work.',
+        description:
+          'The string connects the masses, so they move together. If one goes up, the other goes down by the same amount. This is the key constraint that makes the system work.',
       },
     ],
   },
   {
     title: 'How to Use',
-    content: '1. Set different masses m₁ and m₂ - heavier on one side causes motion.\n2. Try equal masses - system should not move.\n3. Adjust gravity - see how it affects acceleration.\n4. Watch the tension graph - it stays constant.\n5. Check energy conservation over time.',
+    content:
+      '1. Set different masses m₁ and m₂ - heavier on one side causes motion.\n2. Try equal masses - system should not move.\n3. Adjust gravity - see how it affects acceleration.\n4. Watch the tension graph - it stays constant.\n5. Check energy conservation over time.',
   },
   {
     title: 'Beginner Tips',
-    content: 'Start with m₂ much larger than m₁ to see clear motion. Calculate expected acceleration using the formula. Notice tension is less than the heavier mass\'s weight. Try very small mass differences - motion is slow. Look at the pulley - it changes direction of force.',
+    content:
+      "Start with m₂ much larger than m₁ to see clear motion. Calculate expected acceleration using the formula. Notice tension is less than the heavier mass's weight. Try very small mass differences - motion is slow. Look at the pulley - it changes direction of force.",
   },
 ];
 
@@ -101,22 +108,23 @@ export function create(canvas, initParams = {}) {
   /*
    * s = displacement of m₂ downward from initial position [meters].
    * v = velocity of the system [m/s]. Positive = m₂ going down.
-   * 
+   *
    * On canvas: we convert meters → pixels via PX_PER_METER.
    * Physical travel is bounded: max string travel ≈ 2.5m.
    */
   const MAX_TRAVEL_M = 3.0; // meters of travel before hitting stops
-  const PX_PER_METER = 60;  // pixel per meter for display
+  const PX_PER_METER = 60; // pixel per meter for display
 
   let s, v, simTime, stepCount;
-  let trail;  // [{s, v, t}]
+  let trail; // [{s, v, t}]
   let E0;
   let stopped;
 
   function accel() {
     const totalM = p.m1 + p.m2;
     const netForce = (p.m2 - p.m1) * p.gravity;
-    const frictionForce = p.friction * totalM * p.gravity * (Math.abs(v) > 0.001 ? Math.sign(v) : 0);
+    const frictionForce =
+      p.friction * totalM * p.gravity * (Math.abs(v) > 0.001 ? Math.sign(v) : 0);
     return (netForce - frictionForce) / totalM;
   }
 
@@ -184,7 +192,8 @@ export function create(canvas, initParams = {}) {
 
   // ── Rendering ─────────────────────────────────────────────────────────
   function render() {
-    const W = canvas.width, H = canvas.height;
+    const W = canvas.width,
+      H = canvas.height;
 
     // Background
     const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
@@ -222,13 +231,13 @@ export function create(canvas, initParams = {}) {
     // --- Mass positions (canvas coordinates) ---
     // Masses hang directly below the pulley rope contact points
     // so the strings are perfectly vertical (straight and taut)
-    const m1X = pulleyX - R;  // directly under left rope contact
-    const m2X = pulleyX + R;  // directly under right rope contact
+    const m1X = pulleyX - R; // directly under left rope contact
+    const m2X = pulleyX + R; // directly under right rope contact
 
     // Equilibrium: both masses start at this Y, midway in the available rope space
-    const ropeTopY = pulleyY + R + 10;  // just below pulley bottom
+    const ropeTopY = pulleyY + R + 10; // just below pulley bottom
     const floorY = H * 0.88;
-    const equilibriumY = ropeTopY + (floorY - ropeTopY) * 0.35;  // start in upper third
+    const equilibriumY = ropeTopY + (floorY - ropeTopY) * 0.35; // start in upper third
 
     // Displacement in pixels
     const dispPx = s * PX_PER_METER;
@@ -236,13 +245,13 @@ export function create(canvas, initParams = {}) {
     // Compute visual bounds: mass can't go above ropeTopY or below floorY
     // When s > 0: m₁ goes UP (equilibriumY - dispPx >= ropeTopY)
     //             m₂ goes DOWN (equilibriumY + dispPx <= floorY - blockHeight)
-    const maxUpPx = equilibriumY - ropeTopY - 5;  // margin so mass doesn't overlap pulley
-    const maxDownPx = floorY - equilibriumY - 60;  // margin for mass block height
+    const maxUpPx = equilibriumY - ropeTopY - 5; // margin so mass doesn't overlap pulley
+    const maxDownPx = floorY - equilibriumY - 60; // margin for mass block height
     const maxDispPx = Math.min(maxUpPx, maxDownPx);
     const clampedDispPx = Math.max(-maxDispPx, Math.min(maxDispPx, dispPx));
 
-    const m1Y = equilibriumY - clampedDispPx;  // m₁ goes up when s > 0
-    const m2Y = equilibriumY + clampedDispPx;  // m₂ goes down when s > 0
+    const m1Y = equilibriumY - clampedDispPx; // m₁ goes up when s > 0
+    const m2Y = equilibriumY + clampedDispPx; // m₂ goes down when s > 0
 
     // Floor line
     ctx.fillStyle = '#161624';
@@ -259,13 +268,13 @@ export function create(canvas, initParams = {}) {
     ctx.lineWidth = 2;
     // Left rope: straight down from pulley to top of m₁ block
     ctx.beginPath();
-    ctx.moveTo(m1X, pulleyY);  // rope starts at pulley edge
-    ctx.lineTo(m1X, m1Y);      // rope ends at top of mass
+    ctx.moveTo(m1X, pulleyY); // rope starts at pulley edge
+    ctx.lineTo(m1X, m1Y); // rope ends at top of mass
     ctx.stroke();
     // Right rope: straight down from pulley to top of m₂ block
     ctx.beginPath();
-    ctx.moveTo(m2X, pulleyY);  // rope starts at pulley edge
-    ctx.lineTo(m2X, m2Y);      // rope ends at top of mass
+    ctx.moveTo(m2X, pulleyY); // rope starts at pulley edge
+    ctx.lineTo(m2X, m2Y); // rope ends at top of mass
     ctx.stroke();
     // Rope arc over pulley (connects the two vertical segments)
     ctx.beginPath();
@@ -300,7 +309,7 @@ export function create(canvas, initParams = {}) {
 
     // Spokes
     for (let i = 0; i < 4; i++) {
-      const angle = i * Math.PI / 2;
+      const angle = (i * Math.PI) / 2;
       ctx.beginPath();
       ctx.moveTo(0, 0);
       ctx.lineTo(R * 0.8 * Math.cos(angle), R * 0.8 * Math.sin(angle));
@@ -333,13 +342,25 @@ export function create(canvas, initParams = {}) {
 
       // Tension (upward on both masses)
       const tLen = Math.min(Math.abs(T) * vecPixScale, 80);
-      drawArrow(ctx, m1X, m1Y - 2, m1X, m1Y - 2 - tLen, { color: '#fde047', lineWidth: 2, headLength: 7 });
-      drawArrow(ctx, m2X, m2Y - 2, m2X, m2Y - 2 - tLen, { color: '#fde047', lineWidth: 2, headLength: 7 });
+      drawArrow(ctx, m1X, m1Y - 2, m1X, m1Y - 2 - tLen, {
+        color: '#fde047',
+        lineWidth: 2,
+        headLength: 7,
+      });
+      drawArrow(ctx, m2X, m2Y - 2, m2X, m2Y - 2 - tLen, {
+        color: '#fde047',
+        lineWidth: 2,
+        headLength: 7,
+      });
 
       // Weight (downward)
       const w1Len = Math.min(p.m1 * p.gravity * vecPixScale, 80);
       const w2Len = Math.min(p.m2 * p.gravity * vecPixScale, 80);
-      drawArrow(ctx, m2X, m2Y + massBlockH2 + 3, m2X, m2Y + massBlockH2 + 3 + w2Len, { color: '#a78bfa', lineWidth: 2, headLength: 7 });
+      drawArrow(ctx, m2X, m2Y + massBlockH2 + 3, m2X, m2Y + massBlockH2 + 3 + w2Len, {
+        color: '#a78bfa',
+        lineWidth: 2,
+        headLength: 7,
+      });
 
       // Net acceleration arrows
       if (Math.abs(a) > 0.1) {
@@ -347,12 +368,22 @@ export function create(canvas, initParams = {}) {
         // m₁ goes up when a > 0
         const m1Dir = a > 0 ? -1 : 1;
         const m2Dir = a > 0 ? 1 : -1;
-        drawArrow(ctx, m1X - 28, m1Y + massBlockH1 / 2,
-                  m1X - 28, m1Y + massBlockH1 / 2 + m1Dir * aLen,
-                  { color: '#34d399', lineWidth: 2.5, headLength: 8 });
-        drawArrow(ctx, m2X + 28, m2Y + massBlockH2 / 2,
-                  m2X + 28, m2Y + massBlockH2 / 2 + m2Dir * aLen,
-                  { color: '#34d399', lineWidth: 2.5, headLength: 8 });
+        drawArrow(
+          ctx,
+          m1X - 28,
+          m1Y + massBlockH1 / 2,
+          m1X - 28,
+          m1Y + massBlockH1 / 2 + m1Dir * aLen,
+          { color: '#34d399', lineWidth: 2.5, headLength: 8 },
+        );
+        drawArrow(
+          ctx,
+          m2X + 28,
+          m2Y + massBlockH2 / 2,
+          m2X + 28,
+          m2Y + massBlockH2 / 2 + m2Dir * aLen,
+          { color: '#34d399', lineWidth: 2.5, headLength: 8 },
+        );
         // Labels
         ctx.fillStyle = '#34d399';
         ctx.font = 'bold 8px "Montserrat", sans-serif';
@@ -485,21 +516,41 @@ export function create(canvas, initParams = {}) {
     ctx.fillText('Displacement (m₂) vs Time', gx, g1Y);
 
     if (trail.length >= 2) {
-      renderGraph(gx, g1Y + 14, gw, g1H, trail, 't', 's',
-        'rgba(251,113,133,0.85)', 't [s]', 'Δs [m]');
+      renderGraph(
+        gx,
+        g1Y + 14,
+        gw,
+        g1H,
+        trail,
+        't',
+        's',
+        'rgba(251,113,133,0.85)',
+        't [s]',
+        'Δs [m]',
+      );
     }
 
     // --- Velocity-Time Graph ---
     const g2Y = g1Y + g1H + 48;
-    const g2H = H * 0.20;
+    const g2H = H * 0.2;
     ctx.fillStyle = 'rgba(255,255,255,0.45)';
     ctx.font = 'bold 9px "Montserrat", sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText('Velocity vs Time', gx, g2Y);
 
     if (trail.length >= 2) {
-      renderGraph(gx, g2Y + 14, gw, g2H, trail, 't', 'v',
-        'rgba(96,165,250,0.85)', 't [s]', 'v [m/s]');
+      renderGraph(
+        gx,
+        g2Y + 14,
+        gw,
+        g2H,
+        trail,
+        't',
+        'v',
+        'rgba(96,165,250,0.85)',
+        't [s]',
+        'v [m/s]',
+      );
     }
 
     // --- Energy Conservation Bar ---
@@ -571,7 +622,7 @@ export function create(canvas, initParams = {}) {
     ctx.strokeStyle = 'rgba(255,255,255,0.03)';
     ctx.lineWidth = 0.5;
     for (let i = 1; i <= 4; i++) {
-      const gridY = gy + gh * i / 5;
+      const gridY = gy + (gh * i) / 5;
       ctx.beginPath();
       ctx.moveTo(gx, gridY);
       ctx.lineTo(gx + gw, gridY);
@@ -583,7 +634,8 @@ export function create(canvas, initParams = {}) {
     const xMax = data[data.length - 1][xKey];
     if (xMax - xMin < 1e-8) return;
 
-    let yMin = Infinity, yMax = -Infinity;
+    let yMin = Infinity,
+      yMax = -Infinity;
     for (const pt of data) {
       yMin = Math.min(yMin, pt[yKey]);
       yMax = Math.max(yMax, pt[yKey]);
@@ -609,10 +661,12 @@ export function create(canvas, initParams = {}) {
     ctx.beginPath();
     let started = false;
     for (let i = 0; i < data.length; i++) {
-      const plotX = gx + (data[i][xKey] - xMin) / (xMax - xMin) * gw;
+      const plotX = gx + ((data[i][xKey] - xMin) / (xMax - xMin)) * gw;
       const plotY = gy + gh * (1 - (data[i][yKey] - yMin) / (yMax - yMin));
-      if (!started) { ctx.moveTo(plotX, plotY); started = true; }
-      else ctx.lineTo(plotX, plotY);
+      if (!started) {
+        ctx.moveTo(plotX, plotY);
+        started = true;
+      } else ctx.lineTo(plotX, plotY);
     }
     ctx.strokeStyle = color;
     ctx.lineWidth = 1.5;
@@ -620,7 +674,7 @@ export function create(canvas, initParams = {}) {
 
     // Fill area
     const last = data[data.length - 1];
-    const lastPx = gx + (last[xKey] - xMin) / (xMax - xMin) * gw;
+    const lastPx = gx + ((last[xKey] - xMin) / (xMax - xMin)) * gw;
     ctx.lineTo(lastPx, gy + gh);
     ctx.lineTo(gx, gy + gh);
     ctx.closePath();
@@ -693,8 +747,9 @@ export function create(canvas, initParams = {}) {
     }
   }
 
-
-  let rafId, lastTs, running = false;
+  let rafId,
+    lastTs,
+    running = false;
   let speedScale = 1.0;
 
   function loop(ts) {
@@ -712,14 +767,30 @@ export function create(canvas, initParams = {}) {
   return {
     start() {
       if (running) return;
-      running = true; lastTs = undefined;
+      running = true;
+      lastTs = undefined;
       rafId = requestAnimationFrame(loop);
     },
-    stop() { running = false; cancelAnimationFrame(rafId); },
-    reset() { this.stop(); initState(); render(); this.start(); },
-    setParams(next) { Object.assign(p, next); render(); },
-    destroy() { this.stop(); },
-    setSpeed(s) { speedScale = s; },
+    stop() {
+      running = false;
+      cancelAnimationFrame(rafId);
+    },
+    reset() {
+      this.stop();
+      initState();
+      render();
+      this.start();
+    },
+    setParams(next) {
+      Object.assign(p, next);
+      render();
+    },
+    destroy() {
+      this.stop();
+    },
+    setSpeed(s) {
+      speedScale = s;
+    },
     getData() {
       return {
         time: simTime,

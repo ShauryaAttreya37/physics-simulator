@@ -6,15 +6,15 @@
  */
 
 const SHAPE_NAMES = [
-  'Point Charge',        // 0
-  'Electric Dipole',     // 1
-  'Finite Line Charge',  // 2
-  'Charged Ring',        // 3
-  'Parallel Plates',     // 4
-  'Hollow Sphere',       // 5
-  'Solid Sphere',        // 6
-  'Cylinder',            // 7
-  'Charged Disc',        // 8
+  'Point Charge', // 0
+  'Electric Dipole', // 1
+  'Finite Line Charge', // 2
+  'Charged Ring', // 3
+  'Parallel Plates', // 4
+  'Hollow Sphere', // 5
+  'Solid Sphere', // 6
+  'Cylinder', // 7
+  'Charged Disc', // 8
 ];
 
 const DEFAULTS = {
@@ -29,22 +29,26 @@ export const defaultParams = { ...DEFAULTS };
 export const equationSections = [
   {
     title: 'Introduction',
-    content: 'Electric fields exist around any charged object. This simulation shows how fields vary with shape and charge distribution. You can explore different geometries: spheres, cylinders, plates. The field lines show force direction, and you can probe the field strength at different points. Understanding field patterns is crucial for capacitors, particle accelerators, and electronic devices.',
+    content:
+      'Electric fields exist around any charged object. This simulation shows how fields vary with shape and charge distribution. You can explore different geometries: spheres, cylinders, plates. The field lines show force direction, and you can probe the field strength at different points. Understanding field patterns is crucial for capacitors, particle accelerators, and electronic devices.',
   },
   {
     title: "Gauss's Law & Internal Fields",
     equations: [
       {
         latex: String.raw`\oint \mathbf{E} \cdot d\mathbf{A} = \frac{Q_{\text{enc}}}{\varepsilon_0}`,
-        description: "Gauss's Law: The total electric flux through a closed surface equals the charge inside divided by ε₀. This makes field calculations much easier for symmetric charge distributions.",
+        description:
+          "Gauss's Law: The total electric flux through a closed surface equals the charge inside divided by ε₀. This makes field calculations much easier for symmetric charge distributions.",
       },
       {
         latex: String.raw`E_{\text{hollow}} = \begin{cases} 0 & r < R \\[4pt] \dfrac{Q}{4\pi\varepsilon_0 r^2} & r > R \end{cases}`,
-        description: "For a hollow sphere, field inside is zero (like a Faraday cage - charges on surface cancel internal field). Outside, it's like a point charge.",
+        description:
+          "For a hollow sphere, field inside is zero (like a Faraday cage - charges on surface cancel internal field). Outside, it's like a point charge.",
       },
       {
         latex: String.raw`E_{\text{solid}} = \begin{cases} \dfrac{Q r}{4\pi\varepsilon_0 R^3} & r < R \\[4pt] \dfrac{Q}{4\pi\varepsilon_0 r^2} & r > R \end{cases}`,
-        description: "For a solid uniform sphere, field inside increases linearly with r (because enclosed charge ∝ r³). Outside, same as point charge.",
+        description:
+          'For a solid uniform sphere, field inside increases linearly with r (because enclosed charge ∝ r³). Outside, same as point charge.',
       },
     ],
     variables: [
@@ -54,25 +58,29 @@ export const equationSections = [
     ],
   },
   {
-    title: "3D Field Projections",
+    title: '3D Field Projections',
     equations: [
       {
         latex: String.raw`r_{3D} = \sqrt{(\Delta x)^2 + (\Delta y)^2 + (\Delta z)^2}`,
-        description: 'The simulation calculates full 3D distances to all charge elements, even though you see a 2D cross-section.',
+        description:
+          'The simulation calculates full 3D distances to all charge elements, even though you see a 2D cross-section.',
       },
       {
         latex: String.raw`\mathbf{E}_{2D} = \langle E_x, E_y \rangle, \quad |\mathbf{E}| = \sqrt{E_x^2 + E_y^2 + E_z^2}`,
-        description: 'Field lines show the 2D projection, but the magnitude includes the z-component. Move the probe to see how field varies in 3D.',
+        description:
+          'Field lines show the 2D projection, but the magnitude includes the z-component. Move the probe to see how field varies in 3D.',
       },
     ],
   },
   {
     title: 'How to Use',
-    content: '1. Select different geometries (sphere, cylinder, plate, etc.) from the shape control.\n2. Adjust charge density - positive for attraction, negative for repulsion.\n3. Move the probe (yellow dot) around to see field strength and potential at different points.\n4. Watch field lines - they point from positive to negative charge.\n5. Try hollow vs solid spheres - notice the field inside hollow ones is zero.\n6. Look at the graphs for potential V and field magnitude |E|.',
+    content:
+      '1. Select different geometries (sphere, cylinder, plate, etc.) from the shape control.\n2. Adjust charge density - positive for attraction, negative for repulsion.\n3. Move the probe (yellow dot) around to see field strength and potential at different points.\n4. Watch field lines - they point from positive to negative charge.\n5. Try hollow vs solid spheres - notice the field inside hollow ones is zero.\n6. Look at the graphs for potential V and field magnitude |E|.',
   },
   {
     title: 'Beginner Tips',
-    content: 'Field lines never cross - they show force direction on a positive test charge. Closer lines mean stronger fields. Conductors have zero field inside (Faraday cage effect). The potential is like electric "height" - work is needed to move against the field.',
+    content:
+      'Field lines never cross - they show force direction on a positive test charge. Closer lines mean stronger fields. Conductors have zero field inside (Faraday cage effect). The potential is like electric "height" - work is needed to move against the field.',
   },
 ];
 
@@ -166,7 +174,12 @@ export function create(canvas, initParams = {}) {
         const y = 1 - (i / (N - 1)) * 2;
         const r = Math.sqrt(1 - y * y);
         const th = phi * i;
-        baseCharges.push({ xw: Math.cos(th) * r * R, yw: y * R, zw: Math.sin(th) * r * R, q: qBase / N });
+        baseCharges.push({
+          xw: Math.cos(th) * r * R,
+          yw: y * R,
+          zw: Math.sin(th) * r * R,
+          q: qBase / N,
+        });
       }
     } else if (s === 6) {
       // Solid Sphere (Nested Fibonacci Lattices)
@@ -174,7 +187,7 @@ export function create(canvas, initParams = {}) {
       const R = 100;
       const phi = Math.PI * (3 - Math.sqrt(5));
       let totalPts = 0;
-      
+
       // Calculate total points first to normalize charge
       for (let si = 1; si <= shells; si++) {
         totalPts += Math.floor(100 * (si / shells) ** 2) + 10;
@@ -187,7 +200,12 @@ export function create(canvas, initParams = {}) {
           const y = 1 - (i / (nPts - 1)) * 2;
           const r = Math.sqrt(1 - y * y);
           const th = phi * i;
-          baseCharges.push({ xw: Math.cos(th) * r * rad, yw: y * rad, zw: Math.sin(th) * r * rad, q: qBase / totalPts });
+          baseCharges.push({
+            xw: Math.cos(th) * r * rad,
+            yw: y * rad,
+            zw: Math.sin(th) * r * rad,
+            q: qBase / totalPts,
+          });
         }
       }
     } else if (s === 7) {
@@ -200,7 +218,12 @@ export function create(canvas, initParams = {}) {
         const y = -H / 2 + (H * ri) / Math.max(1, rings - 1);
         for (let i = 0; i < ptsPerRing; i++) {
           const th = (i / ptsPerRing) * 2 * Math.PI;
-          baseCharges.push({ xw: R * Math.cos(th), yw: y, zw: R * Math.sin(th), q: qBase / (rings * ptsPerRing) });
+          baseCharges.push({
+            xw: R * Math.cos(th),
+            yw: y,
+            zw: R * Math.sin(th),
+            q: qBase / (rings * ptsPerRing),
+          });
         }
       }
     } else if (s === 8) {
@@ -215,12 +238,17 @@ export function create(canvas, initParams = {}) {
         const r = (ri / rings) * R;
         const nPts = Math.max(6, Math.floor(30 * (ri / rings)));
         for (let i = 0; i < nPts; i++) {
-          const th = (i / nPts) * 2 * Math.PI + (ri * 0.5);
-          baseCharges.push({ xw: r * Math.cos(th), yw: r * Math.sin(th), zw: 0, q: qBase / totalPts });
+          const th = (i / nPts) * 2 * Math.PI + ri * 0.5;
+          baseCharges.push({
+            xw: r * Math.cos(th),
+            yw: r * Math.sin(th),
+            zw: 0,
+            q: qBase / totalPts,
+          });
         }
       }
     }
-    
+
     rotateAndProject();
   }
 
@@ -244,7 +272,7 @@ export function create(canvas, initParams = {}) {
 
       camCharges.push({ cx: x1, cy: y2, cz: z2, q: c.q });
     }
-    
+
     // Sort by depth (back to front) for occlusion
     camCharges.sort((a, b) => b.cz - a.cz);
     heatNeedsRedraw = true;
@@ -252,18 +280,21 @@ export function create(canvas, initParams = {}) {
 
   // ── 3D Electric Field Math (Evaluated at Camera Z=0 plane) ──────
   function getField(x_cam, y_cam) {
-    let Ex = 0, Ey = 0, Ez = 0, V = 0;
+    let Ex = 0,
+      Ey = 0,
+      Ez = 0,
+      V = 0;
     const k = 1000;
     for (let i = 0; i < camCharges.length; i++) {
       const c = camCharges[i];
       const dx = x_cam - c.cx;
       const dy = y_cam - c.cy;
       const dz = 0 - c.cz; // Evaluated at z=0 plane!
-      
+
       const r2 = dx * dx + dy * dy + dz * dz;
       if (r2 < 1) continue;
       const r = Math.sqrt(r2);
-      
+
       V += (k * c.q) / r;
       const eCoeff = (k * c.q) / r2;
       Ex += eCoeff * (dx / r);
@@ -288,7 +319,7 @@ export function create(canvas, initParams = {}) {
     if (baseCharges.length < 5) {
       for (const c of camCharges) {
         for (let i = 0; i < 16; i++) {
-          const th = i * Math.PI / 8;
+          const th = (i * Math.PI) / 8;
           seeds.push({ x: c.cx + 10 * Math.cos(th), y: c.cy + 10 * Math.sin(th) });
         }
       }
@@ -303,8 +334,9 @@ export function create(canvas, initParams = {}) {
 
     // Trace
     for (const seed of seeds) {
-      let px = seed.x, py = seed.y;
-      
+      let px = seed.x,
+        py = seed.y;
+
       // Prevent rendering lines born deeply inside solid objects (low E field magnitude generally)
       const f0 = getField(px, py);
       if (Math.abs(f0.V) < 0.1) continue;
@@ -348,7 +380,7 @@ export function create(canvas, initParams = {}) {
       for (let px = 0; px < ew; px++) {
         const sx = px * scale - cX;
         const sy = py * scale - cY;
-        
+
         let V = 0;
         const k = 1000;
         for (let i = 0; i < camCharges.length; i++) {
@@ -391,9 +423,9 @@ export function create(canvas, initParams = {}) {
     const rect = canvas.getBoundingClientRect();
     const sx = canvas.width / rect.width;
     const sy = canvas.height / rect.height;
-    return { 
+    return {
       x: ((e.clientX ?? e.touches?.[0]?.clientX) - rect.left) * sx - canvas.width / 2,
-      y: ((e.clientY ?? e.touches?.[0]?.clientY) - rect.top) * sy - canvas.height / 2
+      y: ((e.clientY ?? e.touches?.[0]?.clientY) - rect.top) * sy - canvas.height / 2,
     };
   };
 
@@ -416,22 +448,26 @@ export function create(canvas, initParams = {}) {
       const dy = y - lastMouse.y;
       yaw += dx * 0.01;
       pitch -= dy * 0.01;
-      pitch = Math.max(-Math.PI/2, Math.min(Math.PI/2, pitch));
+      pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
       lastMouse = { x, y };
       rotateAndProject();
     }
   };
-  const onUp = () => { probe.dragging = false; isOrbiting = false; };
+  const onUp = () => {
+    probe.dragging = false;
+    isOrbiting = false;
+  };
 
   canvas.addEventListener('mousedown', onDown);
   window.addEventListener('mousemove', onMove);
   window.addEventListener('mouseup', onUp);
-  canvas.addEventListener('touchstart', onDown, {passive: false});
-  window.addEventListener('touchmove', onMove, {passive: false});
+  canvas.addEventListener('touchstart', onDown, { passive: false });
+  window.addEventListener('touchmove', onMove, { passive: false });
   window.addEventListener('touchend', onUp);
 
   // ── Render loop ─────────────────────────────────────────────────
-  let rafId, running = false;
+  let rafId,
+    running = false;
   let animTimer = 0;
 
   function loop() {
@@ -450,7 +486,7 @@ export function create(canvas, initParams = {}) {
       yaw += 0.002;
       rotateAndProject();
     }
-    
+
     // Always compute field lines to avoid jitter, it is optimized enough
     computeFieldLines();
 
@@ -478,9 +514,10 @@ export function create(canvas, initParams = {}) {
         ctx.beginPath();
         ctx.moveTo(path[i - 1].x, path[i - 1].y);
         ctx.lineTo(path[i].x, path[i].y);
-        ctx.strokeStyle = p.chargeDensity > 0
-          ? `rgba(120,180,255,${alpha.toFixed(2)})`
-          : `rgba(255,120,120,${alpha.toFixed(2)})`;
+        ctx.strokeStyle =
+          p.chargeDensity > 0
+            ? `rgba(120,180,255,${alpha.toFixed(2)})`
+            : `rgba(255,120,120,${alpha.toFixed(2)})`;
         ctx.lineWidth = 1.5;
         ctx.stroke();
       }
@@ -495,20 +532,20 @@ export function create(canvas, initParams = {}) {
 
       ctx.beginPath();
       // Radius depends on shape point count and perspective depth
-      const baseR = baseCharges.length <= 2 ? 8 : (baseCharges.length < 100 ? 3 : 1.5);
+      const baseR = baseCharges.length <= 2 ? 8 : baseCharges.length < 100 ? 3 : 1.5;
       ctx.arc(c.cx * s, c.cy * s, baseR * s, 0, Math.PI * 2);
-      
+
       const isPos = c.q > 0;
       // Depth fading (fog)
-      const op = Math.max(0.1, Math.min(1, 1 - (c.cz) / 400));
+      const op = Math.max(0.1, Math.min(1, 1 - c.cz / 400));
       ctx.fillStyle = isPos ? `rgba(99,102,241,${op})` : `rgba(255, 107, 107,${op})`;
       ctx.fill();
     }
 
     // ── Probe & Data Readout ──
     const pf = getField(probe.x, probe.y);
-    const pEmag2x = Math.sqrt(pf.Ex*pf.Ex + pf.Ey*pf.Ey);
-    const pEmag3D = Math.sqrt(pf.Ex*pf.Ex + pf.Ey*pf.Ey + pf.Ez*pf.Ez);
+    const pEmag2x = Math.sqrt(pf.Ex * pf.Ex + pf.Ey * pf.Ey);
+    const pEmag3D = Math.sqrt(pf.Ex * pf.Ex + pf.Ey * pf.Ey + pf.Ez * pf.Ez);
 
     const pg = ctx.createRadialGradient(probe.x, probe.y, 2, probe.x, probe.y, 25);
     pg.addColorStop(0, 'rgba(253,224,71,0.4)');
@@ -528,7 +565,7 @@ export function create(canvas, initParams = {}) {
       const vecLen = Math.min(120, Math.max(30, Math.log1p(pEmag2x * 0.3) * 30));
       const nx = vecLen * (pf.Ex / pEmag2x);
       const ny = vecLen * (pf.Ey / pEmag2x);
-      
+
       ctx.beginPath();
       ctx.moveTo(probe.x, probe.y);
       ctx.lineTo(probe.x + nx, probe.y + ny);
@@ -568,7 +605,11 @@ export function create(canvas, initParams = {}) {
 
     ctx.font = '500 12px "JetBrains Mono", monospace';
     ctx.fillStyle = 'rgba(255,255,255,0.45)';
-    ctx.fillText(`Rot: [${yaw.toFixed(1)}, ${pitch.toFixed(1)}] • ${baseCharges.length} 3D Charges`, 20, 42);
+    ctx.fillText(
+      `Rot: [${yaw.toFixed(1)}, ${pitch.toFixed(1)}] • ${baseCharges.length} 3D Charges`,
+      20,
+      42,
+    );
 
     ctx.textAlign = 'right';
     ctx.fillText('Drag background to ORBIT 3D', w - 16, h - 38);
@@ -592,10 +633,13 @@ export function create(canvas, initParams = {}) {
       cachedShape = -1;
       probe.x = DEFAULTS.probeX;
       probe.y = DEFAULTS.probeY;
-      yaw = 0.3; pitch = 0.2;
+      yaw = 0.3;
+      pitch = 0.2;
       this.start();
     },
-    setParams(next) { Object.assign(p, next); },
+    setParams(next) {
+      Object.assign(p, next);
+    },
     destroy() {
       this.stop();
       window.removeEventListener('mousemove', onMove);
@@ -605,7 +649,7 @@ export function create(canvas, initParams = {}) {
     },
     getData() {
       const pf = getField(probe.x, probe.y);
-      const pEmag3D = Math.sqrt(pf.Ex*pf.Ex + pf.Ey*pf.Ey + pf.Ez*pf.Ez);
+      const pEmag3D = Math.sqrt(pf.Ex * pf.Ex + pf.Ey * pf.Ey + pf.Ez * pf.Ez);
       return { V: pf.V, E: pEmag3D };
     },
   };

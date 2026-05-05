@@ -1,6 +1,6 @@
 /**
  * Spring Pendulum (Elastic Pendulum)
- * 
+ *
  * A pendulum where the rod is replaced by a spring.
  * Exhibits interesting energy exchange between radial and angular modes.
  */
@@ -23,18 +23,21 @@ export const defaultParams = { ...DEFAULTS };
 export const equationSections = [
   {
     title: 'Introduction',
-    content: 'A spring pendulum combines pendulum motion with a spring. The bob can move radially (stretching the spring) and angularly. This creates complex motion patterns and demonstrates coupled oscillations in two dimensions.',
+    content:
+      'A spring pendulum combines pendulum motion with a spring. The bob can move radially (stretching the spring) and angularly. This creates complex motion patterns and demonstrates coupled oscillations in two dimensions.',
   },
   {
     title: 'Equations of Motion',
     equations: [
       {
         latex: String.raw`\ddot{r} = r\dot{\theta}^2 - \frac{k}{m}(r - L_0) + g\cos\theta - c\dot{r}`,
-        description: 'Radial acceleration includes centrifugal force (r θ̇²), spring restoring force, gravity component, and damping.',
+        description:
+          'Radial acceleration includes centrifugal force (r θ̇²), spring restoring force, gravity component, and damping.',
       },
       {
         latex: String.raw`\ddot{\theta} = -\frac{g}{r}\sin\theta - \frac{2\dot{r}\dot{\theta}}{r} - c\dot{\theta}`,
-        description: 'Angular acceleration has gravity torque, Coriolis effect from radial motion, and damping.',
+        description:
+          'Angular acceleration has gravity torque, Coriolis effect from radial motion, and damping.',
       },
     ],
     variables: [
@@ -50,17 +53,20 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`E = \frac{1}{2}m(\dot{r}^2 + r^2\dot{\theta}^2) + \frac{1}{2}k(r-L_0)^2 - mgr\cos\theta`,
-        description: 'Total energy = kinetic (radial + rotational) + spring potential + gravitational potential.',
+        description:
+          'Total energy = kinetic (radial + rotational) + spring potential + gravitational potential.',
       },
     ],
   },
   {
     title: 'How to Use',
-    content: '1. Adjust spring constant k - stiffer springs oscillate faster radially.\n2. Change rest length L₀ - affects equilibrium position.\n3. Set initial angle θ and radial displacement.\n4. Add damping c to see energy dissipation.\n5. Watch r and θ graphs for coupled motion.',
+    content:
+      '1. Adjust spring constant k - stiffer springs oscillate faster radially.\n2. Change rest length L₀ - affects equilibrium position.\n3. Set initial angle θ and radial displacement.\n4. Add damping c to see energy dissipation.\n5. Watch r and θ graphs for coupled motion.',
   },
   {
     title: 'Beginner Tips',
-    content: 'Start with small displacements to see simple oscillations. Try large angles - motion becomes nonlinear. Look at Lissajous figures in r vs θ plot. Notice how spring and pendulum motions couple. Try different initial conditions - some lead to looping orbits.',
+    content:
+      'Start with small displacements to see simple oscillations. Try large angles - motion becomes nonlinear. Look at Lissajous figures in r vs θ plot. Notice how spring and pendulum motions couple. Try different initial conditions - some lead to looping orbits.',
   },
 ];
 
@@ -96,7 +102,15 @@ export const scenarios = [
   {
     name: 'Energy Exchange',
     description: 'At specific parameters, energy swaps completely between swinging and bouncing.',
-    params: { mass: 1.0, springK: 40, restLength: 1.5, r0: 1.7, theta0: 0.2, gravity: 9.81, damping: 0.02 },
+    params: {
+      mass: 1.0,
+      springK: 40,
+      restLength: 1.5,
+      r0: 1.7,
+      theta0: 0.2,
+      gravity: 9.81,
+      damping: 0.02,
+    },
   },
   {
     name: 'Stiff Spring',
@@ -128,15 +142,19 @@ export function create(canvas, initParams = {}) {
 
   function derivs(state) {
     const [r, theta, dr, dtheta] = state;
-    const ddr = r * dtheta * dtheta - (p.springK / p.mass) * (r - p.restLength) + p.gravity * Math.cos(theta) - p.damping * dr;
+    const ddr =
+      r * dtheta * dtheta -
+      (p.springK / p.mass) * (r - p.restLength) +
+      p.gravity * Math.cos(theta) -
+      p.damping * dr;
     const ddtheta = -(p.gravity / r) * Math.sin(theta) - (2 * dr * dtheta) / r - p.damping * dtheta;
     return [dr, dtheta, ddr, ddtheta];
   }
 
   function rk4Step(state, h) {
     const k1 = derivs(state);
-    const k2 = derivs(state.map((v, i) => v + k1[i] * h / 2));
-    const k3 = derivs(state.map((v, i) => v + k2[i] * h / 2));
+    const k2 = derivs(state.map((v, i) => v + (k1[i] * h) / 2));
+    const k3 = derivs(state.map((v, i) => v + (k2[i] * h) / 2));
     const k4 = derivs(state.map((v, i) => v + k3[i] * h));
     return state.map((v, i) => v + (h / 6) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]));
   }
@@ -158,7 +176,8 @@ export function create(canvas, initParams = {}) {
   }
 
   function render() {
-    const W = canvas.width, H = canvas.height;
+    const W = canvas.width,
+      H = canvas.height;
     ctx.fillStyle = '#0B0F14';
     ctx.fillRect(0, 0, W, H);
 
@@ -226,11 +245,13 @@ export function create(canvas, initParams = {}) {
     ctx.stroke();
   }
 
-  let rafId, lastTs, running = false;
+  let rafId,
+    lastTs,
+    running = false;
 
   function loop(ts) {
     if (!running) return;
-    const dt = lastTs === undefined ? 1/60 : Math.min((ts - lastTs) / 1000, 1/20);
+    const dt = lastTs === undefined ? 1 / 60 : Math.min((ts - lastTs) / 1000, 1 / 20);
     lastTs = ts;
     tick(dt);
     render();
@@ -243,20 +264,35 @@ export function create(canvas, initParams = {}) {
   return {
     start() {
       if (running) return;
-      running = true; lastTs = undefined;
+      running = true;
+      lastTs = undefined;
       rafId = requestAnimationFrame(loop);
     },
-    stop() { running = false; cancelAnimationFrame(rafId); },
-    reset() { this.stop(); initState(); render(); this.start(); },
-    setParams(next) { Object.assign(p, next); render(); },
-    destroy() { this.stop(); },
+    stop() {
+      running = false;
+      cancelAnimationFrame(rafId);
+    },
+    reset() {
+      this.stop();
+      initState();
+      render();
+      this.start();
+    },
+    setParams(next) {
+      Object.assign(p, next);
+      render();
+    },
+    destroy() {
+      this.stop();
+    },
     getData() {
       const kinetic = 0.5 * p.mass * (dr * dr + r * r * dtheta * dtheta);
       const elastic = 0.5 * p.springK * (r - p.restLength) ** 2;
       const potential = -p.mass * p.gravity * r * Math.cos(theta);
       return {
         time: simTime,
-        r, theta,
+        r,
+        theta,
         energy: kinetic + elastic + potential,
       };
     },

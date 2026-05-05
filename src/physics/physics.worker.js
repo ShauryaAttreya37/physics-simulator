@@ -1,6 +1,6 @@
 /**
  * Physics Worker
- * 
+ *
  * Offloads heavy numerical integration (update loops) to a background thread.
  */
 

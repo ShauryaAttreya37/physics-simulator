@@ -14,7 +14,7 @@
 
 ## 📖 About Open Physics
 
-Physics Simulator is an open-source, interactive physics laboratory built with modern web technologies. Our mission is to democratize physics education by providing a robust platform where students, educators, and developers can visualize, interact with, and expand upon fundamental physical laws. 
+Physics Simulator is an open-source, interactive physics laboratory built with modern web technologies. Our mission is to democratize physics education by providing a robust platform where students, educators, and developers can visualize, interact with, and expand upon fundamental physical laws.
 
 Instead of static textbooks, Physics Simulator offers a dynamic canvas where the laws of nature are programmable and observable in real-time. Whether you are demonstrating classical mechanics, exploring fluid dynamics, or analyzing quantum oscillators, this toolkit provides the necessary foundation.
 
@@ -49,6 +49,7 @@ npm run dev
 ### 2. Exploring the Sandbox
 
 Once the application is running:
+
 1. Navigate to the **Topics** section to engage with pre-built, domain-specific simulations.
 2. Enter the **Fluid Sandbox** to create custom hydrodynamic scenarios.
 3. Access the **Global Sandbox** to combine various physical bodies and apply custom force vectors.
@@ -84,7 +85,7 @@ Please ensure all interactions respect our [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## ⚖️ License & Open Source Integrity
 
-This software is released under the **GNU General Public License v3.0**. 
+This software is released under the **GNU General Public License v3.0**.
 
 By utilizing a strong copyleft license, we guarantee that Physics Simulator, and any modified iterations of it, will remain perpetually free and open-source. For legal specifics, please refer to the [LICENSE](LICENSE) document.
 

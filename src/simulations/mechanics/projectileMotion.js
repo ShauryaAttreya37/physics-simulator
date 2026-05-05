@@ -3,10 +3,10 @@ import { drawArrow } from '../../utils/canvas';
 
 /**
  * Projectile Motion with Air Drag — Research-Grade Implementation
- * 
+ *
  * Integrator:  RK4 with adaptive substeps
  * Physics:     Quadratic air drag (b/m)‖v‖v + gravity
- * Visuals:     Terrain, sky gradient, trail, force vectors, 
+ * Visuals:     Terrain, sky gradient, trail, force vectors,
  *              impact effects, analytical comparison, live HUD
  */
 
@@ -23,26 +23,33 @@ export const defaultParams = { ...DEFAULTS };
 export const equationSections = [
   {
     title: 'Introduction',
-    content: 'Projectile motion is what happens when you throw or launch an object and it moves through the air under gravity. Think of throwing a ball or shooting a cannon. In a vacuum, the path is a perfect parabola, but air resistance makes it more realistic. This simulation lets you launch projectiles with different speeds, angles, and see how drag affects the flight. You can compare to ideal cases and learn about range, height, and energy.',
+    content:
+      'Projectile motion is what happens when you throw or launch an object and it moves through the air under gravity. Think of throwing a ball or shooting a cannon. In a vacuum, the path is a perfect parabola, but air resistance makes it more realistic. This simulation lets you launch projectiles with different speeds, angles, and see how drag affects the flight. You can compare to ideal cases and learn about range, height, and energy.',
   },
   {
     title: 'Equations of Motion',
     equations: [
       {
         latex: String.raw`\vec{a} = \vec{g} - \frac{b}{m} \|\vec{v}\| \vec{v}`,
-        description: 'The acceleration has two parts: gravity pulling down, and drag opposing the motion. Drag depends on speed squared, so faster objects feel more drag. This is a vector equation, meaning it works in x and y directions.',
+        description:
+          'The acceleration has two parts: gravity pulling down, and drag opposing the motion. Drag depends on speed squared, so faster objects feel more drag. This is a vector equation, meaning it works in x and y directions.',
       },
       {
         latex: String.raw`a_x = -\frac{b}{m} v_x \sqrt{v_x^2 + v_y^2}`,
-        description: 'Horizontal acceleration is only from drag - it slows down the forward speed. No gravity in horizontal direction.',
+        description:
+          'Horizontal acceleration is only from drag - it slows down the forward speed. No gravity in horizontal direction.',
       },
       {
         latex: String.raw`a_y = -g - \frac{b}{m} v_y \sqrt{v_y^2 + v_y^2}`,
-        description: 'Vertical acceleration combines gravity (always down) and drag. When going up, drag helps slow the ascent; when falling, it speeds up the descent.',
+        description:
+          'Vertical acceleration combines gravity (always down) and drag. When going up, drag helps slow the ascent; when falling, it speeds up the descent.',
       },
     ],
     variables: [
-      { symbol: 'b/m', description: 'Drag coefficient divided by mass - higher means more air resistance' },
+      {
+        symbol: 'b/m',
+        description: 'Drag coefficient divided by mass - higher means more air resistance',
+      },
       { symbol: 'g', description: 'Gravity acceleration (9.81 m/s² on Earth)' },
     ],
   },
@@ -51,7 +58,8 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`y(x) = x \tan \theta - \frac{g x^2}{2 v_0^2 \cos^2 \theta}`,
-        description: 'In vacuum (no air), the height y at horizontal distance x follows this parabolic equation. The launch angle θ and initial speed v₀ determine the shape. This is exact - no approximations.',
+        description:
+          'In vacuum (no air), the height y at horizontal distance x follows this parabolic equation. The launch angle θ and initial speed v₀ determine the shape. This is exact - no approximations.',
       },
     ],
   },
@@ -60,17 +68,20 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`R = \frac{v_0^2 \sin 2\theta}{g}, \quad H = \frac{v_0^2 \sin^2\theta}{2g}`,
-        description: 'Maximum range R occurs at 45° launch angle. Maximum height H is reached at the peak. These formulas assume no air resistance.',
+        description:
+          'Maximum range R occurs at 45° launch angle. Maximum height H is reached at the peak. These formulas assume no air resistance.',
       },
     ],
   },
   {
     title: 'How to Use',
-    content: '1. Set launch speed and angle - try 45° for maximum range in vacuum.\n2. Adjust drag coefficient - 0 for vacuum, higher values for realistic air.\n3. Change mass - heavier objects are less affected by drag.\n4. Watch the trajectory - compare parabolic (vacuum) vs curved (with drag).\n5. Check graphs for velocity components and energy over time.',
+    content:
+      '1. Set launch speed and angle - try 45° for maximum range in vacuum.\n2. Adjust drag coefficient - 0 for vacuum, higher values for realistic air.\n3. Change mass - heavier objects are less affected by drag.\n4. Watch the trajectory - compare parabolic (vacuum) vs curved (with drag).\n5. Check graphs for velocity components and energy over time.',
   },
   {
     title: 'Beginner Tips',
-    content: 'Start with no drag to see the perfect parabola. Notice range is maximum at 45°. Add drag and see how the path flattens. Try different angles - low angles go far but low, high angles go high but short distance. Experiment with different gravities, like on Moon (1.62 m/s²). Look at energy - it decreases with drag due to air resistance doing work.',
+    content:
+      'Start with no drag to see the perfect parabola. Notice range is maximum at 45°. Add drag and see how the path flattens. Try different angles - low angles go far but low, high angles go high but short distance. Experiment with different gravities, like on Moon (1.62 m/s²). Look at energy - it decreases with drag due to air resistance doing work.',
   },
 ];
 
@@ -98,17 +109,20 @@ export const method = 'rk4';
 export const scenarios = [
   {
     name: 'Vacuum (No Drag)',
-    description: 'Classic 45° parabola. The RK4 trajectory perfectly overlaps the analytical solution.',
+    description:
+      'Classic 45° parabola. The RK4 trajectory perfectly overlaps the analytical solution.',
     params: { launchSpeed: 40, launchAngle: 45, dragCoeff: 0, gravity: 9.81 },
   },
   {
     name: 'Baseball Throw',
-    description: 'Realistic drag for a thrown baseball — the trajectory deviates significantly from the ideal parabola.',
+    description:
+      'Realistic drag for a thrown baseball — the trajectory deviates significantly from the ideal parabola.',
     params: { launchSpeed: 35, launchAngle: 40, dragCoeff: 0.007, mass: 0.145, gravity: 9.81 },
   },
   {
     name: 'High Drag',
-    description: 'Very strong drag — the projectile barely reaches terminal velocity before landing.',
+    description:
+      'Very strong drag — the projectile barely reaches terminal velocity before landing.',
     params: { launchSpeed: 60, launchAngle: 60, dragCoeff: 0.05, gravity: 9.81 },
   },
   {
@@ -118,7 +132,8 @@ export const scenarios = [
   },
   {
     name: 'Optimal Angle with Drag',
-    description: 'Launch at 35° with drag — the optimal angle shifts below 45° in the presence of air resistance.',
+    description:
+      'Launch at 35° with drag — the optimal angle shifts below 45° in the presence of air resistance.',
     params: { launchSpeed: 40, launchAngle: 35, dragCoeff: 0.01, gravity: 9.81 },
   },
 ];
@@ -133,16 +148,23 @@ export const guidedExperiments = [
         question: 'In a vacuum, what launch angle maximizes range?',
         choices: ['30°', '45°', '60°', 'Depends on speed'],
         correctIndex: 1,
-        explanation: 'In a vacuum, the range formula R = v₀²sin(2θ)/g is maximized when sin(2θ) = 1, i.e. θ = 45°. This is exact — it does not depend on launch speed or gravity.',
+        explanation:
+          'In a vacuum, the range formula R = v₀²sin(2θ)/g is maximized when sin(2θ) = 1, i.e. θ = 45°. This is exact — it does not depend on launch speed or gravity.',
       },
       {
         instruction: 'Now turn on drag: set b/m = 0.01. Keep 45°. Fire again.',
         params: { launchSpeed: 40, launchAngle: 45, dragCoeff: 0.01, gravity: 9.81 },
         question: 'With air resistance, does 45° still give maximum range?',
-        choices: ['Yes, 45° is always optimal', 'No — the optimal angle shifts lower (~35-40°)', 'No — it shifts higher (~50-55°)'],
+        choices: [
+          'Yes, 45° is always optimal',
+          'No — the optimal angle shifts lower (~35-40°)',
+          'No — it shifts higher (~50-55°)',
+        ],
         correctIndex: 1,
-        commonMisconception: '"45° is the magic angle" is only true in a vacuum. Students often learn this rule and apply it universally — but drag breaks the symmetry of the parabola, favoring lower angles.',
-        explanation: 'Air drag decelerates the projectile proportional to v². At high angles, the projectile spends more time at high altitude moving slowly — drag has more time to act. A lower angle keeps the projectile fast and reduces total flight time, yielding better range.',
+        commonMisconception:
+          '"45° is the magic angle" is only true in a vacuum. Students often learn this rule and apply it universally — but drag breaks the symmetry of the parabola, favoring lower angles.',
+        explanation:
+          'Air drag decelerates the projectile proportional to v². At high angles, the projectile spends more time at high altitude moving slowly — drag has more time to act. A lower angle keeps the projectile fast and reduces total flight time, yielding better range.',
         tryThis: 'Try 35° and 40° with the same drag — which gives the longest range?',
       },
       {
@@ -151,7 +173,8 @@ export const guidedExperiments = [
         question: 'Compare this range to the 45° case with drag. Which went further?',
         choices: ['45° still won', '35° went about the same', '35° went further'],
         correctIndex: 2,
-        explanation: 'The optimal angle with quadratic drag is approximately 35–40° depending on the drag coefficient. Real artillery and sports science use this: a cricket ball optimal angle is ~39°, not 45°.',
+        explanation:
+          'The optimal angle with quadratic drag is approximately 35–40° depending on the drag coefficient. Real artillery and sports science use this: a cricket ball optimal angle is ~39°, not 45°.',
       },
     ],
   },
@@ -162,12 +185,12 @@ export function create(canvas, initParams = {}) {
   const p = { ...DEFAULTS, ...initParams };
 
   let x, y, vx, vy, simTime, stepCount;
-  let trail;       // [{x, y, vx, vy, t}]
+  let trail; // [{x, y, vx, vy, t}]
   let E0;
-  let landed;      // boolean — projectile hit ground
+  let landed; // boolean — projectile hit ground
   let landX, landY; // landing position
   let maxHeight;
-  let impactFrame;  // frames since impact for animation
+  let impactFrame; // frames since impact for animation
 
   function energy() {
     return 0.5 * p.mass * (vx * vx + vy * vy) + p.mass * p.gravity * y;
@@ -176,7 +199,7 @@ export function create(canvas, initParams = {}) {
   function initState() {
     x = 0;
     y = 0;
-    const rad = p.launchAngle * Math.PI / 180;
+    const rad = (p.launchAngle * Math.PI) / 180;
     vx = p.launchSpeed * Math.cos(rad);
     vy = p.launchSpeed * Math.sin(rad);
     simTime = 0;
@@ -248,7 +271,7 @@ export function create(canvas, initParams = {}) {
 
   // Analytical parabola (vacuum)
   function getIdealTrajectory(xMax) {
-    const rad = p.launchAngle * Math.PI / 180;
+    const rad = (p.launchAngle * Math.PI) / 180;
     const v0cos = p.launchSpeed * Math.cos(rad);
     if (Math.abs(v0cos) < 0.001) return [];
     const pts = [];
@@ -266,7 +289,8 @@ export function create(canvas, initParams = {}) {
   }
 
   function render() {
-    const W = canvas.width, H = canvas.height;
+    const W = canvas.width,
+      H = canvas.height;
 
     // --- Sky gradient ---
     const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
@@ -281,9 +305,10 @@ export function create(canvas, initParams = {}) {
     const ox = W * 0.08;
     const oy = H * 0.82;
 
-    const rad = p.launchAngle * Math.PI / 180;
-    const rangeIdeal = (p.launchSpeed * p.launchSpeed / p.gravity) * Math.sin(2 * rad);
-    const hMaxIdeal = (p.launchSpeed * p.launchSpeed * Math.sin(rad) * Math.sin(rad)) / (2 * p.gravity);
+    const rad = (p.launchAngle * Math.PI) / 180;
+    const rangeIdeal = ((p.launchSpeed * p.launchSpeed) / p.gravity) * Math.sin(2 * rad);
+    const hMaxIdeal =
+      (p.launchSpeed * p.launchSpeed * Math.sin(rad) * Math.sin(rad)) / (2 * p.gravity);
 
     const targetW = Math.max(rangeIdeal * 1.25, 20);
     const targetH = Math.max(hMaxIdeal * 1.3, 10);
@@ -382,9 +407,9 @@ export function create(canvas, initParams = {}) {
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillText('Range [m]', ox + (W * 0.4), oy + 22);
+    ctx.fillText('Range [m]', ox + W * 0.4, oy + 22);
     ctx.save();
-    ctx.translate(ox - 28, oy - (H * 0.25));
+    ctx.translate(ox - 28, oy - H * 0.25);
     ctx.rotate(-Math.PI / 2);
     ctx.fillText('Height [m]', 0, 0);
     ctx.restore();
@@ -413,7 +438,11 @@ export function create(canvas, initParams = {}) {
     ctx.font = '9px "Montserrat", sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`${p.launchAngle}°`, launchX + (arcR + 6) * Math.cos(-labelAngleRad), launchY + (arcR + 6) * Math.sin(-labelAngleRad));
+    ctx.fillText(
+      `${p.launchAngle}°`,
+      launchX + (arcR + 6) * Math.cos(-labelAngleRad),
+      launchY + (arcR + 6) * Math.sin(-labelAngleRad),
+    );
     // Launch direction line
     const dirLen = 30;
     ctx.beginPath();
@@ -491,13 +520,15 @@ export function create(canvas, initParams = {}) {
       const vecScale = Math.min(scale * 0.35, 40);
 
       // Velocity vector (blue)
-      drawArrow(ctx, px, py, px + vx * vecScale * 0.06, py - vy * vecScale * 0.06,
-        { color: '#60a5fa', lineWidth: 2, headLength: 8 });
+      drawArrow(ctx, px, py, px + vx * vecScale * 0.06, py - vy * vecScale * 0.06, {
+        color: '#60a5fa',
+        lineWidth: 2,
+        headLength: 8,
+      });
 
       // Gravity vector (purple, always down)
       const gVecLen = Math.min(p.gravity * vecScale * 0.15, 50);
-      drawArrow(ctx, px, py, px, py + gVecLen,
-        { color: '#a78bfa', lineWidth: 2, headLength: 7 });
+      drawArrow(ctx, px, py, px, py + gVecLen, { color: '#a78bfa', lineWidth: 2, headLength: 7 });
 
       // Drag vector (yellow, opposes velocity)
       if (p.dragCoeff > 0 && speed > 0.1) {
@@ -506,8 +537,11 @@ export function create(canvas, initParams = {}) {
         const dragScale = vecScale * 0.8;
         const dragEndX = px + dragAx * dragScale * 0.06;
         const dragEndY = py - dragAy * dragScale * 0.06;
-        drawArrow(ctx, px, py, dragEndX, dragEndY,
-          { color: '#fde047', lineWidth: 2, headLength: 7 });
+        drawArrow(ctx, px, py, dragEndX, dragEndY, {
+          color: '#fde047',
+          lineWidth: 2,
+          headLength: 7,
+        });
       }
     }
 
@@ -688,7 +722,9 @@ export function create(canvas, initParams = {}) {
     return 10 * mag;
   }
 
-  let rafId, lastTs, running = false;
+  let rafId,
+    lastTs,
+    running = false;
   let speedScale = 1.0;
 
   function loop(ts) {
@@ -706,18 +742,37 @@ export function create(canvas, initParams = {}) {
   return {
     start() {
       if (running) return;
-      running = true; lastTs = undefined;
+      running = true;
+      lastTs = undefined;
       rafId = requestAnimationFrame(loop);
     },
-    stop() { running = false; cancelAnimationFrame(rafId); },
-    reset() { this.stop(); initState(); render(); this.start(); },
-    setParams(next) { Object.assign(p, next); render(); },
-    destroy() { this.stop(); },
-    setSpeed(s) { speedScale = s; },
+    stop() {
+      running = false;
+      cancelAnimationFrame(rafId);
+    },
+    reset() {
+      this.stop();
+      initState();
+      render();
+      this.start();
+    },
+    setParams(next) {
+      Object.assign(p, next);
+      render();
+    },
+    destroy() {
+      this.stop();
+    },
+    setSpeed(s) {
+      speedScale = s;
+    },
     getData() {
       return {
         time: simTime,
-        vx, vy, x, y,
+        vx,
+        vy,
+        x,
+        y,
         energy: energy(),
         totalEnergy: energy(),
         energyError: E0 !== 0 ? (energy() - E0) / Math.abs(E0) : 0,

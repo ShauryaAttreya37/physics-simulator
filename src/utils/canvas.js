@@ -1,12 +1,12 @@
 /**
  * Canvas Rendering Utilities
- * 
+ *
  * Provides consistent, high-performance drawing helpers for physics visualizations.
  */
 
 /**
  * Draws a high-fidelity arrow on a 2D canvas.
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} ctx
  * @param {number} x1 - Start X
  * @param {number} y1 - Start Y
  * @param {number} x2 - End X
@@ -14,13 +14,7 @@
  * @param {Object} options - { color, lineWidth, headLength, headWidth, label }
  */
 export function drawArrow(ctx, x1, y1, x2, y2, options = {}) {
-  const {
-    color = '#fff',
-    lineWidth = 2,
-    headLength = 10,
-    headWidth = 6,
-    label = '',
-  } = options;
+  const { color = '#fff', lineWidth = 2, headLength = 10, headWidth = 6, label = '' } = options;
 
   const dx = x2 - x1;
   const dy = y2 - y1;
@@ -46,11 +40,11 @@ export function drawArrow(ctx, x1, y1, x2, y2, options = {}) {
   ctx.moveTo(x2, y2);
   ctx.lineTo(
     x2 - headLength * Math.cos(angle - Math.PI / headWidth),
-    y2 - headLength * Math.sin(angle - Math.PI / headWidth)
+    y2 - headLength * Math.sin(angle - Math.PI / headWidth),
   );
   ctx.lineTo(
     x2 - headLength * Math.cos(angle + Math.PI / headWidth),
-    y2 - headLength * Math.sin(angle + Math.PI / headWidth)
+    y2 - headLength * Math.sin(angle + Math.PI / headWidth),
   );
   ctx.closePath();
   ctx.fill();
@@ -69,17 +63,13 @@ export function drawArrow(ctx, x1, y1, x2, y2, options = {}) {
 
 /**
  * Draws a fading trail from a set of points.
- * @param {CanvasRenderingContext2D} ctx 
+ * @param {CanvasRenderingContext2D} ctx
  * @param {Array<Array<number>>} points - [[x1, y1], [x2, y2], ...]
  * @param {Object} options - { color, lineWidth, maxAlpha }
  */
 export function drawTrail(ctx, points, options = {}) {
   if (points.length < 2) return;
-  const {
-    color = 'rgba(96, 165, 250, 1)',
-    lineWidth = 2,
-    maxAlpha = 0.8,
-  } = options;
+  const { color = 'rgba(96, 165, 250, 1)', lineWidth = 2, maxAlpha = 0.8 } = options;
 
   // Extract base color if it's rgba
   let baseColor = color;

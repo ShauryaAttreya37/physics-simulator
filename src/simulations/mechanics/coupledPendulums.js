@@ -34,18 +34,21 @@ export const defaultParams = {
 export const equationSections = [
   {
     title: 'Introduction',
-    content: 'Coupled pendulums are two pendulums connected by a spring. They can transfer energy back and forth, showing wave-like behavior and normal modes. This demonstrates coupled oscillators, important in physics, engineering, and even music.',
+    content:
+      'Coupled pendulums are two pendulums connected by a spring. They can transfer energy back and forth, showing wave-like behavior and normal modes. This demonstrates coupled oscillators, important in physics, engineering, and even music.',
   },
   {
     title: 'Equations of Motion',
     equations: [
       {
         latex: String.raw`mL^2 \ddot{\theta}_1 + c \dot{\theta}_1 + mgL\sin\theta_1 = -k(x_2-x_1)L\cos\theta_1`,
-        description: 'Motion of first pendulum. Includes gravity, damping, and spring coupling to the second pendulum.',
+        description:
+          'Motion of first pendulum. Includes gravity, damping, and spring coupling to the second pendulum.',
       },
       {
         latex: String.raw`mL^2 \ddot{\theta}_2 + c \dot{\theta}_2 + mgL\sin\theta_2 = k(x_2-x_1)L\cos\theta_2`,
-        description: 'Motion of second pendulum. Symmetric to the first, but with opposite spring force.',
+        description:
+          'Motion of second pendulum. Symmetric to the first, but with opposite spring force.',
       },
     ],
     variables: [
@@ -58,24 +61,26 @@ export const equationSections = [
   },
   {
     title: 'How to Use',
-    content: '1. Adjust spring strength k - stronger coupling means more interaction.\n2. Set different initial angles for θ₁ and θ₂.\n3. Change rest length scale to see different equilibrium positions.\n4. Add damping to see energy dissipation.\n5. Watch how energy transfers between pendulums.',
+    content:
+      '1. Adjust spring strength k - stronger coupling means more interaction.\n2. Set different initial angles for θ₁ and θ₂.\n3. Change rest length scale to see different equilibrium positions.\n4. Add damping to see energy dissipation.\n5. Watch how energy transfers between pendulums.',
   },
   {
     title: 'Beginner Tips',
-    content: 'Start with one pendulum displaced, other at rest. See energy transfer. Try equal displacements - they oscillate in phase. Look for normal modes where both move together or opposite. Experiment with different masses or lengths.',
+    content:
+      'Start with one pendulum displaced, other at rest. See energy transfer. Try equal displacements - they oscillate in phase. Look for normal modes where both move together or opposite. Experiment with different masses or lengths.',
   },
 ];
 
 export const equations = [
   String.raw`mL^2 \ddot{\theta}_1 + c \dot{\theta}_1 + mgL\sin\theta_1 = -k(x_2-x_1)L\cos\theta_1`,
-  String.raw`mL^2 \ddot{\theta}_2 + c \dot{\theta}_2 + mgL\sin\theta_2 = k(x_2-x_1)L\cos\theta_2`
+  String.raw`mL^2 \ddot{\theta}_2 + c \dot{\theta}_2 + mgL\sin\theta_2 = k(x_2-x_1)L\cos\theta_2`,
 ];
 
 export const graphParams = [
   { key: 'theta1', label: 'Theta 1' },
   { key: 'theta2', label: 'Theta 2' },
   { key: 'omega1', label: 'Omega 1' },
-  { key: 'omega2', label: 'Omega 2' }
+  { key: 'omega2', label: 'Omega 2' },
 ];
 
 export const controls = [
@@ -126,14 +131,13 @@ function deriv(state, params) {
   const t2y = -Math.sin(t2);
 
   const tangential1 = fx * t1x + fy * t1y;
-  const tangential2 = (-fx) * t2x + (-fy) * t2y;
+  const tangential2 = -fx * t2x + -fy * t2y;
 
   const a1 = -(p.gravity / L) * Math.sin(t1) + tangential1 / (p.mass * L) - p.damping * w1;
   const a2 = -(p.gravity / L) * Math.sin(t2) + tangential2 / (p.mass * L) - p.damping * w2;
 
   return [w1, w2, a1, a2];
 }
-
 
 export function create(canvas, initParams = {}) {
   const ctx = canvas.getContext('2d');
@@ -188,7 +192,6 @@ export function create(canvas, initParams = {}) {
     if (trail2.length > cap) trail2.shift();
   }
 
-
   function drawSpring(x1, y1, x2, y2) {
     const dx = x2 - x1;
     const dy = y2 - y1;
@@ -232,7 +235,10 @@ export function create(canvas, initParams = {}) {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    [[ax1, ay1], [ax2, ay2]].forEach(([x, y]) => {
+    [
+      [ax1, ay1],
+      [ax2, ay2],
+    ].forEach(([x, y]) => {
       ctx.beginPath();
       ctx.arc(x, y, 5, 0, Math.PI * 2);
       ctx.fillStyle = '#e2e8f0';
@@ -287,7 +293,10 @@ export function create(canvas, initParams = {}) {
       render();
       this.start();
     },
-    setParams(next) { Object.assign(p, next); render(); },
+    setParams(next) {
+      Object.assign(p, next);
+      render();
+    },
     destroy() {
       this.stop();
     },
@@ -297,8 +306,8 @@ export function create(canvas, initParams = {}) {
         theta1: state[0],
         theta2: state[1],
         omega1: state[2],
-        omega2: state[3]
+        omega2: state[3],
       };
-    }
+    },
   };
 }

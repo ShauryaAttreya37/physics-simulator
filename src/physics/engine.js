@@ -7,17 +7,19 @@ let animFrame = null;
 
 export function createEngine() {
   if (!engine) {
-    engine = Engine.create({ 
+    engine = Engine.create({
       gravity: { x: 0, y: 1 },
       positionIterations: 20,
       velocityIterations: 16,
-      constraintIterations: 30
+      constraintIterations: 30,
     });
   }
   return engine;
 }
 
-export function getEngine() { return engine; }
+export function getEngine() {
+  return engine;
+}
 
 export function setGravity(x, y) {
   if (engine) {
@@ -34,10 +36,11 @@ export function startEngine(onTick, getIsRunning) {
     last = now;
     if (getIsRunning && getIsRunning()) {
       // Step oscillators
-      engine.world.constraints.forEach(c => {
+      engine.world.constraints.forEach((c) => {
         if (c.label === 'oscillator' && c.plugin) {
           c.plugin.time += 1;
-          c.length = c.plugin.baseLength + Math.sin(c.plugin.time * c.plugin.speed) * c.plugin.amplitude;
+          c.length =
+            c.plugin.baseLength + Math.sin(c.plugin.time * c.plugin.speed) * c.plugin.amplitude;
         }
       });
 
@@ -103,16 +106,26 @@ export function createWall(x, y, w, h, angle = 0) {
 }
 
 export function createWedge(x, y, w, h, opts = {}) {
-  const verts = [{x: 0, y: 0}, {x: w, y: h}, {x: 0, y: h}];
-  return Bodies.fromVertices(x, y, [verts], {
-    restitution: opts.restitution ?? 0.3,
-    friction: opts.friction ?? 0.3,
-    frictionAir: opts.frictionAir ?? 0.01,
-    density: opts.density ?? 0.001,
-    isStatic: opts.isStatic ?? false,
-    angle: opts.angle ?? 0,
-    label: 'wedge',
-  }, true);
+  const verts = [
+    { x: 0, y: 0 },
+    { x: w, y: h },
+    { x: 0, y: h },
+  ];
+  return Bodies.fromVertices(
+    x,
+    y,
+    [verts],
+    {
+      restitution: opts.restitution ?? 0.3,
+      friction: opts.friction ?? 0.3,
+      frictionAir: opts.frictionAir ?? 0.01,
+      density: opts.density ?? 0.001,
+      isStatic: opts.isStatic ?? false,
+      angle: opts.angle ?? 0,
+      label: 'wedge',
+    },
+    true,
+  );
 }
 
 export function createPulley(x, y, radius, opts = {}) {
@@ -156,11 +169,19 @@ export function createSpring(bodyA, bodyB, opts = {}) {
     label: 'spring',
   };
 
-  if (bodyA) { config.bodyA = bodyA; config.pointA = pA; }
-  else { config.pointA = pA; }
+  if (bodyA) {
+    config.bodyA = bodyA;
+    config.pointA = pA;
+  } else {
+    config.pointA = pA;
+  }
 
-  if (bodyB) { config.bodyB = bodyB; config.pointB = pB; }
-  else { config.pointB = pB; }
+  if (bodyB) {
+    config.bodyB = bodyB;
+    config.pointB = pB;
+  } else {
+    config.pointB = pB;
+  }
 
   return Constraint.create(config);
 }
@@ -197,11 +218,19 @@ export function createString(bodyA, bodyB, opts = {}) {
     label: 'string',
   };
 
-  if (bodyA) { config.bodyA = bodyA; config.pointA = pA; }
-  else { config.pointA = pA; }
+  if (bodyA) {
+    config.bodyA = bodyA;
+    config.pointA = pA;
+  } else {
+    config.pointA = pA;
+  }
 
-  if (bodyB) { config.bodyB = bodyB; config.pointB = pB; }
-  else { config.pointB = pB; }
+  if (bodyB) {
+    config.bodyB = bodyB;
+    config.pointB = pB;
+  } else {
+    config.pointB = pB;
+  }
 
   return Constraint.create(config);
 }
@@ -233,7 +262,7 @@ export function createWoodBlock(x, y, w, h, opts = {}) {
 export function createPivot(bodyA, bodyB, opts = {}) {
   const pA = opts.pointA ?? { x: 0, y: 0 };
   const pB = opts.pointB ?? { x: 0, y: 0 };
-  
+
   return Constraint.create({
     bodyA: bodyA || null,
     pointA: pA,
@@ -264,7 +293,7 @@ export function applyBodyProps(body, props) {
   if (props.frictionStatic !== undefined) body.frictionStatic = props.frictionStatic;
   if (props.frictionAir !== undefined) body.frictionAir = props.frictionAir;
   if (props.density !== undefined) Body.setDensity(body, Math.max(0.00001, props.density));
-  if (props.angle !== undefined) Body.setAngle(body, props.angle * Math.PI / 180);
+  if (props.angle !== undefined) Body.setAngle(body, (props.angle * Math.PI) / 180);
   if (props.velocityX !== undefined || props.velocityY !== undefined) {
     Body.setVelocity(body, {
       x: props.velocityX ?? body.velocity.x,
@@ -286,7 +315,7 @@ export function applyConstraintProps(constraint, props) {
 export function createOscillator(bodyA, bodyB, opts = {}) {
   const pA = opts.pointA ?? { x: 0, y: 0 };
   const pB = opts.pointB ?? { x: 0, y: 0 };
-  
+
   let worldA, worldB;
   if (bodyA) worldA = { x: bodyA.position.x + pA.x, y: bodyA.position.y + pA.y };
   else worldA = pA;
@@ -310,8 +339,8 @@ export function createOscillator(bodyA, bodyB, opts = {}) {
       baseLength: dist,
       amplitude: 50,
       speed: 0.05,
-      time: 0
-    }
+      time: 0,
+    },
   });
 }
 
@@ -319,41 +348,66 @@ export function createOscillator(bodyA, bodyB, opts = {}) {
 
 export function spawnCar(x, y) {
   const group = Body.nextGroup(true);
-  
-  const chassis = Bodies.rectangle(x, y - 20, 160, 40, { 
+
+  const chassis = Bodies.rectangle(x, y - 20, 160, 40, {
     collisionFilter: { group },
-    density: 0.005, friction: 0.2, restitution: 0.1, label: 'beam' 
+    density: 0.005,
+    friction: 0.2,
+    restitution: 0.1,
+    label: 'beam',
   });
-  
-  const wheelA = Bodies.circle(x - 60, y + 20, 25, { 
+
+  const wheelA = Bodies.circle(x - 60, y + 20, 25, {
     collisionFilter: { group },
-    density: 0.008, friction: 0.9, restitution: 0.1, label: 'circle' 
+    density: 0.008,
+    friction: 0.9,
+    restitution: 0.1,
+    label: 'circle',
   });
-  const wheelB = Bodies.circle(x + 60, y + 20, 25, { 
+  const wheelB = Bodies.circle(x + 60, y + 20, 25, {
     collisionFilter: { group },
-    density: 0.008, friction: 0.9, restitution: 0.1, label: 'circle' 
+    density: 0.008,
+    friction: 0.9,
+    restitution: 0.1,
+    label: 'circle',
   });
 
   const ax1 = Constraint.create({
-    bodyA: chassis, pointA: { x: -60, y: 10 },
-    bodyB: wheelA, pointB: { x: 0, y: 0 },
-    stiffness: 0.2, damping: 0.1, label: 'spring'
+    bodyA: chassis,
+    pointA: { x: -60, y: 10 },
+    bodyB: wheelA,
+    pointB: { x: 0, y: 0 },
+    stiffness: 0.2,
+    damping: 0.1,
+    label: 'spring',
   });
   const ax2 = Constraint.create({
-    bodyA: chassis, pointA: { x: -40, y: -10 },
-    bodyB: wheelA, pointB: { x: 0, y: 0 },
-    stiffness: 0.2, damping: 0.1, label: 'spring'
+    bodyA: chassis,
+    pointA: { x: -40, y: -10 },
+    bodyB: wheelA,
+    pointB: { x: 0, y: 0 },
+    stiffness: 0.2,
+    damping: 0.1,
+    label: 'spring',
   });
 
   const bx1 = Constraint.create({
-    bodyA: chassis, pointA: { x: 60, y: 10 },
-    bodyB: wheelB, pointB: { x: 0, y: 0 },
-    stiffness: 0.2, damping: 0.1, label: 'spring'
+    bodyA: chassis,
+    pointA: { x: 60, y: 10 },
+    bodyB: wheelB,
+    pointB: { x: 0, y: 0 },
+    stiffness: 0.2,
+    damping: 0.1,
+    label: 'spring',
   });
   const bx2 = Constraint.create({
-    bodyA: chassis, pointA: { x: 40, y: -10 },
-    bodyB: wheelB, pointB: { x: 0, y: 0 },
-    stiffness: 0.2, damping: 0.1, label: 'spring'
+    bodyA: chassis,
+    pointA: { x: 40, y: -10 },
+    bodyB: wheelB,
+    pointB: { x: 0, y: 0 },
+    stiffness: 0.2,
+    damping: 0.1,
+    label: 'spring',
   });
 
   return { bodies: [chassis, wheelA, wheelB], constraints: [ax1, ax2, bx1, bx2] };
@@ -363,7 +417,7 @@ export function spawnBridge(x, y) {
   const group = Body.nextGroup(true);
   const bodies = [];
   const constraints = [];
-  
+
   const plankCount = 10;
   const plankW = 50;
   const plankH = 15;
@@ -372,7 +426,10 @@ export function spawnBridge(x, y) {
   const startX = x - totalW / 2;
 
   const anchorA = Bodies.rectangle(startX - 30, y + 40, 40, 150, { isStatic: true, label: 'beam' });
-  const anchorB = Bodies.rectangle(startX + totalW + 30, y + 40, 40, 150, { isStatic: true, label: 'beam' });
+  const anchorB = Bodies.rectangle(startX + totalW + 30, y + 40, 40, 150, {
+    isStatic: true,
+    label: 'beam',
+  });
   bodies.push(anchorA, anchorB);
 
   for (let i = 0; i < plankCount; i++) {
@@ -380,7 +437,8 @@ export function spawnBridge(x, y) {
     // We add some y jitter to ensure it naturally hangs and doesn't get locked horizontally
     const plank = Bodies.rectangle(px, y + i * 0.1, plankW, plankH, {
       collisionFilter: { group },
-      density: 0.001, label: 'wood'
+      density: 0.001,
+      label: 'wood',
     });
     bodies.push(plank);
   }
@@ -388,23 +446,41 @@ export function spawnBridge(x, y) {
   for (let i = 3; i < plankCount + 2; i++) {
     const prev = bodies[i - 1];
     const curr = bodies[i];
-    constraints.push(Constraint.create({
-      bodyA: prev, pointA: { x: plankW / 2, y: 0 },
-      bodyB: curr, pointB: { x: -plankW / 2, y: 0 },
-      length: gap, stiffness: 1, label: 'pivot'
-    }));
+    constraints.push(
+      Constraint.create({
+        bodyA: prev,
+        pointA: { x: plankW / 2, y: 0 },
+        bodyB: curr,
+        pointB: { x: -plankW / 2, y: 0 },
+        length: gap,
+        stiffness: 1,
+        label: 'pivot',
+      }),
+    );
   }
 
-  constraints.push(Constraint.create({
-    bodyA: anchorA, pointA: { x: 20, y: -50 },
-    bodyB: bodies[2], pointB: { x: -plankW / 2, y: 0 },
-    length: gap, stiffness: 1, label: 'pivot'
-  }));
-  constraints.push(Constraint.create({
-    bodyA: anchorB, pointA: { x: -20, y: -50 },
-    bodyB: bodies[bodies.length - 1], pointB: { x: plankW / 2, y: 0 },
-    length: gap, stiffness: 1, label: 'pivot'
-  }));
+  constraints.push(
+    Constraint.create({
+      bodyA: anchorA,
+      pointA: { x: 20, y: -50 },
+      bodyB: bodies[2],
+      pointB: { x: -plankW / 2, y: 0 },
+      length: gap,
+      stiffness: 1,
+      label: 'pivot',
+    }),
+  );
+  constraints.push(
+    Constraint.create({
+      bodyA: anchorB,
+      pointA: { x: -20, y: -50 },
+      bodyB: bodies[bodies.length - 1],
+      pointB: { x: plankW / 2, y: 0 },
+      length: gap,
+      stiffness: 1,
+      label: 'pivot',
+    }),
+  );
 
   return { bodies, constraints };
 }
@@ -413,38 +489,53 @@ export function spawnNewtonCradle(x, y) {
   const group = Body.nextGroup(true);
   const bodies = [];
   const constraints = [];
-  
+
   const ballCount = 5;
   const radius = 25;
   const length = 200;
-  
-  const beam = Bodies.rectangle(x, y - length, ballCount * (radius * 2) + 40, 20, { 
-    isStatic: true, label: 'beam' 
+
+  const beam = Bodies.rectangle(x, y - length, ballCount * (radius * 2) + 40, 20, {
+    isStatic: true,
+    label: 'beam',
   });
   bodies.push(beam);
 
   for (let i = 0; i < ballCount; i++) {
-    const bx = x - (ballCount * radius) + (i * radius * 2) + radius;
+    const bx = x - ballCount * radius + i * radius * 2 + radius;
     const by = y;
     const ball = Bodies.circle(bx, by, radius, {
       collisionFilter: { group },
       restitution: 0.99, // Highly elastic!
-      friction: 0, frictionAir: 0.00005, density: 0.1, // very heavy!
-      label: 'circle'
+      friction: 0,
+      frictionAir: 0.00005,
+      density: 0.1, // very heavy!
+      label: 'circle',
     });
     bodies.push(ball);
 
     // Lateral stability V constraint
-    constraints.push(Constraint.create({
-      bodyA: beam, pointA: { x: bx - x - 5, y: 10 },
-      bodyB: ball, pointB: { x: 0, y: 0 },
-      length: length, stiffness: 1, label: 'string'
-    }));
-    constraints.push(Constraint.create({
-      bodyA: beam, pointA: { x: bx - x + 5, y: 10 },
-      bodyB: ball, pointB: { x: 0, y: 0 },
-      length: length, stiffness: 1, label: 'string'
-    }));
+    constraints.push(
+      Constraint.create({
+        bodyA: beam,
+        pointA: { x: bx - x - 5, y: 10 },
+        bodyB: ball,
+        pointB: { x: 0, y: 0 },
+        length: length,
+        stiffness: 1,
+        label: 'string',
+      }),
+    );
+    constraints.push(
+      Constraint.create({
+        bodyA: beam,
+        pointA: { x: bx - x + 5, y: 10 },
+        bodyB: ball,
+        pointB: { x: 0, y: 0 },
+        length: length,
+        stiffness: 1,
+        label: 'string',
+      }),
+    );
   }
 
   // Nudge first ball out to kickstart it smoothly

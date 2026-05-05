@@ -1,6 +1,6 @@
 /**
  * Double Slit Experiment — Wave Mechanics
- * 
+ *
  * Simulates the interference pattern from two slits using Huygens-Fresnel
  * diffraction. Renders: real-time intensity build-up, individual slit
  * contributions, and the classic fringe pattern on a detection screen.
@@ -8,10 +8,10 @@
  */
 
 const DEFAULTS = {
-  slitSeparation: 0.5,  // d (mm)
-  slitWidth: 0.1,       // a (mm)
-  wavelength: 0.0005,   // λ (mm) ~ 500nm green
-  screenDist: 200,      // L (mm)
+  slitSeparation: 0.5, // d (mm)
+  slitWidth: 0.1, // a (mm)
+  wavelength: 0.0005, // λ (mm) ~ 500nm green
+  screenDist: 200, // L (mm)
   numParticles: 0,
   particleRate: 5,
   trailMax: 400,
@@ -22,25 +22,41 @@ export const defaultParams = { ...DEFAULTS };
 export const equationSections = [
   {
     title: 'Introduction',
-    content: 'The double-slit experiment is one of the most famous demonstrations of quantum mechanics. It shows that particles like electrons and photons behave like waves. When you send particles through two slits, they create an interference pattern on a screen, just like water waves. But if you try to detect which slit each particle goes through, the pattern disappears! This reveals the wave-particle duality of quantum objects.',
+    content:
+      'The double-slit experiment is one of the most famous demonstrations of quantum mechanics. It shows that particles like electrons and photons behave like waves. When you send particles through two slits, they create an interference pattern on a screen, just like water waves. But if you try to detect which slit each particle goes through, the pattern disappears! This reveals the wave-particle duality of quantum objects.',
   },
   {
     title: 'Double Slit Intensity',
     equations: [
       {
         latex: String.raw`I(\theta) = I_0 \cos^2\!\left(\frac{\pi d \sin\theta}{\lambda}\right)\,\mathrm{sinc}^2\!\left(\frac{\pi a \sin\theta}{\lambda}\right)`,
-        description: 'This equation combines two effects: interference between the two slits (the cos² term) and diffraction through each slit (the sinc² term). The result is bright and dark fringes.',
+        description:
+          'This equation combines two effects: interference between the two slits (the cos² term) and diffraction through each slit (the sinc² term). The result is bright and dark fringes.',
       },
       {
         latex: String.raw`y_m = \frac{m\lambda L}{d}, \quad m = 0, \pm 1, \pm 2, \ldots`,
-        description: 'The positions of the bright fringes on the screen. m=0 is the center, m=±1 are the first side fringes, etc. Closer slits or longer wavelengths make wider spacing.',
+        description:
+          'The positions of the bright fringes on the screen. m=0 is the center, m=±1 are the first side fringes, etc. Closer slits or longer wavelengths make wider spacing.',
       },
     ],
     variables: [
-      { symbol: 'd', description: 'Distance between the centers of the two slits - wider separation means narrower fringes' },
-      { symbol: 'a', description: 'Width of each slit - narrower slits cause more diffraction (wider envelope)' },
-      { symbol: 'λ', description: 'Wavelength of the particles - shorter wavelengths make finer patterns' },
-      { symbol: 'L', description: 'Distance from slits to screen - farther screen spreads out the pattern' },
+      {
+        symbol: 'd',
+        description:
+          'Distance between the centers of the two slits - wider separation means narrower fringes',
+      },
+      {
+        symbol: 'a',
+        description: 'Width of each slit - narrower slits cause more diffraction (wider envelope)',
+      },
+      {
+        symbol: 'λ',
+        description: 'Wavelength of the particles - shorter wavelengths make finer patterns',
+      },
+      {
+        symbol: 'L',
+        description: 'Distance from slits to screen - farther screen spreads out the pattern',
+      },
     ],
   },
   {
@@ -48,21 +64,25 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`p = \frac{h}{\lambda} = \frac{2\pi\hbar}{\lambda}`,
-        description: 'Every particle has a wavelength related to its momentum. This is the de Broglie relation - it connects particle and wave properties.',
+        description:
+          'Every particle has a wavelength related to its momentum. This is the de Broglie relation - it connects particle and wave properties.',
       },
       {
         latex: String.raw`|\psi|^2 \propto I(\theta) \quad \text{(Born rule: probability ∝ intensity)}`,
-        description: 'The interference pattern emerges statistically. Each particle hits randomly, but over many particles, the pattern matches the wave intensity. This shows quantum probability.',
+        description:
+          'The interference pattern emerges statistically. Each particle hits randomly, but over many particles, the pattern matches the wave intensity. This shows quantum probability.',
       },
     ],
   },
   {
     title: 'How to Use',
-    content: '1. Start with default settings and watch particles build up the interference pattern.\n2. Adjust slit separation (d) - see how fringe spacing changes.\n3. Change wavelength (λ) - shorter wavelengths make finer patterns.\n4. Make slits narrower (smaller a) - notice the diffraction envelope widens.\n5. Increase particle rate to see the pattern emerge faster.\n6. Look at the intensity graph to understand the theoretical pattern.',
+    content:
+      '1. Start with default settings and watch particles build up the interference pattern.\n2. Adjust slit separation (d) - see how fringe spacing changes.\n3. Change wavelength (λ) - shorter wavelengths make finer patterns.\n4. Make slits narrower (smaller a) - notice the diffraction envelope widens.\n5. Increase particle rate to see the pattern emerge faster.\n6. Look at the intensity graph to understand the theoretical pattern.',
   },
   {
     title: 'Beginner Tips',
-    content: 'The pattern only appears when you don\'t know which slit the particle went through. If you could detect the slit, the pattern would disappear. This shows measurement affects quantum systems. Try different wavelengths - light behaves this way too! The central maximum is always brightest.',
+    content:
+      "The pattern only appears when you don't know which slit the particle went through. If you could detect the slit, the pattern would disappear. This shows measurement affects quantum systems. Try different wavelengths - light behaves this way too! The central maximum is always brightest.",
   },
 ];
 
@@ -95,27 +115,41 @@ function sinc(x) {
 
 function intensity(y, p) {
   const sinTheta = y / Math.sqrt(y * y + p.screenDist * p.screenDist);
-  const alpha = Math.PI * p.slitWidth * sinTheta / p.wavelength;
-  const beta = Math.PI * p.slitSeparation * sinTheta / p.wavelength;
+  const alpha = (Math.PI * p.slitWidth * sinTheta) / p.wavelength;
+  const beta = (Math.PI * p.slitSeparation * sinTheta) / p.wavelength;
   return sinc(alpha) * sinc(alpha) * Math.cos(beta) * Math.cos(beta);
 }
 
 function wavelengthToRGB(lambda_mm) {
   // lambda in mm, convert to nm
   const nm = lambda_mm * 1e6;
-  let r = 0, g = 0, b = 0;
+  let r = 0,
+    g = 0,
+    b = 0;
   if (nm >= 380 && nm < 440) {
-    r = -(nm - 440) / (440 - 380); g = 0; b = 1;
+    r = -(nm - 440) / (440 - 380);
+    g = 0;
+    b = 1;
   } else if (nm >= 440 && nm < 490) {
-    r = 0; g = (nm - 440) / (490 - 440); b = 1;
+    r = 0;
+    g = (nm - 440) / (490 - 440);
+    b = 1;
   } else if (nm >= 490 && nm < 510) {
-    r = 0; g = 1; b = -(nm - 510) / (510 - 490);
+    r = 0;
+    g = 1;
+    b = -(nm - 510) / (510 - 490);
   } else if (nm >= 510 && nm < 580) {
-    r = (nm - 510) / (580 - 510); g = 1; b = 0;
+    r = (nm - 510) / (580 - 510);
+    g = 1;
+    b = 0;
   } else if (nm >= 580 && nm < 645) {
-    r = 1; g = -(nm - 645) / (645 - 580); b = 0;
+    r = 1;
+    g = -(nm - 645) / (645 - 580);
+    b = 0;
   } else if (nm >= 645 && nm <= 780) {
-    r = 1; g = 0; b = 0;
+    r = 1;
+    g = 0;
+    b = 0;
   }
   return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
 }
@@ -144,7 +178,8 @@ export const scenarios = [
   },
   {
     name: 'Particle by Particle',
-    description: 'Very slow rate — watch individual "particle" detections build the pattern one by one.',
+    description:
+      'Very slow rate — watch individual "particle" detections build the pattern one by one.',
     params: { slitSep: 0.15, slitWidth: 0.03, wavelength: 0.02, particleRate: 2 },
   },
 ];
@@ -154,22 +189,36 @@ export const guidedExperiments = [
     title: 'Wave-Particle Duality',
     steps: [
       {
-        instruction: 'We start with a single slit. Press Play and observe where particles land on the detector screen.',
+        instruction:
+          'We start with a single slit. Press Play and observe where particles land on the detector screen.',
         params: { slitSep: 0, slitWidth: 0.05, wavelength: 0.02, particleRate: 15 },
         question: 'With a single slit, what pattern will the particles form?',
-        choices: ['A sharp line directly behind the slit', 'A smooth blob/bell curve (single-slit diffraction)', 'Alternating bright and dark fringes'],
+        choices: [
+          'A sharp line directly behind the slit',
+          'A smooth blob/bell curve (single-slit diffraction)',
+          'Alternating bright and dark fringes',
+        ],
         correctIndex: 1,
-        explanation: 'Single-slit diffraction produces a broad central peak with weak side lobes. The width of the central peak is inversely proportional to the slit width — narrower slits spread the pattern more.',
+        explanation:
+          'Single-slit diffraction produces a broad central peak with weak side lobes. The width of the central peak is inversely proportional to the slit width — narrower slits spread the pattern more.',
       },
       {
-        instruction: 'Now open the second slit (slitSep = 0.15). Reset and play. Watch carefully as particles accumulate.',
+        instruction:
+          'Now open the second slit (slitSep = 0.15). Reset and play. Watch carefully as particles accumulate.',
         params: { slitSep: 0.15, slitWidth: 0.03, wavelength: 0.02, particleRate: 15 },
         question: 'With two slits open, what pattern will emerge?',
-        choices: ['Two blobs (one behind each slit)', 'Interference fringes (alternating bright/dark bands)', 'Same as single slit but brighter'],
+        choices: [
+          'Two blobs (one behind each slit)',
+          'Interference fringes (alternating bright/dark bands)',
+          'Same as single slit but brighter',
+        ],
         correctIndex: 1,
-        commonMisconception: 'Intuition says: two slits → two blobs. But quantum mechanics says each particle interferes with itself, passing through both slits simultaneously. The probability distribution shows interference fringes.',
-        explanation: 'Each particle arrives as a point (particle-like detection), but the statistical distribution follows the wave-like interference pattern. This is the central mystery of quantum mechanics — Feynman called it "the only mystery."',
-        tryThis: 'Slow down the particle rate to 2 and watch individual dots accumulate into fringes.',
+        commonMisconception:
+          'Intuition says: two slits → two blobs. But quantum mechanics says each particle interferes with itself, passing through both slits simultaneously. The probability distribution shows interference fringes.',
+        explanation:
+          'Each particle arrives as a point (particle-like detection), but the statistical distribution follows the wave-like interference pattern. This is the central mystery of quantum mechanics — Feynman called it "the only mystery."',
+        tryThis:
+          'Slow down the particle rate to 2 and watch individual dots accumulate into fringes.',
       },
       {
         instruction: 'Increase the slit separation to 0.35. Reset and observe.',
@@ -177,7 +226,8 @@ export const guidedExperiments = [
         question: 'As slit separation increases, what happens to the fringe spacing?',
         choices: ['Fringes get wider apart', 'Fringes get closer together', 'No change'],
         correctIndex: 1,
-        explanation: 'Fringe spacing Δy = λL/d. As slit separation d increases, fringes become closer together. This is the inverse relationship that makes diffraction so useful — we can measure nanometer features using millimeter-spaced fringes.',
+        explanation:
+          'Fringe spacing Δy = λL/d. As slit separation d increases, fringes become closer together. This is the inverse relationship that makes diffraction so useful — we can measure nanometer features using millimeter-spaced fringes.',
       },
     ],
   },
@@ -193,7 +243,7 @@ export function create(canvas, initParams = {}) {
 
   function sampleParticleY() {
     // Rejection sampling from intensity distribution
-    const yMax = p.screenDist * Math.tan(Math.asin(3 * p.wavelength / p.slitSeparation || 0.05));
+    const yMax = p.screenDist * Math.tan(Math.asin((3 * p.wavelength) / p.slitSeparation || 0.05));
     const yRange = Math.max(yMax, 5);
     for (let attempt = 0; attempt < 100; attempt++) {
       const y = (Math.random() * 2 - 1) * yRange;
@@ -233,7 +283,10 @@ export function create(canvas, initParams = {}) {
     ctx.lineWidth = 0.5;
     for (let i = 1; i < gridLines; i++) {
       const y = gy + (gh * i) / gridLines;
-      ctx.beginPath(); ctx.moveTo(gx, y); ctx.lineTo(gx + gw, y); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(gx, y);
+      ctx.lineTo(gx + gw, y);
+      ctx.stroke();
     }
 
     if (title) {
@@ -247,14 +300,16 @@ export function create(canvas, initParams = {}) {
     ctx.font = '500 10px "Montserrat", sans-serif';
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
     if (xLabel) {
-      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
       ctx.fillText(xLabel, gx + gw / 2, gy + gh + 4);
     }
     if (yLabel) {
       ctx.save();
       ctx.translate(gx - 6, gy + gh / 2);
       ctx.rotate(-Math.PI / 2);
-      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
       ctx.fillText(yLabel, 0, 0);
       ctx.restore();
     }
@@ -281,7 +336,8 @@ export function create(canvas, initParams = {}) {
 
   // ── Main render ──────────────────────────────────────────────────────
   function render() {
-    const W = canvas.width, H = canvas.height;
+    const W = canvas.width,
+      H = canvas.height;
 
     const mainBg = ctx.createLinearGradient(0, 0, W, H);
     mainBg.addColorStop(0, '#04040e');
@@ -327,14 +383,24 @@ export function create(canvas, initParams = {}) {
     const slitPixWidth = Math.max(4, slitPixGap * 0.2);
 
     ctx.fillStyle = 'rgba(255,255,255,0.15)';
-    ctx.fillRect(barrierX - 3, appY + 10, 6, (appH / 2 - slitPixGap / 2 - slitPixWidth / 2) - 10);
-    ctx.fillRect(barrierX - 3, srcY - slitPixGap / 2 + slitPixWidth / 2, 6, slitPixGap - slitPixWidth);
-    ctx.fillRect(barrierX - 3, srcY + slitPixGap / 2 + slitPixWidth / 2, 6, (appH / 2 - slitPixGap / 2 - slitPixWidth / 2) - 10);
+    ctx.fillRect(barrierX - 3, appY + 10, 6, appH / 2 - slitPixGap / 2 - slitPixWidth / 2 - 10);
+    ctx.fillRect(
+      barrierX - 3,
+      srcY - slitPixGap / 2 + slitPixWidth / 2,
+      6,
+      slitPixGap - slitPixWidth,
+    );
+    ctx.fillRect(
+      barrierX - 3,
+      srcY + slitPixGap / 2 + slitPixWidth / 2,
+      6,
+      appH / 2 - slitPixGap / 2 - slitPixWidth / 2 - 10,
+    );
 
     // Slit glow
     const slit1Y = srcY - slitPixGap / 2;
     const slit2Y = srcY + slitPixGap / 2;
-    [slit1Y, slit2Y].forEach(sy => {
+    [slit1Y, slit2Y].forEach((sy) => {
       ctx.fillStyle = beamColorAlpha(0.6);
       ctx.fillRect(barrierX - 2, sy - slitPixWidth / 2, 4, slitPixWidth);
     });
@@ -342,16 +408,26 @@ export function create(canvas, initParams = {}) {
     // Beams from source to slits
     ctx.strokeStyle = beamColorAlpha(0.15);
     ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(srcX, srcY); ctx.lineTo(barrierX, slit1Y); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(srcX, srcY); ctx.lineTo(barrierX, slit2Y); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(srcX, srcY);
+    ctx.lineTo(barrierX, slit1Y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(srcX, srcY);
+    ctx.lineTo(barrierX, slit2Y);
+    ctx.stroke();
 
     // Spreading wavefronts after slits
     for (let i = 1; i <= 6; i++) {
       const r = i * 18;
       ctx.strokeStyle = beamColorAlpha(0.06 + 0.02 * (6 - i));
       ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.arc(barrierX, slit1Y, r, -Math.PI / 3, Math.PI / 3); ctx.stroke();
-      ctx.beginPath(); ctx.arc(barrierX, slit2Y, r, -Math.PI / 3, Math.PI / 3); ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(barrierX, slit1Y, r, -Math.PI / 3, Math.PI / 3);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(barrierX, slit2Y, r, -Math.PI / 3, Math.PI / 3);
+      ctx.stroke();
     }
 
     // Detection screen
@@ -417,7 +493,7 @@ export function create(canvas, initParams = {}) {
     for (let i = 0; i < N_CURVE; i++) {
       const y = -yMax + (2 * yMax * i) / (N_CURVE - 1);
       const sinTheta = y / Math.sqrt(y * y + p.screenDist * p.screenDist);
-      const alpha = Math.PI * p.slitWidth * sinTheta / p.wavelength;
+      const alpha = (Math.PI * p.slitWidth * sinTheta) / p.wavelength;
       const env = sinc(alpha) * sinc(alpha);
       const px = curveX + (i / (N_CURVE - 1)) * curveW;
       const py = curveY + curveH - env * (curveH - 30) - 15;
@@ -435,8 +511,10 @@ export function create(canvas, initParams = {}) {
     // Legend
     ctx.font = '600 9px "JetBrains Mono", monospace';
     ctx.textAlign = 'right';
-    ctx.fillStyle = beamColor; ctx.fillText('● Double Slit', curveX + curveW - 8, curveY + 20);
-    ctx.fillStyle = 'rgba(255, 209, 102,0.6)'; ctx.fillText('╌ Envelope', curveX + curveW - 8, curveY + 34);
+    ctx.fillStyle = beamColor;
+    ctx.fillText('● Double Slit', curveX + curveW - 8, curveY + 20);
+    ctx.fillStyle = 'rgba(255, 209, 102,0.6)';
+    ctx.fillText('╌ Envelope', curveX + curveW - 8, curveY + 34);
 
     // ── RIGHT BOTTOM: Detection histogram ──────────────────────────
     const histX = curveX;
@@ -468,7 +546,7 @@ export function create(canvas, initParams = {}) {
     }
 
     // Fringe spacing annotation
-    const fringeSpacing = p.wavelength * p.screenDist / p.slitSeparation;
+    const fringeSpacing = (p.wavelength * p.screenDist) / p.slitSeparation;
     ctx.font = '500 10px "JetBrains Mono", monospace';
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.textAlign = 'left';
@@ -487,7 +565,9 @@ export function create(canvas, initParams = {}) {
     addParticles(p.particleRate);
   }
 
-  let rafId, lastTs, running = false;
+  let rafId,
+    lastTs,
+    running = false;
 
   function loop(ts) {
     if (!running) return;
@@ -508,19 +588,32 @@ export function create(canvas, initParams = {}) {
   return {
     start() {
       if (running) return;
-      running = true; lastTs = undefined;
+      running = true;
+      lastTs = undefined;
       rafId = requestAnimationFrame(loop);
     },
-    stop() { running = false; cancelAnimationFrame(rafId); },
+    stop() {
+      running = false;
+      cancelAnimationFrame(rafId);
+    },
     reset() {
       this.stop();
-      simTime = 0; particles = []; histogram = new Float64Array(200); p.numParticles = 0;
-      render(); this.start();
+      simTime = 0;
+      particles = [];
+      histogram = new Float64Array(200);
+      p.numParticles = 0;
+      render();
+      this.start();
     },
-    setParams(next) { Object.assign(p, next); render(); },
-    destroy() { this.stop(); },
+    setParams(next) {
+      Object.assign(p, next);
+      render();
+    },
+    destroy() {
+      this.stop();
+    },
     getData() {
-      const fringeSpacing = p.wavelength * p.screenDist / p.slitSeparation;
+      const fringeSpacing = (p.wavelength * p.screenDist) / p.slitSeparation;
       return {
         time: simTime,
         numParticles: p.numParticles,

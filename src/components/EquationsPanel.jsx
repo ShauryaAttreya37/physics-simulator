@@ -18,30 +18,31 @@ export default function EquationsPanel({ sections = [], title = 'Governing Equat
       </div>
       {sections.map((section, si) => (
         <div key={si} className="equations-section">
-          {section.title && (
-            <div className="equations-section-title">{section.title}</div>
-          )}
-          {section.content && (
-            <div className="equations-section-content">{section.content}</div>
-          )}
-          {section.equations && section.equations.map((eq, ei) => (
-            <div key={ei} className="eq-numbered">
-              <span className="eq-number">({si + 1}.{ei + 1})</span>
-              <div className="eq-content">
-                <BlockMath math={eq.latex || eq} />
-                {eq.description && (
-                  <div className="eq-description">{eq.description}</div>
-                )}
+          {section.title && <div className="equations-section-title">{section.title}</div>}
+          {section.content && <div className="equations-section-content">{section.content}</div>}
+          {section.equations &&
+            section.equations.map((eq, ei) => (
+              <div key={ei} className="eq-numbered">
+                <span className="eq-number">
+                  ({si + 1}.{ei + 1})
+                </span>
+                <div className="eq-content">
+                  <BlockMath math={eq.latex || eq} />
+                  {eq.description && <div className="eq-description">{eq.description}</div>}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
           {section.variables && section.variables.length > 0 && (
             <div className="eq-variable-list">
               {section.variables.map((v, vi) => (
-                <span key={vi} className="eq-var-symbol">{v.symbol}</span>
+                <span key={vi} className="eq-var-symbol">
+                  {v.symbol}
+                </span>
               ))}
               {section.variables.map((v, vi) => (
-                <span key={`d${vi}`} className="eq-var-desc">— {v.description}</span>
+                <span key={`d${vi}`} className="eq-var-desc">
+                  — {v.description}
+                </span>
               ))}
             </div>
           )}

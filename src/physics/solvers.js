@@ -1,7 +1,7 @@
 /**
  * Centralized Physics Solvers
- * 
- * Provides standard numerical integration methods for solving ordinary 
+ *
+ * Provides standard numerical integration methods for solving ordinary
  * differential equations (ODEs).
  */
 
@@ -15,9 +15,18 @@
  */
 export function rk4(state, h, derivs, params = {}) {
   const k1 = derivs(state, params);
-  const k2 = derivs(state.map((v, i) => v + k1[i] * h / 2), params);
-  const k3 = derivs(state.map((v, i) => v + k2[i] * h / 2), params);
-  const k4 = derivs(state.map((v, i) => v + k3[i] * h), params);
+  const k2 = derivs(
+    state.map((v, i) => v + (k1[i] * h) / 2),
+    params,
+  );
+  const k3 = derivs(
+    state.map((v, i) => v + (k2[i] * h) / 2),
+    params,
+  );
+  const k4 = derivs(
+    state.map((v, i) => v + k3[i] * h),
+    params,
+  );
 
   return state.map((v, i) => v + (h / 6) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]));
 }
@@ -57,7 +66,10 @@ export function rk45Step(state, h, derivs, params = {}, tol = 1e-8) {
     for (let j = 0; j < i; j++) {
       for (let d = 0; d < n; d++) s[d] += A[i][j] * k[j][d];
     }
-    k[i] = derivs(state.map((v, d) => v + h * s[d]), params);
+    k[i] = derivs(
+      state.map((v, d) => v + h * s[d]),
+      params,
+    );
   }
 
   // 5th order solution

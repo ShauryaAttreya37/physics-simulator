@@ -1,6 +1,6 @@
 /**
  * Double Pendulum — Research-Grade Implementation
- * 
+ *
  * Integrator:  Adaptive Dormand-Prince RK45 with error estimation
  * Physics:     Full Lagrangian mechanics (no small-angle approximation)
  * Diagnostics: Energy conservation error |ΔH/H₀|, Lyapunov exponent estimate
@@ -22,26 +22,39 @@ const DEFAULTS = {
 };
 
 export const defaultParams = {
-  l1: 170, l2: 130, m1: 1, m2: 1, g: 980,
-  theta1: 1.6208, theta2: 0.7854,
-  omega1: 0, omega2: 0, trail: 600, tolerance: 1e-8,
+  l1: 170,
+  l2: 130,
+  m1: 1,
+  m2: 1,
+  g: 980,
+  theta1: 1.6208,
+  theta2: 0.7854,
+  omega1: 0,
+  omega2: 0,
+  trail: 600,
+  tolerance: 1e-8,
 };
 
 export const equationSections = [
   {
     title: 'Introduction',
-    content: 'A double pendulum is two pendulums connected end to end. The second pendulum is attached to the first bob, creating complex, often chaotic motion. Even small changes in starting conditions can lead to very different behaviors. This simulation uses advanced math (Lagrangian mechanics) to accurately model the motion. You\'ll see beautiful patterns and learn about chaos theory.',
+    content:
+      "A double pendulum is two pendulums connected end to end. The second pendulum is attached to the first bob, creating complex, often chaotic motion. Even small changes in starting conditions can lead to very different behaviors. This simulation uses advanced math (Lagrangian mechanics) to accurately model the motion. You'll see beautiful patterns and learn about chaos theory.",
   },
   {
     title: 'Lagrangian',
     equations: [
       {
         latex: String.raw`\mathcal{L} = T - V = \frac{1}{2}(m_1+m_2)\ell_1^2\dot{\theta}_1^2 + \frac{1}{2}m_2\ell_2^2\dot{\theta}_2^2 + m_2\ell_1\ell_2\dot{\theta}_1\dot{\theta}_2\cos(\theta_1-\theta_2) + (m_1+m_2)g\ell_1\cos\theta_1 + m_2 g\ell_2\cos\theta_2`,
-        description: 'The Lagrangian L = T - V combines kinetic energy (T) and potential energy (V). This approach gives the equations of motion through Euler-Lagrange equations. It accounts for the interaction between the two pendulums.',
+        description:
+          'The Lagrangian L = T - V combines kinetic energy (T) and potential energy (V). This approach gives the equations of motion through Euler-Lagrange equations. It accounts for the interaction between the two pendulums.',
       },
     ],
     variables: [
-      { symbol: 'θ₁, θ₂', description: 'Angles of first and second pendulums from vertical (radians)' },
+      {
+        symbol: 'θ₁, θ₂',
+        description: 'Angles of first and second pendulums from vertical (radians)',
+      },
       { symbol: 'ℓ₁, ℓ₂', description: 'Lengths of the pendulum arms' },
       { symbol: 'm₁, m₂', description: 'Masses of the bobs' },
       { symbol: 'g', description: 'Gravitational acceleration' },
@@ -52,11 +65,13 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\ddot{\theta}_1 = \frac{-g(2m_1+m_2)\sin\theta_1 - m_2 g \sin(\theta_1-2\theta_2) - 2\sin(\theta_1-\theta_2)\,m_2\!\left(\dot{\theta}_2^2 \ell_2 + \dot{\theta}_1^2 \ell_1 \cos(\theta_1-\theta_2)\right)}{\ell_1\!\left(2m_1+m_2-m_2\cos(2\theta_1-2\theta_2)\right)}`,
-        description: 'This complex equation gives the acceleration of the first pendulum. It includes gravity, centrifugal forces, and coupling with the second pendulum. The motion is nonlinear and can be chaotic.',
+        description:
+          'This complex equation gives the acceleration of the first pendulum. It includes gravity, centrifugal forces, and coupling with the second pendulum. The motion is nonlinear and can be chaotic.',
       },
       {
         latex: String.raw`\ddot{\theta}_2 = \frac{2\sin(\theta_1-\theta_2)\left(\dot{\theta}_1^2 \ell_1(m_1+m_2) + g(m_1+m_2)\cos\theta_1 + \dot{\theta}_2^2 \ell_2 m_2\cos(\theta_1-\theta_2)\right)}{\ell_2\!\left(2m_1+m_2-m_2\cos(2\theta_1-2\theta_2)\right)}`,
-        description: 'Acceleration of the second pendulum. Similar complexity, but depends on the first pendulum\'s motion. Small angle changes can cause big differences over time.',
+        description:
+          "Acceleration of the second pendulum. Similar complexity, but depends on the first pendulum's motion. Small angle changes can cause big differences over time.",
       },
     ],
   },
@@ -65,7 +80,8 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`H = \underbrace{\frac{1}{2}(m_1{+}m_2)\ell_1^2\dot\theta_1^2 + \frac{1}{2}m_2\ell_2^2\dot\theta_2^2 + m_2\ell_1\ell_2\dot\theta_1\dot\theta_2\cos\Delta\theta}_{\text{kinetic}} - \underbrace{(m_1{+}m_2)g\ell_1\cos\theta_1 - m_2 g\ell_2\cos\theta_2}_{\text{potential}}`,
-        description: 'The Hamiltonian H is the total energy. In theory it\'s conserved, but numerical errors cause small changes. Watch this to see simulation accuracy.',
+        description:
+          "The Hamiltonian H is the total energy. In theory it's conserved, but numerical errors cause small changes. Watch this to see simulation accuracy.",
       },
     ],
   },
@@ -74,17 +90,20 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\mathbf{y}_{n+1} = \mathbf{y}_n + h\sum_{i=1}^{s} b_i\mathbf{k}_i, \quad \text{err} = h\sum_{i=1}^{s}(b_i - b_i^*)\mathbf{k}_i`,
-        description: 'Runge-Kutta 4/5 method with adaptive step size. It automatically adjusts time steps for accuracy. The error estimate ensures reliable results.',
+        description:
+          'Runge-Kutta 4/5 method with adaptive step size. It automatically adjusts time steps for accuracy. The error estimate ensures reliable results.',
       },
     ],
   },
   {
     title: 'How to Use',
-    content: '1. Adjust initial angles θ₁ and θ₂ - small changes can lead to very different paths.\n2. Change lengths ℓ₁, ℓ₂ - longer arms mean slower motion.\n3. Modify masses m₁, m₂ - affects the coupling between pendulums.\n4. Watch the trail to see the path of the second bob.\n5. Check energy conservation - it should stay constant.',
+    content:
+      '1. Adjust initial angles θ₁ and θ₂ - small changes can lead to very different paths.\n2. Change lengths ℓ₁, ℓ₂ - longer arms mean slower motion.\n3. Modify masses m₁, m₂ - affects the coupling between pendulums.\n4. Watch the trail to see the path of the second bob.\n5. Check energy conservation - it should stay constant.',
   },
   {
     title: 'Beginner Tips',
-    content: 'Start with equal lengths and masses for symmetry. Try slightly different starting angles and see chaos emerge. Look for patterns in the phase space plots. Notice how the second pendulum moves faster. Experiment with one pendulum much heavier - it behaves more like a single pendulum. Watch for "looping" where the pendulum goes over the top.',
+    content:
+      'Start with equal lengths and masses for symmetry. Try slightly different starting angles and see chaos emerge. Look for patterns in the phase space plots. Notice how the second pendulum moves faster. Experiment with one pendulum much heavier - it behaves more like a single pendulum. Watch for "looping" where the pendulum goes over the top.',
   },
 ];
 
@@ -126,19 +145,19 @@ function derivs(state, p) {
   const sinD = Math.sin(d);
   const den = 2 * p.m1 + p.m2 - p.m2 * Math.cos(2 * d);
 
-  const dom1 = (
-    -p.g * (2 * p.m1 + p.m2) * Math.sin(th1)
-    - p.m2 * p.g * Math.sin(th1 - 2 * th2)
-    - 2 * sinD * p.m2 * (om2 * om2 * p.l2 + om1 * om1 * p.l1 * cosD)
-  ) / (p.l1 * den);
+  const dom1 =
+    (-p.g * (2 * p.m1 + p.m2) * Math.sin(th1) -
+      p.m2 * p.g * Math.sin(th1 - 2 * th2) -
+      2 * sinD * p.m2 * (om2 * om2 * p.l2 + om1 * om1 * p.l1 * cosD)) /
+    (p.l1 * den);
 
-  const dom2 = (
-    2 * sinD * (
-      om1 * om1 * p.l1 * (p.m1 + p.m2)
-      + p.g * (p.m1 + p.m2) * Math.cos(th1)
-      + om2 * om2 * p.l2 * p.m2 * cosD
-    )
-  ) / (p.l2 * den);
+  const dom2 =
+    (2 *
+      sinD *
+      (om1 * om1 * p.l1 * (p.m1 + p.m2) +
+        p.g * (p.m1 + p.m2) * Math.cos(th1) +
+        om2 * om2 * p.l2 * p.m2 * cosD)) /
+    (p.l2 * den);
 
   return [om1, om2, dom1, dom2];
 }
@@ -146,11 +165,11 @@ function derivs(state, p) {
 // ── Hamiltonian (total energy) ──────────────────────────────────────────────
 function hamiltonian(th1, th2, om1, om2, p) {
   const cosD = Math.cos(th1 - th2);
-  const T = 0.5 * (p.m1 + p.m2) * p.l1 * p.l1 * om1 * om1
-          + 0.5 * p.m2 * p.l2 * p.l2 * om2 * om2
-          + p.m2 * p.l1 * p.l2 * om1 * om2 * cosD;
-  const V = -(p.m1 + p.m2) * p.g * p.l1 * Math.cos(th1)
-            - p.m2 * p.g * p.l2 * Math.cos(th2);
+  const T =
+    0.5 * (p.m1 + p.m2) * p.l1 * p.l1 * om1 * om1 +
+    0.5 * p.m2 * p.l2 * p.l2 * om2 * om2 +
+    p.m2 * p.l1 * p.l2 * om1 * om2 * cosD;
+  const V = -(p.m1 + p.m2) * p.g * p.l1 * Math.cos(th1) - p.m2 * p.g * p.l2 * Math.cos(th2);
   return T + V;
 }
 
@@ -176,7 +195,8 @@ export const scenarios = [
   },
   {
     name: 'Butterfly Effect',
-    description: 'Change θ₁ by 0.01 rad from the "Chaos Onset" scenario. Compare the completely different trajectory.',
+    description:
+      'Change θ₁ by 0.01 rad from the "Chaos Onset" scenario. Compare the completely different trajectory.',
     params: { theta1: Math.PI / 2 + 0.01, theta2: Math.PI / 4, omega1: 0, omega2: 0 },
   },
   {
@@ -191,33 +211,50 @@ export const guidedExperiments = [
     title: 'Chaos vs. Predictability',
     steps: [
       {
-        instruction: 'We\'ll start gentle. The parameters have been set to θ₁ = 0.15 rad (about 9°). Press Play and let it run for 5 seconds.',
+        instruction:
+          "We'll start gentle. The parameters have been set to θ₁ = 0.15 rad (about 9°). Press Play and let it run for 5 seconds.",
         params: { theta1: 0.15, theta2: 0.1, omega1: 0, omega2: 0 },
         question: 'What type of motion do you expect for small angles?',
         choices: ['Chaotic and unpredictable', 'Roughly periodic (repeating)', 'Immediate rest'],
         correctIndex: 1,
-        commonMisconception: 'Many assume the double pendulum is always chaotic. At small angles, it behaves nearly like two coupled harmonic oscillators — the motion is quasi-periodic.',
-        explanation: 'At small angles, the nonlinear terms in the equations of motion become negligible, and the system approximates two coupled simple pendulums with energy exchanging between modes.',
+        commonMisconception:
+          'Many assume the double pendulum is always chaotic. At small angles, it behaves nearly like two coupled harmonic oscillators — the motion is quasi-periodic.',
+        explanation:
+          'At small angles, the nonlinear terms in the equations of motion become negligible, and the system approximates two coupled simple pendulums with energy exchanging between modes.',
         tryThis: 'Watch the trail carefully — it traces nearly-closed loops in the Phase tab.',
       },
       {
         instruction: 'Now increase θ₁ to π/2 (90°). Reset and play.',
         params: { theta1: Math.PI / 2, theta2: Math.PI / 4, omega1: 0, omega2: 0 },
         question: 'Will the motion still be periodic?',
-        choices: ['Yes, just wider swings', 'No — it will become chaotic', 'It will slow down and stop'],
+        choices: [
+          'Yes, just wider swings',
+          'No — it will become chaotic',
+          'It will slow down and stop',
+        ],
         correctIndex: 1,
-        commonMisconception: 'Students often think "bigger angle = bigger but similar motion." In reality, the nonlinear cos(θ₁−θ₂) coupling term dominates at large angles, breaking periodicity.',
-        explanation: 'The double pendulum transitions to chaos above a critical energy threshold. The Lyapunov exponent (visible in the HUD) becomes positive, meaning nearby trajectories diverge exponentially.',
-        tryThis: 'Compare the Phase Space plot now vs. the previous step. The neat loops have become a tangled mess.',
+        commonMisconception:
+          'Students often think "bigger angle = bigger but similar motion." In reality, the nonlinear cos(θ₁−θ₂) coupling term dominates at large angles, breaking periodicity.',
+        explanation:
+          'The double pendulum transitions to chaos above a critical energy threshold. The Lyapunov exponent (visible in the HUD) becomes positive, meaning nearby trajectories diverge exponentially.',
+        tryThis:
+          'Compare the Phase Space plot now vs. the previous step. The neat loops have become a tangled mess.',
       },
       {
-        instruction: 'Keep everything the same, but change θ₁ by just 0.01 rad (from π/2 to π/2 + 0.01).',
+        instruction:
+          'Keep everything the same, but change θ₁ by just 0.01 rad (from π/2 to π/2 + 0.01).',
         params: { theta1: Math.PI / 2 + 0.01, theta2: Math.PI / 4, omega1: 0, omega2: 0 },
         question: 'After 10 seconds, will this trajectory look similar to the previous one?',
-        choices: ['Almost identical — 0.01 rad is tiny', 'Completely different trajectory', 'Same shape but shifted in time'],
+        choices: [
+          'Almost identical — 0.01 rad is tiny',
+          'Completely different trajectory',
+          'Same shape but shifted in time',
+        ],
         correctIndex: 1,
-        commonMisconception: 'Our intuition says tiny changes → tiny effects. Chaos means exponentially sensitive dependence on initial conditions — the "butterfly effect."',
-        explanation: 'This is the hallmark of chaos: sensitive dependence on initial conditions. Two states that are 0.01 rad apart will diverge exponentially, with the separation growing as e^(λt) where λ is the Lyapunov exponent.',
+        commonMisconception:
+          'Our intuition says tiny changes → tiny effects. Chaos means exponentially sensitive dependence on initial conditions — the "butterfly effect."',
+        explanation:
+          'This is the hallmark of chaos: sensitive dependence on initial conditions. Two states that are 0.01 rad apart will diverge exponentially, with the separation growing as e^(λt) where λ is the Lyapunov exponent.',
       },
     ],
   },
@@ -231,13 +268,19 @@ export function init(p) {
   const om1 = p.omega1;
   const om2 = p.omega2;
   const trailCap = Math.max(100, Math.floor(p.trail));
-  
+
   return {
-    th1, th2, om1, om2,
-    sth1: th1 + 1e-7, sth2: th2, som1: om1, som2: om2, // shadow state for Lyapunov
+    th1,
+    th2,
+    om1,
+    om2,
+    sth1: th1 + 1e-7,
+    sth2: th2,
+    som1: om1,
+    som2: om2, // shadow state for Lyapunov
     simTime: 0,
     stepCount: 0,
-    currentDt: 1/60/20,
+    currentDt: 1 / 60 / 20,
     H0: hamiltonian(th1, th2, om1, om2, p),
     lyapunovSum: 0,
     lyapunovCount: 0,
@@ -248,17 +291,39 @@ export function init(p) {
 }
 
 export function update(state, dt, p) {
-  const { th1, th2, om1, om2, sth1, sth2, som1, som2, simTime, stepCount, lyapunovSum, lyapunovCount, trail, trailHead, trailLen } = state;
+  const {
+    th1,
+    th2,
+    om1,
+    om2,
+    sth1,
+    sth2,
+    som1,
+    som2,
+    simTime,
+    stepCount,
+    lyapunovSum,
+    lyapunovCount,
+    trail,
+    trailHead,
+    trailLen,
+  } = state;
   const tol = p.tolerance || 1e-8;
   const SHADOW_EPS = 1e-7;
-  
-  let currentTh1 = th1, currentTh2 = th2, currentOm1 = om1, currentOm2 = om2;
-  let currentSth1 = sth1, currentSth2 = sth2, currentSom1 = som1, currentSom2 = som2;
+
+  let currentTh1 = th1,
+    currentTh2 = th2,
+    currentOm1 = om1,
+    currentOm2 = om2;
+  let currentSth1 = sth1,
+    currentSth2 = sth2,
+    currentSom1 = som1,
+    currentSom2 = som2;
   let currentSimTime = simTime;
   let currentStepCount = stepCount;
   let currentLyapunovSum = lyapunovSum;
   let currentLyapunovCount = lyapunovCount;
-  
+
   let remaining = dt;
   let h = state.currentDt;
   const maxSteps = 200;
@@ -267,13 +332,18 @@ export function update(state, dt, p) {
   while (remaining > 1e-12 && steps < maxSteps) {
     h = Math.min(h, remaining);
     const result = rk45Step([currentTh1, currentTh2, currentOm1, currentOm2], h, derivs, p, tol);
-    
+
     if (result.accepted) {
       [currentTh1, currentTh2, currentOm1, currentOm2] = result.state;
       const shadowNext = rk4([currentSth1, currentSth2, currentSom1, currentSom2], h, derivs, p);
       [currentSth1, currentSth2, currentSom1, currentSom2] = shadowNext;
-      
-      const dd = Math.sqrt((currentTh1-currentSth1)**2 + (currentTh2-currentSth2)**2 + (currentOm1-currentSom1)**2 + (currentOm2-currentSom2)**2);
+
+      const dd = Math.sqrt(
+        (currentTh1 - currentSth1) ** 2 +
+          (currentTh2 - currentSth2) ** 2 +
+          (currentOm1 - currentSom1) ** 2 +
+          (currentOm2 - currentSom2) ** 2,
+      );
       if (dd > 0 && currentSimTime > 0.1) {
         currentLyapunovSum += Math.log(dd / SHADOW_EPS);
         currentLyapunovCount++;
@@ -283,7 +353,7 @@ export function update(state, dt, p) {
         currentSom1 = currentOm1 + (currentSom1 - currentOm1) * scale;
         currentSom2 = currentOm2 + (currentSom2 - currentOm2) * scale;
       }
-      
+
       remaining -= h;
       currentSimTime += h;
       currentStepCount++;
@@ -298,7 +368,7 @@ export function update(state, dt, p) {
   const y1 = p.l1 * Math.cos(currentTh1);
   const x2 = x1 + p.l2 * Math.sin(currentTh2);
   const y2 = y1 + p.l2 * Math.cos(currentTh2);
-  
+
   const nextTrail = new Float32Array(trail);
   nextTrail[trailHead * 2] = x2;
   nextTrail[trailHead * 2 + 1] = y2;
@@ -307,8 +377,14 @@ export function update(state, dt, p) {
 
   return {
     ...state,
-    th1: currentTh1, th2: currentTh2, om1: currentOm1, om2: currentOm2,
-    sth1: currentSth1, sth2: currentSth2, som1: currentSom1, som2: currentSom2,
+    th1: currentTh1,
+    th2: currentTh2,
+    om1: currentOm1,
+    om2: currentOm2,
+    sth1: currentSth1,
+    sth2: currentSth2,
+    som1: currentSom1,
+    som2: currentSom2,
     simTime: currentSimTime,
     stepCount: currentStepCount,
     lyapunovSum: currentLyapunovSum,
@@ -321,7 +397,8 @@ export function update(state, dt, p) {
 }
 
 export function render(ctx, state, p, canvas) {
-  const W = canvas.width, H = canvas.height;
+  const W = canvas.width,
+    H = canvas.height;
   ctx.fillStyle = '#0B0F14';
   ctx.fillRect(0, 0, W, H);
 
@@ -348,25 +425,38 @@ export function render(ctx, state, p, canvas) {
     ctx.lineWidth = 1.5;
     ctx.stroke();
   }
-  
+
   // Pivot
-  ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2);
-  ctx.fillStyle = '#e4e4f0'; ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+  ctx.fillStyle = '#e4e4f0';
+  ctx.fill();
 
   // Arms
   ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(x1, y1);
-  ctx.strokeStyle = 'rgba(192,168,255,0.85)'; ctx.lineWidth = 3; ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
-  ctx.strokeStyle = 'rgba(160,210,255,0.85)'; ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(x1, y1);
+  ctx.strokeStyle = 'rgba(192,168,255,0.85)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.strokeStyle = 'rgba(160,210,255,0.85)';
+  ctx.stroke();
 
   // Bobs
   const r1 = 9 + Math.sqrt(p.m1) * 4;
   const r2 = 9 + Math.sqrt(p.m2) * 4;
-  ctx.beginPath(); ctx.arc(x1, y1, r1, 0, Math.PI * 2);
-  ctx.fillStyle = '#81D4FA'; ctx.fill();
-  ctx.beginPath(); ctx.arc(x2, y2, r2, 0, Math.PI * 2);
-  ctx.fillStyle = '#93c5fd'; ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x1, y1, r1, 0, Math.PI * 2);
+  ctx.fillStyle = '#81D4FA';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x2, y2, r2, 0, Math.PI * 2);
+  ctx.fillStyle = '#93c5fd';
+  ctx.fill();
 }
 
 export function getData(state, p) {
@@ -382,7 +472,8 @@ export function getData(state, p) {
     energyError: state.H0 !== 0 ? (H - state.H0) / Math.abs(state.H0) : 0,
     dt: state.currentDt,
     steps: state.stepCount,
-    lyapunov: state.lyapunovCount > 0 ? state.lyapunovSum / (state.lyapunovCount * state.simTime) : 0,
+    lyapunov:
+      state.lyapunovCount > 0 ? state.lyapunovSum / (state.lyapunovCount * state.simTime) : 0,
   };
 }
 
@@ -400,12 +491,14 @@ export function create(canvas, initParams = {}) {
     render(ctx, state, p, canvas);
   }
 
-  let rafId, lastTs, running = false;
+  let rafId,
+    lastTs,
+    running = false;
   let speedScale = 1;
 
   function loop(ts) {
     if (!running) return;
-    const dt = lastTs === undefined ? 1/60 : Math.min((ts - lastTs) / 1000, 1/20);
+    const dt = lastTs === undefined ? 1 / 60 : Math.min((ts - lastTs) / 1000, 1 / 20);
     lastTs = ts;
     tick(dt * speedScale);
     draw();
@@ -417,14 +510,30 @@ export function create(canvas, initParams = {}) {
   return {
     start() {
       if (running) return;
-      running = true; lastTs = undefined;
+      running = true;
+      lastTs = undefined;
       rafId = requestAnimationFrame(loop);
     },
-    stop() { running = false; cancelAnimationFrame(rafId); },
-    reset() { this.stop(); state = init(p); draw(); this.start(); },
-    setParams(next) { Object.assign(p, next); draw(); },
-    setSpeed(s) { speedScale = s; },
-    destroy() { this.stop(); },
+    stop() {
+      running = false;
+      cancelAnimationFrame(rafId);
+    },
+    reset() {
+      this.stop();
+      state = init(p);
+      draw();
+      this.start();
+    },
+    setParams(next) {
+      Object.assign(p, next);
+      draw();
+    },
+    setSpeed(s) {
+      speedScale = s;
+    },
+    destroy() {
+      this.stop();
+    },
     getData() {
       return getData(state, p);
     },
