@@ -132,6 +132,32 @@ body {
 }
 
 /* Thin Grid and Axes */
+.grid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: 60px 60px;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  z-index: 1;
+  pointer-events: none;
+  mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 70%);
+  -webkit-mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 70%);
+  animation: grid-drift 30s linear infinite;
+}
+
+@keyframes grid-drift {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 60px 60px;
+  }
+}
+
 .horizontal-axis,
 .vertical-axis {
   position: absolute;
@@ -251,7 +277,6 @@ body {
   transform: translateY(-1px);
 }
 
-/* Hero Section */
 .hero-content {
   position: relative;
   z-index: 5;
@@ -263,17 +288,33 @@ body {
   text-align: center;
   padding: 2rem 2rem 4rem 2rem;
   margin-top: 0;
+  animation: content-slide-up 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes content-slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .hero-title {
   font-family: var(--font-serif);
   font-size: 5.5rem;
   font-weight: 300;
-  color: #fff;
   line-height: 1.02;
   margin-bottom: 2.618rem; /* Golden Ratio */
   letter-spacing: -0.04em;
-  text-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
 }
 
 .hero-sub {
@@ -334,27 +375,6 @@ body {
 .primary-btn:active {
   transform: scale(0.97) translateY(0);
   box-shadow: 0 5px 15px rgba(255, 255, 255, 0.05);
-}
-
-/* Parallax Depth Classes */
-.parallax-back {
-  translate: calc(var(--mouse-x, 0) * -15px) calc(var(--mouse-y, 0) * -15px);
-  transition: translate 0.8s var(--ease-apple);
-}
-
-.parallax-title {
-  translate: calc(var(--mouse-x, 0) * 8px) calc(var(--mouse-y, 0) * 8px);
-  transition: translate 0.8s var(--ease-apple);
-}
-
-.parallax-sub {
-  translate: calc(var(--mouse-x, 0) * 12px) calc(var(--mouse-y, 0) * 12px);
-  transition: translate 0.8s var(--ease-apple);
-}
-
-.parallax-btn {
-  translate: calc(var(--mouse-x, 0) * 16px) calc(var(--mouse-y, 0) * 16px);
-  transition: translate 0.8s var(--ease-apple);
 }
 
 /* Discord Banner */

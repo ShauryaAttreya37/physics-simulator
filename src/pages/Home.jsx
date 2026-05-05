@@ -13,20 +13,6 @@ export default function Home({ onNavigate }) {
     }, 400); // matches the 0.4s animation duration in App.css
   };
 
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (!containerRef.current) return;
-      const x = (e.clientX / window.innerWidth - 0.5) * 2;
-      const y = (e.clientY / window.innerHeight - 0.5) * 2;
-
-      containerRef.current.style.setProperty('--mouse-x', x);
-      containerRef.current.style.setProperty('--mouse-y', y);
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
   return (
     <div
       className={`home-wrapper ${isExiting ? 'page-fade-out' : 'page-fade-in'}`}
@@ -62,19 +48,19 @@ export default function Home({ onNavigate }) {
         </nav>
 
         {/* Thin Grid Overlay */}
-        <div className="grid-overlay parallax-back"></div>
-        <div className="horizontal-axis parallax-back"></div>
-        <div className="vertical-axis parallax-back"></div>
+        <div className="grid-overlay"></div>
+        <div className="horizontal-axis"></div>
+        <div className="vertical-axis"></div>
 
         {/* Hero Content */}
-        <main className="hero-content parallax-front">
-          <h1 className="hero-title parallax-title">
+        <main className="hero-content">
+          <h1 className="hero-title">
             Transform your understanding.
             <br />
             Elevate your research.
           </h1>
 
-          <p className="hero-sub parallax-sub">
+          <p className="hero-sub">
             Physics Simulator adapts to dynamic physical systems
             <br />
             in real time — revealing chaos, conserving energy,
@@ -82,11 +68,11 @@ export default function Home({ onNavigate }) {
             and helping you visualize the mechanics of the universe.
           </p>
 
-          <button className="primary-btn parallax-btn" onClick={() => handleNavigate('topics')}>
+          <button className="primary-btn" onClick={() => handleNavigate('topics')}>
             Enter Laboratory
           </button>
 
-          <div className="discord-banner parallax-btn">
+          <div className="discord-banner">
             <div className="discord-content">
               <svg
                 className="discord-icon"
