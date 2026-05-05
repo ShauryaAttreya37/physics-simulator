@@ -61,10 +61,8 @@ export default function Home({ onNavigate }) {
           </h1>
 
           <p className="hero-sub">
-            An interactive sandbox built for students. Tweak parameters in
-            <br />
-            real-time, plot data, and get an intuitive feel for complex
-            <br />
+            An interactive sandbox built for students. Tweak parameters in <br />
+            real-time, plot data, and get an intuitive feel for complex <br />
             systems—from mechanics to quantum.
           </p>
 
