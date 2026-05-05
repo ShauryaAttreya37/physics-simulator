@@ -1787,6 +1787,12 @@ select.form-input option {
   white-space: nowrap;
 }
 
+@media (max-width: 768px) {
+  .data-readout {
+    display: none !important;
+  }
+}
+
 /* ── Data Readout (instrument-style HUD) ──────────────────────────── */
 .data-readout {
   position: absolute;
@@ -2092,10 +2098,15 @@ select.form-input option {
     transform: translateY(0);
   }
   .sim-runner-top-bar {
-    padding: 8px 12px;
+    padding: 6px 10px;
   }
   .sim-canvas-wrapper {
-    margin: 8px !important;
+    margin: 4px !important;
+    border-radius: 6px !important;
+  }
+  /* Hide the method badge row on mobile to save vertical space */
+  .sim-runner-top-bar .method-badge {
+    display: none;
   }
   /* mobile toggle button */
   .mobile-panel-toggle {
@@ -3109,41 +3120,34 @@ input[type='range']::-webkit-slider-thumb:hover {
 
 @media (max-width: 768px) {
   .sim-runner-top-bar {
-    padding: 8px;
+    padding: 6px 10px;
     gap: 6px;
-    flex-wrap: wrap;
-    overflow: visible;
+    flex-wrap: nowrap;
+    overflow: hidden;
   }
   .sim-runner-top-bar .icon-btn {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
   }
-  .sim-runner-top-bar .btn-export {
-    height: 36px;
-    width: 36px;
-    font-size: 0;
-    padding: 0;
-    min-width: 0;
-    justify-content: center;
+  /* Hide export actions (CSV / Video) on mobile to declutter */
+  .sim-runner-top-bar .export-actions {
+    display: none !important;
   }
-  .sim-runner-top-bar .btn-export svg {
-    margin: 0;
-  }
-  .sim-runner-top-bar .btn-record {
-    height: 36px;
-    width: 36px;
-    font-size: 0;
-    padding: 0;
-    min-width: 0;
-    justify-content: center;
-  }
-  .sim-runner-top-bar .btn-record svg {
-    margin: 0;
+  /* Hide speed gauge icon on mobile */
+  .sim-runner-top-bar .speed-gauge-icon {
+    display: none !important;
   }
   .sim-runner-top-bar .speed-select {
-    height: 36px;
+    height: 34px;
     font-size: 11px;
-    padding: 0 4px;
+    padding: 0 6px;
+    flex-shrink: 0;
+  }
+  /* Sim title block should truncate, not push buttons off */
+  .sim-runner-top-bar > div:first-of-type {
+    flex: 1 1 0;
+    min-width: 0;
   }
 }
 

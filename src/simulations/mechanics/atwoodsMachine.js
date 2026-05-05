@@ -432,10 +432,14 @@ export function create(canvas, initParams = {}) {
     });
 
     // --- Right Panel ---
-    renderRightPanel(simAreaW, W, H, a, T);
+    if (window.innerWidth > 768) {
+      renderRightPanel(simAreaW, W, H, a, T);
+    }
 
     // --- Bottom HUD ---
-    renderBottomHUD(simAreaW, W, H, a, T);
+    if (window.innerWidth > 768) {
+      renderBottomHUD(simAreaW, W, H, a, T);
+    }
   }
 
   function drawMassBlock(cx, cy, mass, color, darkColor, label) {

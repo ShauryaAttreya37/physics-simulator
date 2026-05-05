@@ -274,6 +274,8 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
   let hover = null;
   let dragging = null;
 
+  const isMobile = () => window.innerWidth <= 768;
+
   const getMouse = (event) => {
     const rect = canvas.getBoundingClientRect();
     const sx = canvas.width / rect.width;
@@ -289,19 +291,20 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
     const m = getMouse(event);
     const L = layout();
     const element = ELEMENTS[Math.round(p.elementIdx)] || ELEMENTS[0];
+    const hitSize = isMobile() ? 40 : 25;
 
     if (element.kind === 'slab') {
       const width = p.slabThickness * L.pixelsPerCm;
       const left = L.elementX - width / 2;
       const centerY = L.axisY - 50;
-      if (Math.abs(m.x - left) < 30 && Math.abs(m.y - centerY) < 100) {
+      if (Math.abs(m.x - left) < hitSize + 10 && Math.abs(m.y - centerY) < 100) {
         dragging = { type: 'slab-incidence' };
         return;
       }
     } else {
       const ox = xWorldToScreen(-p.objectDistance, L);
       const oy = yWorldToScreen(p.objectHeight, L);
-      if (Math.abs(m.x - ox) < 25 && Math.abs(m.y - oy) < 40) {
+      if (Math.abs(m.x - ox) < hitSize && Math.abs(m.y - oy) < hitSize + 15) {
         dragging = { type: 'object' };
         return;
       }
@@ -309,11 +312,11 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
       const fAbs = Math.abs(p.focalLength);
       const fx1 = xWorldToScreen(-fAbs, L);
       const fx2 = xWorldToScreen(fAbs, L);
-      if (Math.abs(m.x - fx1) < 20 && Math.abs(m.y - L.axisY) < 30) {
+      if (Math.abs(m.x - fx1) < hitSize && Math.abs(m.y - L.axisY) < hitSize + 5) {
         dragging = { type: 'focal' };
         return;
       }
-      if (Math.abs(m.x - fx2) < 20 && Math.abs(m.y - L.axisY) < 30) {
+      if (Math.abs(m.x - fx2) < hitSize && Math.abs(m.y - L.axisY) < hitSize + 5) {
         dragging = { type: 'focal' };
         return;
       }
@@ -353,18 +356,24 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
     dragging = null;
   };
 
-  canvas.addEventListener('mousedown', onDown);
-  window.addEventListener('mousemove', onMove);
-  window.addEventListener('mouseup', onUp);
+  // Use pointer events for touch + mouse support
+  canvas.addEventListener('pointerdown', onDown);
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+  canvas.style.touchAction = 'none';
 
   function layout() {
     const w = canvas.width || 1;
     const h = canvas.height || 1;
-    const scale = Math.min(w / 900, h / 520);
+    // Use smaller reference on mobile so content fills the screen
+    const refW = isMobile() ? 500 : 900;
+    const refH = isMobile() ? 350 : 520;
+    const scale = Math.min(w / refW, h / refH);
     const axisY = h * 0.54 + (p.panY || 0);
-    const elementX = w * 0.48 + (p.panX || 0);
+    const elementX = w * (isMobile() ? 0.5 : 0.48) + (p.panX || 0);
     const pixelsPerCm = scale * 0.95;
-    return { w, h, axisY, elementX, pixelsPerCm };
+    const mobile = isMobile();
+    return { w, h, axisY, elementX, pixelsPerCm, mobile };
   }
 
   function xWorldToScreen(xWorld, L) {
@@ -382,42 +391,46 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
     // Minor grid lines
     ctx.strokeStyle = 'rgba(255,255,255,0.04)';
     ctx.lineWidth = 1;
-    const spacing = 10 * L.pixelsPerCm; // 10cm grid
-    for (let x = L.elementX % spacing; x < L.w; x += spacing) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, L.h);
-      ctx.stroke();
-    }
-    for (let y = L.axisY % spacing; y < L.h; y += spacing) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(L.w, y);
-      ctx.stroke();
+    const spacing = (L.mobile ? 20 : 10) * L.pixelsPerCm;
+    if (spacing > 8) {
+      for (let x = L.elementX % spacing; x < L.w; x += spacing) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, L.h);
+        ctx.stroke();
+      }
+      for (let y = L.axisY % spacing; y < L.h; y += spacing) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(L.w, y);
+        ctx.stroke();
+      }
     }
 
     // Optical Axis
     ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = L.mobile ? 1 : 1.5;
     ctx.beginPath();
     ctx.moveTo(0, L.axisY);
     ctx.lineTo(L.w, L.axisY);
     ctx.stroke();
 
-    // Ticks on Optical Axis
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    for (let xCm = -500; xCm <= 500; xCm += 50) {
-      if (xCm === 0) continue;
-      const xPx = xWorldToScreen(xCm, L);
-      if (xPx > 0 && xPx < L.w) {
-        ctx.beginPath();
-        ctx.moveTo(xPx, L.axisY - 4);
-        ctx.lineTo(xPx, L.axisY + 4);
-        ctx.stroke();
-        ctx.fillText(`${xCm}`, xPx, L.axisY + 8);
+    // Ticks on Optical Axis (skip on very small screens)
+    if (!L.mobile) {
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      for (let xCm = -500; xCm <= 500; xCm += 50) {
+        if (xCm === 0) continue;
+        const xPx = xWorldToScreen(xCm, L);
+        if (xPx > 0 && xPx < L.w) {
+          ctx.beginPath();
+          ctx.moveTo(xPx, L.axisY - 4);
+          ctx.lineTo(xPx, L.axisY + 4);
+          ctx.stroke();
+          ctx.fillText(`${xCm}`, xPx, L.axisY + 8);
+        }
       }
     }
   }
@@ -425,19 +438,38 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
   function getElementSurfaces(L, element) {
     const aperturePx = p.aperture * L.pixelsPerCm;
     if (element.kind === 'lens') {
-      const bulge = element.focalSign > 0 ? 25 : -25;
-      return {
-        front: (y) => {
-          const t = (y - L.axisY) / (aperturePx / 2);
-          if (Math.abs(t) > 1) return null;
-          return L.elementX - bulge * (1 - t * t);
-        },
-        back: (y) => {
-          const t = (y - L.axisY) / (aperturePx / 2);
-          if (Math.abs(t) > 1) return null;
-          return L.elementX + bulge * (1 - t * t);
-        },
-      };
+      if (element.focalSign > 0) {
+        // Convex (biconvex): surfaces bulge outward
+        const bulge = 25;
+        return {
+          front: (y) => {
+            const t = (y - L.axisY) / (aperturePx / 2);
+            if (Math.abs(t) > 1) return null;
+            return L.elementX - bulge * (1 - t * t);
+          },
+          back: (y) => {
+            const t = (y - L.axisY) / (aperturePx / 2);
+            if (Math.abs(t) > 1) return null;
+            return L.elementX + bulge * (1 - t * t);
+          },
+        };
+      } else {
+        // Concave (biconcave): surfaces curve inward
+        const edgeHalf = 18;
+        const indent = 14;
+        return {
+          front: (y) => {
+            const t = (y - L.axisY) / (aperturePx / 2);
+            if (Math.abs(t) > 1) return null;
+            return L.elementX - edgeHalf + indent * (1 - t * t);
+          },
+          back: (y) => {
+            const t = (y - L.axisY) / (aperturePx / 2);
+            if (Math.abs(t) > 1) return null;
+            return L.elementX + edgeHalf - indent * (1 - t * t);
+          },
+        };
+      }
     } else if (element.kind === 'mirror') {
       const curve = element.focalSign > 0 ? 35 : -35;
       return {
@@ -466,31 +498,85 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
       ctx.fillStyle = grad;
       ctx.fillRect(x - width / 2, top, width, aperturePx);
       ctx.strokeStyle = 'rgba(125,211,252,0.8)';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = L.mobile ? 1.5 : 2;
       ctx.strokeRect(x - width / 2, top, width, aperturePx);
-      ctx.font = '700 12px "JetBrains Mono", monospace';
+      const fontSize = L.mobile ? 10 : 12;
+      ctx.font = `700 ${fontSize}px "JetBrains Mono", monospace`;
       ctx.fillStyle = '#bae6fd';
       ctx.textAlign = 'center';
-      ctx.fillText(`n = ${p.refractiveIndex.toFixed(2)}`, x, top - 15);
+      ctx.fillText(`n = ${p.refractiveIndex.toFixed(2)}`, x, top - (L.mobile ? 8 : 15));
       return;
     }
 
     ctx.save();
     ctx.strokeStyle = element.color;
     ctx.fillStyle = `${element.color}22`;
-    ctx.lineWidth = 3;
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = element.color;
+    ctx.lineWidth = L.mobile ? 2 : 3;
+    if (!L.mobile) {
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = element.color;
+    }
 
     if (element.kind === 'lens') {
-      const bulge = element.focalSign > 0 ? 25 : -25;
-      ctx.beginPath();
-      ctx.moveTo(x, L.axisY - aperturePx / 2);
-      ctx.quadraticCurveTo(x - bulge * 2, L.axisY, x, L.axisY + aperturePx / 2);
-      ctx.quadraticCurveTo(x + bulge * 2, L.axisY, x, L.axisY - aperturePx / 2);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
+      if (element.focalSign > 0) {
+        // Biconvex lens: bulges outward on both sides
+        const bulge = 25;
+        ctx.beginPath();
+        ctx.moveTo(x, L.axisY - aperturePx / 2);
+        ctx.quadraticCurveTo(x - bulge * 2, L.axisY, x, L.axisY + aperturePx / 2);
+        ctx.quadraticCurveTo(x + bulge * 2, L.axisY, x, L.axisY - aperturePx / 2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        // Biconcave lens: thin in middle, thick at edges
+        const edgeHalf = 18;
+        const indent = 14;
+        ctx.beginPath();
+        // Top-left corner
+        ctx.moveTo(x - edgeHalf, L.axisY - aperturePx / 2);
+        // Top edge
+        ctx.lineTo(x + edgeHalf, L.axisY - aperturePx / 2);
+        // Right surface curves inward (concave)
+        ctx.quadraticCurveTo(
+          x + edgeHalf - indent * 2,
+          L.axisY,
+          x + edgeHalf,
+          L.axisY + aperturePx / 2,
+        );
+        // Bottom edge
+        ctx.lineTo(x - edgeHalf, L.axisY + aperturePx / 2);
+        // Left surface curves inward (concave)
+        ctx.quadraticCurveTo(
+          x - edgeHalf + indent * 2,
+          L.axisY,
+          x - edgeHalf,
+          L.axisY - aperturePx / 2,
+        );
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        // Inward-pointing arrows at top and bottom to indicate diverging
+        ctx.globalAlpha = 0.4;
+        const arrowY1 = L.axisY - aperturePx / 2 - 6;
+        const arrowY2 = L.axisY + aperturePx / 2 + 6;
+        for (const [ax, dir] of [
+          [x - edgeHalf, -1],
+          [x + edgeHalf, 1],
+        ]) {
+          ctx.beginPath();
+          ctx.moveTo(ax + dir * 6, arrowY1 - 4);
+          ctx.lineTo(ax, arrowY1);
+          ctx.lineTo(ax + dir * 6, arrowY1 + 4);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(ax + dir * 6, arrowY2 - 4);
+          ctx.lineTo(ax, arrowY2);
+          ctx.lineTo(ax + dir * 6, arrowY2 + 4);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      }
     } else {
       const curve = element.focalSign > 0 ? 35 : -35;
       ctx.beginPath();
@@ -516,10 +602,10 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.strokeStyle = color;
-    ctx.lineWidth = 1.6;
+    ctx.lineWidth = isMobile() ? 1.2 : 1.6;
     if (dashed) {
-      ctx.setLineDash([6, 5]);
-    } else {
+      ctx.setLineDash([5, 4]);
+    } else if (!isMobile()) {
       ctx.shadowBlur = 4;
       ctx.shadowColor = color;
     }
@@ -744,40 +830,49 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
 
     drawElement(L, element);
 
-    // HUD
-    const hudX = 25,
-      hudY = 30;
+    // HUD — compact on mobile, full on desktop
+    {
+      const mob = L.mobile;
+      const hudX = mob ? 10 : 25;
+      const hudY = mob ? 16 : 30;
 
-    // Glassmorphic HUD background
-    ctx.save();
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.6)';
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.roundRect(hudX - 10, hudY - 20, 220, element.kind === 'slab' ? 70 : 90, 8);
-    ctx.fill();
-    ctx.stroke();
+      ctx.save();
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.lineWidth = 1;
 
-    ctx.font = '700 16px "Inter", sans-serif';
-    ctx.fillStyle = element.color;
-    ctx.textAlign = 'left';
-    ctx.fillText(element.name.toUpperCase(), hudX, hudY);
+      const hud =
+        element.kind === 'slab'
+          ? [`θ₁: ${p.incidenceAngle.toFixed(1)}°`, `Δ: ${optics.lateralShift.toFixed(1)} cm`]
+          : [
+              `dₒ: ${p.objectDistance.toFixed(0)} cm`,
+              `dᵢ: ${Number.isFinite(optics.imageDistance) ? optics.imageDistance.toFixed(0) : '∞'} cm`,
+              `m: ${Number.isFinite(optics.magnification) ? optics.magnification.toFixed(2) : '∞'}`,
+            ];
 
-    const hud =
-      element.kind === 'slab'
-        ? [`θ₁: ${p.incidenceAngle.toFixed(1)}°`, `Shift: ${optics.lateralShift.toFixed(2)} cm`]
-        : [
-            `dₒ: ${p.objectDistance.toFixed(1)} cm`,
-            `dᵢ: ${Number.isFinite(optics.imageDistance) ? optics.imageDistance.toFixed(1) : '∞'} cm`,
-            `m: ${Number.isFinite(optics.magnification) ? optics.magnification.toFixed(2) : '∞'}`,
-          ];
+      const titleFont = mob ? 12 : 16;
+      const bodyFont = mob ? 10 : 13;
+      const lineH = mob ? 15 : 20;
+      const boxW = mob ? 150 : 220;
+      const boxH = mob ? 14 + hud.length * lineH + 8 : element.kind === 'slab' ? 70 : 90;
 
-    ctx.font = '500 13px "JetBrains Mono", monospace';
-    ctx.fillStyle = '#f8fafc';
-    hud.forEach((text, i) => {
-      ctx.fillText(text, hudX, hudY + 24 + i * 20);
-    });
-    ctx.restore();
+      ctx.beginPath();
+      ctx.roundRect(hudX - 6, hudY - 14, boxW, boxH, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.font = `700 ${titleFont}px "Inter", sans-serif`;
+      ctx.fillStyle = element.color;
+      ctx.textAlign = 'left';
+      ctx.fillText(mob ? element.name : element.name.toUpperCase(), hudX, hudY);
+
+      ctx.font = `500 ${bodyFont}px "JetBrains Mono", monospace`;
+      ctx.fillStyle = '#f8fafc';
+      hud.forEach((text, i) => {
+        ctx.fillText(text, hudX, hudY + (mob ? 16 : 24) + i * lineH);
+      });
+      ctx.restore();
+    }
 
     if (hover && !dragging) {
       ctx.beginPath();
@@ -807,9 +902,9 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
       render();
     },
     destroy() {
-      canvas.removeEventListener('mousedown', onDown);
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
+      canvas.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
     },
     getData() {
       const optics = lensImage(p);

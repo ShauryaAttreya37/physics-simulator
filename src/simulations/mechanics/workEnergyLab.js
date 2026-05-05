@@ -332,43 +332,45 @@ export function create(canvas, initParams = {}) {
     const power = p.appliedForce * v;
 
     // HUD Backgrounds (Moved to Top to avoid overlaps and balance symmetry)
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = 'rgba(0,0,0,0.5)';
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
-    ctx.strokeStyle = '#1e3a8a';
-    ctx.lineWidth = 2;
+    if (window.innerWidth > 768) {
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = 'rgba(0,0,0,0.5)';
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+      ctx.strokeStyle = '#1e3a8a';
+      ctx.lineWidth = 2;
 
-    // Top Left (JEDI TELEMETRY)
-    ctx.beginPath();
-    ctx.roundRect(20, 20, 240, 160, 8);
-    ctx.fill();
-    ctx.stroke();
+      // Top Left (JEDI TELEMETRY)
+      ctx.beginPath();
+      ctx.roundRect(20, 20, 240, 160, 8);
+      ctx.fill();
+      ctx.stroke();
 
-    // Top Right (FORCE GAUGE)
-    ctx.beginPath();
-    ctx.roundRect(W - 220, 20, 200, 180, 8);
-    ctx.fill();
-    ctx.stroke();
-    ctx.shadowBlur = 0;
+      // Top Right (FORCE GAUGE)
+      ctx.beginPath();
+      ctx.roundRect(W - 220, 20, 200, 180, 8);
+      ctx.fill();
+      ctx.stroke();
+      ctx.shadowBlur = 0;
 
-    // Telemetry Labels
-    ctx.fillStyle = '#60a5fa';
-    ctx.font = 'bold 12px "JetBrains Mono"';
-    ctx.fillText('⚡ JEDI TELEMETRY [J]', 35, 45);
-    ctx.fillText('☄️ FORCE GAUGE', W - 200, 45);
+      // Telemetry Labels
+      ctx.fillStyle = '#60a5fa';
+      ctx.font = 'bold 12px "JetBrains Mono"';
+      ctx.fillText('⚡ JEDI TELEMETRY [J]', 35, 45);
+      ctx.fillText('☄️ FORCE GAUGE', W - 200, 45);
 
-    drawEnergyBar(ctx, 35, 75, ke, '#00ffff', 'Kyber Kinetic');
-    drawEnergyBar(ctx, 35, 115, pe, '#8b5cf6', 'Gravity Potential');
-    drawEnergyBar(ctx, 35, 155, thermalEnergy, '#ef4444', 'Sith Thermal');
+      drawEnergyBar(ctx, 35, 75, ke, '#00ffff', 'Kyber Kinetic');
+      drawEnergyBar(ctx, 35, 115, pe, '#8b5cf6', 'Gravity Potential');
+      drawEnergyBar(ctx, 35, 155, thermalEnergy, '#ef4444', 'Sith Thermal');
 
-    drawGauge(ctx, W - 120, 100, power, 'Power [W]');
+      drawGauge(ctx, W - 120, 100, power, 'Power [W]');
 
-    // Readouts
-    ctx.fillStyle = '#fff';
-    ctx.font = '11px monospace';
-    ctx.textAlign = 'left';
-    ctx.fillText(`Velocity: ${v.toFixed(2)} m/s`, W - 200, 165);
-    ctx.fillText(`Position: ${x.toFixed(2)} m`, W - 200, 180);
+      // Readouts
+      ctx.fillStyle = '#fff';
+      ctx.font = '11px monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(`Velocity: ${v.toFixed(2)} m/s`, W - 200, 165);
+      ctx.fillText(`Position: ${x.toFixed(2)} m`, W - 200, 180);
+    }
   }
 
   function drawArrow(ctx, x1, y1, x2, y2, color, label) {

@@ -822,7 +822,7 @@ export default function SimulationRunner({ sim, onBack }) {
           <button className="icon-btn" onClick={onBack} title="Back">
             <ArrowLeft size={16} />
           </button>
-          <div style={{ flex: 1, minWidth: 120 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
                 fontFamily: 'var(--font-serif)',
@@ -889,6 +889,7 @@ export default function SimulationRunner({ sim, onBack }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginLeft: 2 }}>
             <Gauge
               size={13}
+              className="speed-gauge-icon"
               style={{
                 color: speed !== 1 ? '#FFD166' : 'var(--text-muted)',
                 transition: 'color 0.2s',

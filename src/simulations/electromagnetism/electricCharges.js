@@ -421,46 +421,48 @@ export function create(canvas, initParams = {}) {
     ctx.fillText(symbols[p.Z] || `Z=${p.Z}`, cx, cy);
 
     // HUD
-    ctx.font = '11px "JetBrains Mono", monospace';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-
-    const hudX = 14;
-    const hudY = 14;
-    const hudW = 200;
-    const hudH = 110;
-
-    ctx.fillStyle = 'rgba(5, 5, 15, 0.75)';
-    ctx.beginPath();
-    ctx.roundRect(hudX, hudY, hudW, hudH, 8);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    ctx.font = 'bold 9px "JetBrains Mono", monospace';
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.fillText('RUTHERFORD SCATTERING', hudX + 10, hudY + 10);
-
-    const lines = [
-      { label: 'Nucleus', value: `Z = ${p.Z}`, color: '#ffd700' },
-      { label: 'Energy', value: `${p.energy.toFixed(1)} MeV`, color: '#7dd3fc' },
-      { label: 'd₀ (closest)', value: `${d0().toFixed(1)} px`, color: '#ffa500' },
-      { label: 'Max scatter', value: `${maxScatterAngle.toFixed(1)}°`, color: '#ff6b6b' },
-    ];
-
-    ctx.font = '9px "JetBrains Mono", monospace';
-    lines.forEach((line, i) => {
-      const ly = hudY + 28 + i * 18;
-      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    if (window.innerWidth > 768) {
+      ctx.font = '11px "JetBrains Mono", monospace';
       ctx.textAlign = 'left';
-      ctx.fillText(line.label, hudX + 10, ly);
-      ctx.fillStyle = line.color;
+      ctx.textBaseline = 'top';
+
+      const hudX = 14;
+      const hudY = 14;
+      const hudW = 200;
+      const hudH = 110;
+
+      ctx.fillStyle = 'rgba(5, 5, 15, 0.75)';
+      ctx.beginPath();
+      ctx.roundRect(hudX, hudY, hudW, hudH, 8);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
       ctx.font = 'bold 9px "JetBrains Mono", monospace';
-      ctx.textAlign = 'right';
-      ctx.fillText(line.value, hudX + hudW - 10, ly);
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.fillText('RUTHERFORD SCATTERING', hudX + 10, hudY + 10);
+
+      const lines = [
+        { label: 'Nucleus', value: `Z = ${p.Z}`, color: '#ffd700' },
+        { label: 'Energy', value: `${p.energy.toFixed(1)} MeV`, color: '#7dd3fc' },
+        { label: 'd₀ (closest)', value: `${d0().toFixed(1)} px`, color: '#ffa500' },
+        { label: 'Max scatter', value: `${maxScatterAngle.toFixed(1)}°`, color: '#ff6b6b' },
+      ];
+
       ctx.font = '9px "JetBrains Mono", monospace';
-    });
+      lines.forEach((line, i) => {
+        const ly = hudY + 28 + i * 18;
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.textAlign = 'left';
+        ctx.fillText(line.label, hudX + 10, ly);
+        ctx.fillStyle = line.color;
+        ctx.font = 'bold 9px "JetBrains Mono", monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(line.value, hudX + hudW - 10, ly);
+        ctx.font = '9px "JetBrains Mono", monospace';
+      });
+    }
 
     // Beam direction indicator
     ctx.fillStyle = 'rgba(125, 211, 252, 0.4)';
