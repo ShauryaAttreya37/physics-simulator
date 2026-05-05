@@ -102,6 +102,7 @@ function deriv(state, params) {
   const { anchorSep } = params;
   const p = params;
   const L = p.length;
+  const half = anchorSep / 2;
 
   const x1 = -half + L * Math.sin(t1);
   const y1 = L * Math.cos(t1);
