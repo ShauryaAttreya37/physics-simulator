@@ -4,13 +4,13 @@
    DESIGN TOKENS  —  Research Lab Theme (Makie.jl-inspired)
 ══════════════════════════════════════════════════════════════════════ */
 :root {
-  --bg: #0b0f14;
-  --bg-elevated: #111822;
-  --panel-bg: rgba(11, 15, 20, 0.88);
-  --panel-border: rgba(255, 255, 255, 0.08);
-  --panel-hi: rgba(255, 255, 255, 0.15);
+  --bg: #05050a;
+  --bg-elevated: #0d0f17;
+  --panel-bg: rgba(255, 255, 255, 0.05);
+  --panel-border: rgba(255, 255, 255, 0.12);
+  --panel-hi: rgba(255, 255, 255, 0.2);
   --glass-blur: blur(40px) saturate(200%);
-  --shadow: 0 12px 48px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  --shadow: 0 10px 40px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.1);
 
   /* accent palette */
   --accent: #4fc3f7;
@@ -103,6 +103,22 @@ body,
   background: var(--bg);
   color: var(--text);
   font-family: var(--font);
+}
+
+/* ── Global Custom Scrollbars ── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
