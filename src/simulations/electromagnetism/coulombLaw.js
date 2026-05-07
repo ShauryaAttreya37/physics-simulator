@@ -239,7 +239,8 @@ export function create(canvas, initParams = {}) {
       ctx.stroke();
     }
 
-    const r = Math.max(1, p.separation);
+    const scale = p.viewScale ?? 1.0;
+    const r = Math.max(1, p.separation * scale);
     const c1x = cx - r / 2;
     const c2x = cx + r / 2;
 

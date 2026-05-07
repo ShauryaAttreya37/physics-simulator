@@ -269,8 +269,6 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
   const ctx = canvas.getContext('2d');
   let p = { ...DEFAULTS, ...initParams };
   let running = false;
-  let rafId = 0;
-  let lastTs = 0;
   let hover = null;
   let dragging = null;
 

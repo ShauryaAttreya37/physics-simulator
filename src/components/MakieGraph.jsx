@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import { sampleColormap, colormapPalette } from '../utils/colormaps';
 
 /**
@@ -33,7 +33,10 @@ export default function MakieGraph({
   showLegend = true,
   showMinorGrid = true,
 }) {
+  const containerRef = useRef(null);
   const canvasRef = useRef(null);
+  const [measuredWidth, setMeasuredWidth] = useState(width);
+  const graphWidth = Math.max(220, Math.floor(measuredWidth || width));
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -44,7 +47,7 @@ export default function MakieGraph({
       xLabel,
       yLabel,
       title,
-      width,
+      width: graphWidth,
       height,
       colormap,
       phaseSpace,
@@ -59,7 +62,7 @@ export default function MakieGraph({
     xLabel,
     yLabel,
     title,
-    width,
+    graphWidth,
     height,
     colormap,
     phaseSpace,
@@ -71,8 +74,28 @@ export default function MakieGraph({
     draw();
   }, [draw]);
 
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return undefined;
+
+    const updateWidth = () => {
+      const nextWidth = container.clientWidth || width;
+      setMeasuredWidth(width ? Math.min(width, nextWidth) : nextWidth);
+    };
+
+    updateWidth();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', updateWidth);
+      return () => window.removeEventListener('resize', updateWidth);
+    }
+
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [width]);
+
   return (
-    <div className="makie-graph-container" style={{ width, height }}>
+    <div className="makie-graph-container" ref={containerRef} style={{ height }}>
       <canvas ref={canvasRef} className="makie-graph-canvas" />
     </div>
   );
@@ -97,18 +120,23 @@ export function drawMakieGraph(
     dpr = 1,
   } = {},
 ) {
-  if (!canvas || data.length < 2) return false;
+  if (!canvas) return false;
   const ctx = canvas.getContext('2d');
-  const colors =
-    series.length > 0
-      ? series.map((s, i) => s.color || colormapPalette(colormap, series.length)[i])
-      : [];
-
   canvas.width = width * dpr;
   canvas.height = height * dpr;
   canvas.style.width = `${width}px`;
   canvas.style.height = `${height}px`;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  if (data.length < 2 || series.length === 0) {
+    drawEmptyGraph(ctx, width, height);
+    return false;
+  }
+
+  const colors =
+    series.length > 0
+      ? series.map((s, i) => s.color || colormapPalette(colormap, series.length)[i])
+      : [];
 
   // Layout margins (Makie-style: generous for labels)
   const ml = 65,
@@ -428,4 +456,37 @@ export function drawMakieGraph(
     }
   }
   return true;
+}
+
+function drawEmptyGraph(ctx, width, height) {
+  ctx.fillStyle = '#0B0F14';
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.strokeStyle = '#2A3441';
+  ctx.lineWidth = 0.5;
+  for (let x = 48; x < width - 12; x += 40) {
+    ctx.beginPath();
+    ctx.moveTo(x, 20);
+    ctx.lineTo(x, height - 42);
+    ctx.stroke();
+  }
+  for (let y = 24; y < height - 38; y += 32) {
+    ctx.beginPath();
+    ctx.moveTo(52, y);
+    ctx.lineTo(width - 16, y);
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+  ctx.beginPath();
+  ctx.moveTo(52, 20);
+  ctx.lineTo(52, height - 42);
+  ctx.lineTo(width - 16, height - 42);
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(255,255,255,0.72)';
+  ctx.font = '12px "Inter", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('Run the simulation to collect graph data', width / 2, height / 2);
 }

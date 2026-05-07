@@ -174,7 +174,6 @@ function hamiltonian(th1, th2, om1, om2, p) {
 }
 
 import { rk4, rk45Step } from '../../physics/solvers';
-import { hexToRgb } from '../../utils/canvas';
 
 // ── Rendering ───────────────────────────────────────────────────────────────
 export const scenarios = [
@@ -404,11 +403,12 @@ export function render(ctx, state, p, canvas) {
 
   const cx = W / 2 + (p.panX || 0);
   const cy = H * 0.28 + (p.panY || 0);
+  const scale = p.viewScale ?? 1.0;
   const { th1, th2, trail, trailHead, trailLen } = state;
-  const x1 = cx + p.l1 * Math.sin(th1);
-  const y1 = cy + p.l1 * Math.cos(th1);
-  const x2 = x1 + p.l2 * Math.sin(th2);
-  const y2 = y1 + p.l2 * Math.cos(th2);
+  const x1 = cx + p.l1 * scale * Math.sin(th1);
+  const y1 = cy + p.l1 * scale * Math.cos(th1);
+  const x2 = x1 + p.l2 * scale * Math.sin(th2);
+  const y2 = y1 + p.l2 * scale * Math.cos(th2);
 
   // Trail
   if (trailLen > 1) {
@@ -416,8 +416,8 @@ export function render(ctx, state, p, canvas) {
     const trailCap = trail.length / 2;
     for (let i = 0; i < trailLen; i++) {
       const idx = (trailHead - trailLen + i + trailCap) % trailCap;
-      const tx = trail[idx * 2] + cx;
-      const ty = trail[idx * 2 + 1] + cy;
+      const tx = trail[idx * 2] * scale + cx;
+      const ty = trail[idx * 2 + 1] * scale + cy;
       if (i === 0) ctx.moveTo(tx, ty);
       else ctx.lineTo(tx, ty);
     }

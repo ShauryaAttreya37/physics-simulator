@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ArrowLeft, ChevronRight } from 'lucide-react';
+import PropTypes from 'prop-types';
+import { ArrowLeft } from 'lucide-react';
 import { TOPICS } from '../simulations/index';
 import SimulationRunner from '../components/SimulationRunner';
 
@@ -17,47 +18,31 @@ export default function TopicsPage({ onBack }) {
   }
 
   return (
-    <div className="topics-page page-fade-in">
-      {/* Floating Back Button */}
-      <button
-        className="topics-back-btn icon-btn"
-        onClick={onBack}
-        style={{
-          position: 'absolute',
-          top: '24px',
-          left: '24px',
-          zIndex: 100,
-          background: 'var(--panel-bg)',
-          border: '1px solid var(--panel-border)',
-          backdropFilter: 'var(--glass-blur)',
-        }}
-      >
-        <ArrowLeft size={16} />
-      </button>
+    <div className="page-content custom-scroll">
+      <div className="topics-track-container">
+        <div className="topics-page-header">
+          <button className="topics-back-btn icon-btn" onClick={onBack} title="Back to home">
+            <ArrowLeft size={16} />
+          </button>
+          <div className="topics-header-text">
+            <h1 className="topics-page-title">Laboratories</h1>
+            <p className="topics-page-subtitle">Interactive physics simulations and experiments</p>
+          </div>
+        </div>
 
-      {/* Track Container */}
-      <div className="topics-track-container custom-scroll">
         {Object.entries(TOPICS).map(([key, topic]) => (
           <div key={key} className="topic-track">
-            <h2 className="topic-track-title" style={{ fontFamily: 'var(--font-serif)' }}>
-              {topic.label}
-            </h2>
+            <h2 className="topic-track-title">{topic.label}</h2>
             <div className="topic-track-wrapper">
               <div className="topic-track-slider custom-scroll" id={`track-${key}`}>
                 {topic.sims.map((sim) => (
                   <button key={sim.id} className="sim-card" onClick={() => setSelectedSim(sim)}>
-                    {/* Preview area */}
                     <div className="sim-card-preview" style={{ background: sim.gradient }}>
-                      <div
-                        className="sim-card-preview-glow"
-                        style={{ boxShadow: `0 0 60px 20px ${sim.accentColor}40` }}
-                      />
                       <div className="sim-card-preview-icon" style={{ color: sim.accentColor }}>
                         {ICONS[sim.id] || ICONS['default']}
                       </div>
                     </div>
 
-                    {/* Body */}
                     <div className="sim-card-body">
                       <div className="sim-card-title">{sim.title}</div>
                       <p className="sim-card-desc">{sim.description}</p>
@@ -69,32 +54,11 @@ export default function TopicsPage({ onBack }) {
                             </span>
                           ))}
                         </div>
-                        <ChevronRight size={16} style={{ color: sim.accentColor, flexShrink: 0 }} />
                       </div>
                     </div>
                   </button>
                 ))}
               </div>
-              <button
-                className="track-scroll-btn left"
-                onClick={() => {
-                  document
-                    .getElementById(`track-${key}`)
-                    ?.scrollBy({ left: -680, behavior: 'smooth' });
-                }}
-              >
-                <ChevronRight size={28} style={{ transform: 'rotate(180deg)' }} />
-              </button>
-              <button
-                className="track-scroll-btn right"
-                onClick={() => {
-                  document
-                    .getElementById(`track-${key}`)
-                    ?.scrollBy({ left: 680, behavior: 'smooth' });
-                }}
-              >
-                <ChevronRight size={28} />
-              </button>
             </div>
           </div>
         ))}
@@ -630,6 +594,26 @@ const ICONS = {
       <path d="M 38 34 Q 48 34 56 32" stroke="currentColor" strokeWidth="1" opacity="0.3" />
     </svg>
   ),
+  'coulomb-law': (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      {/* Left charge (+) */}
+      <circle cx="18" cy="32" r="8" fill="#FF6B6B" opacity="0.85" />
+      <line x1="15" y1="32" x2="21" y2="32" stroke="#fff" strokeWidth="2" />
+      <line x1="18" y1="29" x2="18" y2="35" stroke="#fff" strokeWidth="2" />
+      {/* Right charge (−) */}
+      <circle cx="46" cy="32" r="8" fill="#3b82f6" opacity="0.85" />
+      <line x1="43" y1="32" x2="49" y2="32" stroke="#fff" strokeWidth="2" />
+      {/* Field lines curving between charges */}
+      <path d="M 26 32 Q 32 32 38 32" stroke="currentColor" strokeWidth="1.2" opacity="0.5" />
+      <path d="M 26 28 Q 32 24 38 28" stroke="currentColor" strokeWidth="1" opacity="0.35" />
+      <path d="M 26 36 Q 32 40 38 36" stroke="currentColor" strokeWidth="1" opacity="0.35" />
+      <path d="M 25 24 Q 32 16 39 24" stroke="currentColor" strokeWidth="0.8" opacity="0.2" />
+      <path d="M 25 40 Q 32 48 39 40" stroke="currentColor" strokeWidth="0.8" opacity="0.2" />
+      {/* Force arrows */}
+      <path d="M 28 32 L 32 30 L 32 34 Z" fill="currentColor" opacity="0.6" />
+      <path d="M 36 32 L 32 30 L 32 34 Z" fill="currentColor" opacity="0.6" />
+    </svg>
+  ),
   default: (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
       <circle
@@ -644,4 +628,8 @@ const ICONS = {
       <circle cx="32" cy="32" r="4" fill="currentColor" />
     </svg>
   ),
+};
+
+TopicsPage.propTypes = {
+  onBack: PropTypes.func.isRequired,
 };

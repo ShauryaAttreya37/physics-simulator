@@ -336,9 +336,10 @@ export function render(ctx, state, p, canvas) {
     ctx.fillRect(x * W, y * H, s, s);
   }
 
+  const viewScale = p.viewScale ?? 1.0;
   const toScreen = (x, y) => ({
-    sx: W / 2 + x * p.scale,
-    sy: H / 2 + y * p.scale,
+    sx: W / 2 + x * p.scale * viewScale,
+    sy: H / 2 + y * p.scale * viewScale,
   });
 
   // Trails
@@ -447,9 +448,4 @@ export function create(canvas, initParams = {}) {
       return getData(state, p);
     },
   };
-}
-
-function unusedHexToRgb(hex) {
-  const n = Number.parseInt(hex.slice(1), 16);
-  return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
 }

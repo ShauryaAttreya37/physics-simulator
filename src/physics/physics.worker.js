@@ -11,7 +11,6 @@ const SIMS = {
 };
 
 let currentSim = null;
-let currentSimId = null;
 
 self.onmessage = async (e) => {
   const { type, payload } = e.data;
@@ -22,7 +21,6 @@ self.onmessage = async (e) => {
       try {
         const mod = await SIMS[simId]();
         currentSim = mod;
-        currentSimId = simId;
         const state = mod.init(params);
         self.postMessage({ type: 'INIT_DONE', payload: { state } });
       } catch (err) {

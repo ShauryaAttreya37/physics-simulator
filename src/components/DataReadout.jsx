@@ -1,8 +1,4 @@
-/**
- * DataReadout — Research instrument-style HUD overlay
- * Shows simulation telemetry: time, energy conservation, step count, method.
- */
-import { useState, useRef } from 'react';
+import { useRef, useState } from 'react';
 import { inferReadoutTooltip } from '../constants/physicsTooltips';
 
 export default function DataReadout({ data, method }) {
@@ -12,123 +8,70 @@ export default function DataReadout({ data, method }) {
 
   if (!data) return null;
 
-  const handlePointerDown = (e) => {
+  const handlePointerDown = (event) => {
     setIsDragging(true);
-    e.currentTarget.setPointerCapture(e.pointerId);
+    event.currentTarget.setPointerCapture(event.pointerId);
     dragRef.current = {
-      startX: e.clientX,
-      startY: e.clientY,
+      startX: event.clientX,
+      startY: event.clientY,
       initialX: position.x,
       initialY: position.y,
     };
   };
 
-  const handlePointerMove = (e) => {
+  const handlePointerMove = (event) => {
     if (!isDragging) return;
-    const dx = e.clientX - dragRef.current.startX;
-    const dy = e.clientY - dragRef.current.startY;
+    const dx = event.clientX - dragRef.current.startX;
+    const dy = event.clientY - dragRef.current.startY;
     setPosition({
-      x: dragRef.current.initialX + dx,
-      y: dragRef.current.initialY + dy,
+      x: Math.round(dragRef.current.initialX + dx),
+      y: Math.round(dragRef.current.initialY + dy),
     });
   };
 
-  const handlePointerUp = (e) => {
+  const handlePointerUp = (event) => {
     setIsDragging(false);
-    e.currentTarget.releasePointerCapture(e.pointerId);
+    event.currentTarget.releasePointerCapture(event.pointerId);
   };
 
-  const rows = [];
-
-  if (data.time !== undefined) {
-    rows.push({ key: 'time', label: 'Time', value: formatSci(data.time, 's'), status: 'ok' });
-  }
-  if (data.dt !== undefined) {
-    rows.push({ key: 'dt', label: 'Δt', value: formatSci(data.dt, 's'), status: 'ok' });
-  }
-  if (data.steps !== undefined) {
-    rows.push({ key: 'steps', label: 'Steps', value: data.steps.toLocaleString(), status: 'ok' });
-  }
-  if (data.energyError !== undefined) {
-    const err = Math.abs(data.energyError);
-    const status = err < 1e-6 ? 'ok' : err < 1e-3 ? 'warn' : 'err';
-    rows.push({ key: 'energyError', label: '|ΔE/E₀|', value: err.toExponential(2), status });
-  }
-  if (data.totalEnergy !== undefined) {
-    rows.push({
-      key: 'totalEnergy',
-      label: 'E_total',
-      value: formatSci(data.totalEnergy, 'J'),
-      status: 'ok',
-    });
-  }
-  if (data.angularMomentum !== undefined) {
-    rows.push({
-      key: 'angularMomentum',
-      label: 'L_total',
-      value: formatSci(data.angularMomentum, ''),
-      status: 'ok',
-    });
-  }
-  if (data.cfl !== undefined) {
-    const status = data.cfl < 0.5 ? 'ok' : data.cfl < 1.0 ? 'warn' : 'err';
-    rows.push({ key: 'cfl', label: 'CFL', value: data.cfl.toFixed(3), status });
-  }
-  if (data.maxVelocity !== undefined) {
-    rows.push({
-      key: 'maxVelocity',
-      label: 'v_max',
-      value: formatSci(data.maxVelocity, 'm/s'),
-      status: 'ok',
-    });
-  }
-  if (data.lyapunov !== undefined) {
-    rows.push({
-      key: 'lyapunov',
-      label: 'Lyapunov exp.',
-      value: data.lyapunov.toFixed(4),
-      status: 'ok',
-    });
-  }
-
+  const rows = buildRows(data);
   const methodBadge = METHOD_BADGES[method] || null;
+
+  const isMobile = window.innerWidth <= 900;
+  if (isMobile) return null;
+
+  const transform = `translate(calc(-50% + ${position.x}px), ${position.y}px)`;
 
   return (
     <div
       className="data-readout"
       style={{
-        transform: `translate(calc(-50% + ${position.x}px), ${position.y}px)`,
+        transform,
         cursor: isDragging ? 'grabbing' : 'grab',
         touchAction: 'none',
+        userSelect: 'none',
       }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
     >
-      <div className="data-readout-title" style={{ cursor: 'inherit', pointerEvents: 'none' }}>
-        Simulation Telemetry
-      </div>
-      {rows.map((row, i) => (
-        <div key={i} className="data-readout-row" style={{ pointerEvents: 'none' }}>
-          <span
-            className="data-readout-label"
-            title={inferReadoutTooltip(row.key, row.label)}
-            style={{ pointerEvents: 'auto' }}
-          >
+      <div className="data-readout-title">Readout</div>
+      {rows.map((row) => (
+        <div key={row.key} className="data-readout-row">
+          <span className="data-readout-label" title={inferReadoutTooltip(row.key, row.label)}>
             {row.label}
           </span>
           <span
             className={`data-readout-value ${row.status}`}
             title={inferReadoutTooltip(row.key, row.label)}
-            style={{ pointerEvents: 'auto' }}
           >
             {row.value}
           </span>
         </div>
       ))}
       {methodBadge && (
-        <div className="data-readout-method" style={{ pointerEvents: 'none' }}>
+        <div className="data-readout-method">
           <span className={`method-badge ${methodBadge.cls}`}>{methodBadge.label}</span>
         </div>
       )}
@@ -136,23 +79,122 @@ export default function DataReadout({ data, method }) {
   );
 }
 
+function buildRows(data) {
+  const rows = [];
+
+  if (data.time !== undefined) {
+    rows.push({ key: 'time', label: 'Time', value: formatSci(data.time, 's'), status: 'ok' });
+  }
+  if (data.dt !== undefined) {
+    rows.push({ key: 'dt', label: 'Step', value: formatSci(data.dt, 's'), status: 'ok' });
+  }
+  if (data.steps !== undefined) {
+    rows.push({ key: 'steps', label: 'Steps', value: data.steps.toLocaleString(), status: 'ok' });
+  }
+  if (data.energyError !== undefined) {
+    const error = Math.abs(data.energyError);
+    const status = error < 1e-6 ? 'ok' : error < 1e-3 ? 'warn' : 'err';
+    rows.push({
+      key: 'energyError',
+      label: 'Energy error',
+      value: error.toExponential(4),
+      status,
+    });
+  }
+  if (data.totalEnergy !== undefined) {
+    rows.push({
+      key: 'totalEnergy',
+      label: 'Energy',
+      value: formatSci(data.totalEnergy, 'J'),
+      status: 'ok',
+    });
+  }
+  if (data.angularMomentum !== undefined) {
+    rows.push({
+      key: 'angularMomentum',
+      label: 'Angular momentum',
+      value: formatSci(data.angularMomentum, ''),
+      status: 'ok',
+    });
+  }
+  if (data.cfl !== undefined) {
+    const status = data.cfl < 0.5 ? 'ok' : data.cfl < 1.0 ? 'warn' : 'err';
+    rows.push({ key: 'cfl', label: 'CFL number', value: data.cfl.toFixed(4), status });
+  }
+  if (data.maxVelocity !== undefined) {
+    rows.push({
+      key: 'maxVelocity',
+      label: 'Max velocity',
+      value: formatSci(data.maxVelocity, 'm/s'),
+      status: 'ok',
+    });
+  }
+  if (data.lyapunov !== undefined) {
+    rows.push({
+      key: 'lyapunov',
+      label: 'Lyapunov',
+      value: data.lyapunov.toFixed(6),
+      status: 'ok',
+    });
+  }
+
+  // Buoyancy / Fluid specific rows
+  if (data.weight !== undefined) {
+    rows.push({ key: 'weight', label: 'Weight', value: formatSci(data.weight, 'N'), status: 'ok' });
+  }
+  if (data.buoyancy !== undefined) {
+    rows.push({
+      key: 'buoyancy',
+      label: 'Buoyant force',
+      value: formatSci(data.buoyancy, 'N'),
+      status: 'ok',
+    });
+  }
+  if (data.appWeight !== undefined) {
+    rows.push({
+      key: 'appWeight',
+      label: 'Apparent weight',
+      value: formatSci(data.appWeight, 'N'),
+      status: 'ok',
+    });
+  }
+  if (data.tension !== undefined) {
+    rows.push({
+      key: 'tension',
+      label: 'Scale tension',
+      value: formatSci(data.tension, 'N'),
+      status: 'ok',
+    });
+  }
+  if (data.fluidDensity !== undefined) {
+    rows.push({
+      key: 'fluidDensity',
+      label: 'Fluid density',
+      value: formatSci(data.fluidDensity, 'g/cm³'),
+      status: 'ok',
+    });
+  }
+
+  return rows;
+}
+
 function formatSci(value, unit) {
-  if (!Number.isFinite(value)) return '—';
+  if (!Number.isFinite(value)) return '-';
   const abs = Math.abs(value);
-  let str;
-  if (abs === 0) str = '0.000';
-  else if (abs >= 10000 || abs < 0.01) str = value.toExponential(3);
-  else str = value.toFixed(4);
-  return unit ? `${str} ${unit}` : str;
+  let text;
+  if (abs === 0) text = '0.000000';
+  else if (abs >= 100000 || abs < 0.0001) text = value.toExponential(6);
+  else text = value.toFixed(6);
+  return unit ? `${text} ${unit}` : text;
 }
 
 const METHOD_BADGES = {
-  rk4: { label: 'RK4', cls: 'rk45' },
-  rk45: { label: 'RK45 Adaptive', cls: 'rk45' },
-  yoshida4: { label: 'Yoshida⁴', cls: 'symplectic' },
-  leapfrog: { label: 'Leapfrog', cls: 'symplectic' },
-  sph: { label: 'SPH', cls: 'sph' },
-  'sph-xsph': { label: 'SPH+XSPH', cls: 'sph' },
+  rk4: { label: 'Runge-Kutta 4', cls: 'rk45' },
+  rk45: { label: 'RK45 adaptive', cls: 'rk45' },
+  yoshida4: { label: 'Yoshida symplectic 4', cls: 'symplectic' },
+  leapfrog: { label: 'Leapfrog symplectic', cls: 'symplectic' },
+  sph: { label: 'SPH fluid', cls: 'sph' },
+  'sph-xsph': { label: 'SPH XSPH', cls: 'sph' },
   fdm: { label: 'FDM', cls: 'fdm' },
-  'fdm-pml': { label: 'FDM+PML', cls: 'fdm' },
+  'fdm-pml': { label: 'FDM PML', cls: 'fdm' },
 };

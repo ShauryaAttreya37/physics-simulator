@@ -188,7 +188,7 @@ export function create(canvas, initParams = {}) {
   let trail; // [{x, y, vx, vy, t}]
   let E0;
   let landed; // boolean — projectile hit ground
-  let landX, landY; // landing position
+  let landX; // landing position
   let maxHeight;
   let impactFrame; // frames since impact for animation
 
@@ -208,7 +208,6 @@ export function create(canvas, initParams = {}) {
     E0 = energy();
     landed = false;
     landX = 0;
-    landY = 0;
     maxHeight = 0;
     impactFrame = 0;
     trail.push({ x, y, vx, vy, t: 0 });
@@ -249,7 +248,6 @@ export function create(canvas, initParams = {}) {
         simTime += h * frac;
         landed = true;
         landX = x;
-        landY = 0;
         trail.push({ x, y: 0, vx, vy, t: simTime });
         break;
       }
@@ -292,13 +290,8 @@ export function create(canvas, initParams = {}) {
     const W = canvas.width,
       H = canvas.height;
 
-    // --- Sky gradient ---
-    const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
-    skyGrad.addColorStop(0, '#0a0e1a');
-    skyGrad.addColorStop(0.5, '#0f1629');
-    skyGrad.addColorStop(0.85, '#151d35');
-    skyGrad.addColorStop(1, '#1a2540');
-    ctx.fillStyle = skyGrad;
+    // Clean background
+    ctx.fillStyle = '#f8fafc';
     ctx.fillRect(0, 0, W, H);
 
     // Coordinate mapping
@@ -315,25 +308,21 @@ export function create(canvas, initParams = {}) {
 
     const scaleX = (W * 0.82) / targetW;
     const scaleY = (H * 0.65) / targetH;
-    const scale = Math.min(scaleX, scaleY);
+    const scale = Math.min(scaleX, scaleY) * (p.viewScale ?? 1.0);
 
     const sx = (wx) => ox + wx * scale;
     const sy = (wy) => oy - wy * scale;
 
-    // --- Ground with gradient ---
-    const groundGrad = ctx.createLinearGradient(0, oy, 0, H);
-    groundGrad.addColorStop(0, '#1a2e1a');
-    groundGrad.addColorStop(0.3, '#152815');
-    groundGrad.addColorStop(1, '#0a150a');
-    ctx.fillStyle = groundGrad;
+    // --- Ground ---
+    ctx.fillStyle = '#f1f5f9';
     ctx.fillRect(0, oy, W, H - oy);
 
     // Ground line
     ctx.beginPath();
     ctx.moveTo(0, oy);
     ctx.lineTo(W, oy);
-    ctx.strokeStyle = '#2d5a2d';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 1;
     ctx.stroke();
 
     // Grass tufts
@@ -364,17 +353,17 @@ export function create(canvas, initParams = {}) {
       ctx.beginPath();
       ctx.moveTo(gx, oy);
       ctx.lineTo(gx, oy - targetH * scale * 1.1);
-      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.strokeStyle = 'rgba(0,0,0,0.05)';
       ctx.lineWidth = 0.5;
       ctx.stroke();
       // Tick
       ctx.beginPath();
       ctx.moveTo(gx, oy);
       ctx.lineTo(gx, oy + 5);
-      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+      ctx.strokeStyle = 'rgba(0,0,0,0.2)';
       ctx.lineWidth = 1;
       ctx.stroke();
-      ctx.fillStyle = 'rgba(255,255,255,0.25)';
+      ctx.fillStyle = '#64748b';
       ctx.fillText(`${gv.toFixed(0)}`, gx, oy + 7);
     }
 
@@ -388,23 +377,23 @@ export function create(canvas, initParams = {}) {
       ctx.beginPath();
       ctx.moveTo(ox, gy);
       ctx.lineTo(ox + targetW * scale * 1.1, gy);
-      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.strokeStyle = 'rgba(0,0,0,0.05)';
       ctx.lineWidth = 0.5;
       ctx.stroke();
       // Tick
       ctx.beginPath();
       ctx.moveTo(ox - 5, gy);
       ctx.lineTo(ox, gy);
-      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+      ctx.strokeStyle = 'rgba(0,0,0,0.2)';
       ctx.lineWidth = 1;
       ctx.stroke();
-      ctx.fillStyle = 'rgba(255,255,255,0.25)';
+      ctx.fillStyle = '#64748b';
       ctx.fillText(`${gh.toFixed(0)}`, ox - 8, gy);
     }
 
     // Axis labels
     ctx.font = 'bold 10px "Montserrat", sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.fillStyle = '#94a3b8';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.fillText('Range [m]', ox + W * 0.4, oy + 22);
@@ -429,12 +418,12 @@ export function create(canvas, initParams = {}) {
     const arcR = 25;
     ctx.beginPath();
     ctx.arc(launchX, launchY, arcR, 0, -rad, true);
-    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
     ctx.lineWidth = 1;
     ctx.stroke();
     // Angle label
     const labelAngleRad = rad / 2;
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.fillStyle = '#64748b';
     ctx.font = '9px "Montserrat", sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
@@ -462,9 +451,9 @@ export function create(canvas, initParams = {}) {
       for (const pt of idealPts) {
         ctx.lineTo(sx(pt.x), sy(pt.y));
       }
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
       ctx.setLineDash([6, 6]);
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 1;
       ctx.stroke();
       ctx.setLineDash([]);
 
@@ -472,8 +461,8 @@ export function create(canvas, initParams = {}) {
       const topIdx = Math.floor(idealPts.length * 0.4);
       const topPt = idealPts[topIdx];
       if (topPt) {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-        ctx.font = '9px "Montserrat", sans-serif';
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = 'italic 9px "Montserrat", sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('Vacuum (analytical)', sx(topPt.x), sy(topPt.y) - 12);
       }
@@ -496,18 +485,18 @@ export function create(canvas, initParams = {}) {
         ctx.beginPath();
         ctx.moveTo(sx(pt0.x), sy(pt0.y));
         ctx.lineTo(sx(pt1.x), sy(pt1.y));
-        ctx.strokeStyle = `rgba(${r},${g},${b},${0.3 + frac * 0.65})`;
-        ctx.lineWidth = 1.2 + frac * 2;
+        ctx.strokeStyle = `rgba(${r},${g},${b},${0.4 + frac * 0.6})`;
+        ctx.lineWidth = 1.5 + frac * 1.5;
         ctx.stroke();
       }
 
       // Trail label
       const labelIdx = Math.floor(trail.length * 0.6);
       if (trail[labelIdx]) {
-        ctx.fillStyle = 'rgba(251, 113, 133, 0.5)';
-        ctx.font = '9px "Montserrat", sans-serif';
+        ctx.fillStyle = '#e11d48';
+        ctx.font = 'bold 9px "Montserrat", sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('With drag (RK4)', sx(trail[labelIdx].x), sy(trail[labelIdx].y) + 15);
+        ctx.fillText('Actual Path (with drag)', sx(trail[labelIdx].x), sy(trail[labelIdx].y) + 15);
       }
     }
 
@@ -556,10 +545,7 @@ export function create(canvas, initParams = {}) {
       projGrad.addColorStop(0.6, '#fb7185');
       projGrad.addColorStop(1, '#e11d48');
       ctx.fillStyle = projGrad;
-      ctx.shadowBlur = 18;
-      ctx.shadowColor = '#f43f5e';
       ctx.fill();
-      ctx.shadowBlur = 0;
     }
 
     // --- Impact effect ---
@@ -597,10 +583,7 @@ export function create(canvas, initParams = {}) {
       ctx.beginPath();
       ctx.arc(landPx, landPy, 4, 0, Math.PI * 2);
       ctx.fillStyle = '#fb7185';
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = '#fb7185';
       ctx.fill();
-      ctx.shadowBlur = 0;
 
       // Landing line indicator
       ctx.setLineDash([3, 3]);
@@ -638,11 +621,11 @@ export function create(canvas, initParams = {}) {
     const hudH = 155;
 
     // HUD background
-    ctx.fillStyle = 'rgba(10, 10, 20, 0.75)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
     ctx.beginPath();
     ctx.roundRect(hudX, hudY, hudW, hudH, 8);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.strokeStyle = '#e2e8f0';
     ctx.lineWidth = 1;
     ctx.stroke();
 
@@ -658,13 +641,13 @@ export function create(canvas, initParams = {}) {
       { label: 'Energy', value: `${energy().toFixed(1)} J`, color: '#FFD166' },
     ];
 
-    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.fillStyle = '#64748b';
     ctx.font = 'bold 10px "Montserrat", sans-serif';
     ctx.fillText('FLIGHT DATA', hudX + 10, hudY + 8);
 
     hudLines.forEach((line, i) => {
       const ly = hudY + 24 + i * 20;
-      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.fillStyle = '#94a3b8';
       ctx.font = '10px "Montserrat", sans-serif';
       ctx.fillText(line.label, hudX + 10, ly);
       ctx.fillStyle = line.color;
@@ -690,10 +673,13 @@ export function create(canvas, initParams = {}) {
     // --- Vector legend ---
     const legX = 16;
     const legY = 16;
-    ctx.fillStyle = 'rgba(10, 10, 20, 0.65)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
     ctx.beginPath();
     ctx.roundRect(legX, legY, 110, 70, 6);
     ctx.fill();
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    ctx.stroke();
 
     ctx.font = 'bold 9px "Montserrat", sans-serif';
     ctx.textAlign = 'left';

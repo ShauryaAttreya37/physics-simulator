@@ -9,7 +9,7 @@ import IntegratorsPage from './pages/IntegratorsPage';
 import { useSandboxStore } from './store/sandboxStore';
 import { resetEngine } from './physics/engine';
 import Matter from 'matter-js';
-import { ChevronUp } from 'lucide-react';
+import { ChevronUp, Home as HomeIcon } from 'lucide-react';
 import './App.css';
 
 export default function App() {
@@ -37,37 +37,69 @@ export default function App() {
     setPage(targetPage);
   };
 
+  const renderHeader = () => {
+    if (page === 'home' || page === 'topics') return null;
+    return (
+      <header className="app-header">
+        <div className="header-left">
+          <button
+            className="header-logo icon-btn"
+            onClick={() => handleNavigate('home')}
+            title="Home"
+          >
+            <HomeIcon size={18} />
+          </button>
+          <div className="header-nav">
+            <button
+              className={`nav-item${page === 'topics' ? ' active' : ''}`}
+              onClick={() => handleNavigate('topics')}
+            >
+              Laboratory
+            </button>
+            <button
+              className={`nav-item${page === 'integrators' ? ' active' : ''}`}
+              onClick={() => handleNavigate('integrators')}
+            >
+              Integrators
+            </button>
+            <button
+              className={`nav-item${page === 'docs' ? ' active' : ''}`}
+              onClick={() => handleNavigate('docs')}
+            >
+              Docs
+            </button>
+          </div>
+        </div>
+      </header>
+    );
+  };
+
   if (page === 'home') {
     return <Home onNavigate={handleNavigate} />;
   }
 
-  if (page === 'topics') {
-    return <TopicsPage onBack={() => handleNavigate('home')} />;
-  }
-
-  if (page === 'docs') {
-    return <DocsPage onBack={() => handleNavigate('home')} />;
-  }
-
-  if (page === 'integrators') {
-    return <IntegratorsPage onBack={() => handleNavigate('home')} />;
-  }
-
-  // Sandbox
   return (
-    <div className="app-container">
-      <Toolbar onReset={handleReset} onHome={() => handleNavigate('home')} />
-      <div className="canvas-container">
-        <SandboxCanvas engineRef={engineRef} />
-      </div>
-      <button
-        className={`mobile-bottom-toggle${showPropertiesPanel ? ' active' : ''}`}
-        onClick={togglePropertiesPanel}
-        title="Toggle Properties"
-      >
-        <ChevronUp size={24} />
-      </button>
-      <PropertiesPanel />
+    <div className="page-wrapper">
+      {renderHeader()}
+      {page === 'topics' && <TopicsPage onBack={() => handleNavigate('home')} />}
+      {page === 'docs' && <DocsPage onBack={() => handleNavigate('home')} />}
+      {page === 'integrators' && <IntegratorsPage onBack={() => handleNavigate('home')} />}
+      {page === 'sandbox' && (
+        <div className="app-container">
+          <Toolbar onReset={handleReset} onHome={() => handleNavigate('home')} />
+          <div className="canvas-container">
+            <SandboxCanvas engineRef={engineRef} />
+          </div>
+          <button
+            className={`mobile-bottom-toggle${showPropertiesPanel ? ' active' : ''}`}
+            onClick={togglePropertiesPanel}
+            title="Toggle Properties"
+          >
+            <ChevronUp size={24} />
+          </button>
+          <PropertiesPanel />
+        </div>
+      )}
     </div>
   );
 }

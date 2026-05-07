@@ -154,8 +154,9 @@ export function create(canvas, initParams = {}) {
   }
 
   function anchors() {
+    const scale = p.viewScale ?? 1.0;
     const y = canvas.height * 0.23 + (p.panY || 0);
-    const sep = getAnchorSep(canvas.width);
+    const sep = getAnchorSep(canvas.width) * scale;
     const panX = p.panX || 0;
     return {
       ax1: canvas.width * 0.5 - sep * 0.5 + panX,
@@ -167,11 +168,12 @@ export function create(canvas, initParams = {}) {
   }
 
   function positions() {
+    const scale = p.viewScale ?? 1.0;
     const { ax1, ay1, ax2, ay2, sep } = anchors();
-    const x1 = ax1 + p.length * Math.sin(state[0]);
-    const y1 = ay1 + p.length * Math.cos(state[0]);
-    const x2 = ax2 + p.length * Math.sin(state[1]);
-    const y2 = ay2 + p.length * Math.cos(state[1]);
+    const x1 = ax1 + p.length * scale * Math.sin(state[0]);
+    const y1 = ay1 + p.length * scale * Math.cos(state[0]);
+    const x2 = ax2 + p.length * scale * Math.sin(state[1]);
+    const y2 = ay2 + p.length * scale * Math.cos(state[1]);
     return { ax1, ay1, ax2, ay2, x1, y1, x2, y2, sep };
   }
 
@@ -210,19 +212,20 @@ export function create(canvas, initParams = {}) {
       ctx.lineTo(x1 + dx * t + nx * side, y1 + dy * t + ny * side);
     }
     ctx.lineTo(x2, y2);
-    ctx.strokeStyle = 'rgba(167,139,250,0.85)';
+    ctx.strokeStyle = '#6366f1';
     ctx.lineWidth = 2;
     ctx.stroke();
   }
 
   function render() {
-    ctx.fillStyle = '#090a12';
+    ctx.fillStyle = '#f8fafc';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    const scale = p.viewScale ?? 1.0;
     const { ax1, ay1, ax2, ay2, x1, y1, x2, y2 } = positions();
 
-    drawTrail(ctx, trail1, { color: 'rgba(96,165,250,1)', maxAlpha: 0.8 });
-    drawTrail(ctx, trail2, { color: 'rgba(74,222,128,1)', maxAlpha: 0.8 });
+    drawTrail(ctx, trail1, { color: 'rgba(59,130,246,0.3)', maxAlpha: 0.5 });
+    drawTrail(ctx, trail2, { color: 'rgba(16,185,129,0.3)', maxAlpha: 0.5 });
 
     drawSpring(x1, y1, x2, y2);
 
@@ -231,7 +234,7 @@ export function create(canvas, initParams = {}) {
     ctx.lineTo(x1, y1);
     ctx.moveTo(ax2, ay2);
     ctx.lineTo(x2, y2);
-    ctx.strokeStyle = 'rgba(203,213,225,0.8)';
+    ctx.strokeStyle = '#94a3b8';
     ctx.lineWidth = 2;
     ctx.stroke();
 
@@ -240,24 +243,20 @@ export function create(canvas, initParams = {}) {
       [ax2, ay2],
     ].forEach(([x, y]) => {
       ctx.beginPath();
-      ctx.arc(x, y, 5, 0, Math.PI * 2);
-      ctx.fillStyle = '#e2e8f0';
+      ctx.arc(x, y, 5 * scale, 0, Math.PI * 2);
+      ctx.fillStyle = '#64748b';
       ctx.fill();
     });
 
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = '#60a5fa';
     ctx.beginPath();
-    ctx.arc(x1, y1, p.bobRadius, 0, Math.PI * 2);
-    ctx.fillStyle = '#60a5fa';
+    ctx.arc(x1, y1, p.bobRadius * scale, 0, Math.PI * 2);
+    ctx.fillStyle = '#3b82f6';
     ctx.fill();
 
-    ctx.shadowColor = '#4ade80';
     ctx.beginPath();
-    ctx.arc(x2, y2, p.bobRadius, 0, Math.PI * 2);
-    ctx.fillStyle = '#4ade80';
+    ctx.arc(x2, y2, p.bobRadius * scale, 0, Math.PI * 2);
+    ctx.fillStyle = '#10b981';
     ctx.fill();
-    ctx.shadowBlur = 0;
   }
 
   let rafId;

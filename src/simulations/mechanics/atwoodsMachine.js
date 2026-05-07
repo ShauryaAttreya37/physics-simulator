@@ -240,16 +240,15 @@ export function create(canvas, initParams = {}) {
     const equilibriumY = ropeTopY + (floorY - ropeTopY) * 0.35; // start in upper third
 
     // Displacement in pixels
-    const dispPx = s * PX_PER_METER;
+    const dispPx = s * PX_PER_METER * (p.viewScale ?? 1.0);
 
     // Compute visual bounds: mass can't go above ropeTopY or below floorY
     // When s > 0: m₁ goes UP (equilibriumY - dispPx >= ropeTopY)
     //             m₂ goes DOWN (equilibriumY + dispPx <= floorY - blockHeight)
-    const maxUpPx = equilibriumY - ropeTopY - 5; // margin so mass doesn't overlap pulley
-    const maxDownPx = floorY - equilibriumY - 60; // margin for mass block height
+    const maxUpPx = (equilibriumY - ropeTopY - 5) * (p.viewScale ?? 1.0);
+    const maxDownPx = (floorY - equilibriumY - 60) * (p.viewScale ?? 1.0);
     const maxDispPx = Math.min(maxUpPx, maxDownPx);
     const clampedDispPx = Math.max(-maxDispPx, Math.min(maxDispPx, dispPx));
-
     const m1Y = equilibriumY - clampedDispPx; // m₁ goes up when s > 0
     const m2Y = equilibriumY + clampedDispPx; // m₂ goes down when s > 0
 
@@ -354,7 +353,6 @@ export function create(canvas, initParams = {}) {
       });
 
       // Weight (downward)
-      const w1Len = Math.min(p.m1 * p.gravity * vecPixScale, 80);
       const w2Len = Math.min(p.m2 * p.gravity * vecPixScale, 80);
       drawArrow(ctx, m2X, m2Y + massBlockH2 + 3, m2X, m2Y + massBlockH2 + 3 + w2Len, {
         color: '#a78bfa',

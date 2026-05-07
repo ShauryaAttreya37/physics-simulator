@@ -241,7 +241,6 @@ export function create(canvas, initParams = {}) {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    const batchSize = 3; // draw curves in batches for smoothness
     for (let i = 1; i < trailLen; i++) {
       const frac = i / trailLen;
       const [r, g, b] = sampleColormap('viridis', frac);

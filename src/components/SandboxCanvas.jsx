@@ -236,7 +236,7 @@ export default function SandboxCanvas({ engineRef }) {
     });
   }
 
-  function drawConstraints(ctx, eng) {
+  function drawConstraints(ctx) {
     const { selectedId, constraints: storeConstraints } = storeRef.current;
 
     for (const [id, sc] of Object.entries(storeConstraints)) {
@@ -631,7 +631,7 @@ export default function SandboxCanvas({ engineRef }) {
     if (!eng) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawGrid(ctx, canvas);
-    drawConstraints(ctx, eng);
+    drawConstraints(ctx);
     drawBodies(ctx, eng);
   }
 

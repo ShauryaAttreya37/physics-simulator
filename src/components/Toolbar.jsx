@@ -49,28 +49,35 @@ export default function Toolbar({ onReset, onHome }) {
   return (
     <aside className="left-sidebar">
       {/* Home button */}
-      <button className="icon-btn" title="Home" onClick={onHome} style={{ marginBottom: 4 }}>
+      <button
+        className="icon-btn"
+        title="Home"
+        onClick={onHome}
+        style={{ marginBottom: 'var(--sp-1)' }}
+      >
         <Home size={16} />
       </button>
-
-      {/* Brand logo mark */}
-      <div className="sidebar-brand" title="Physics Simulator" />
 
       <div className="sidebar-sep" />
 
       {/* Tool buttons */}
-      {tools.map((t) => (
-        <button
-          key={t.id}
-          title={t.label}
-          onClick={() => setActiveTool(t.id)}
-          className={`tool-btn${activeTool === t.id ? ' active' : ''}`}
-        >
-          {t.icon}
-        </button>
-      ))}
+      <div
+        className="tool-grid"
+        style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-1)' }}
+      >
+        {tools.map((t) => (
+          <button
+            key={t.id}
+            title={t.label}
+            onClick={() => setActiveTool(t.id)}
+            className={`tool-btn${activeTool === t.id ? ' active' : ''}`}
+          >
+            {t.icon}
+          </button>
+        ))}
+      </div>
 
-      <div className="sidebar-sep mobile-hide" style={{ margin: '12px 0' }} />
+      <div className="sidebar-sep mobile-hide" style={{ margin: 'var(--sp-3) 0' }} />
 
       {/* Systems section */}
       <div

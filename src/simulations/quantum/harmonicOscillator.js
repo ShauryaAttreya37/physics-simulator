@@ -216,7 +216,7 @@ export function create(canvas, initParams = {}) {
   }
 
   // ── Compute Wigner function on a coarse grid ─────────────────────
-  function computeWigner(t) {
+  function computeWigner() {
     const coeffs = getCoeffs();
     const alpha = Math.sqrt((p.mass * p.omega) / p.hbar);
     const NX = 60,
@@ -240,7 +240,6 @@ export function create(canvas, initParams = {}) {
             if (Math.abs(coeffs[n]) < 1e-10 || Math.abs(coeffs[m]) < 1e-10) continue;
             const En = eigenEnergy(n, p.omega, p.hbar);
             const Em = eigenEnergy(m, p.omega, p.hbar);
-            const phase = (-(En - Em) * t) / p.hbar;
 
             // Approximate W via direct sum — compute overlap integral numerically
             // Simplified: for diagonal terms n==m, use exact formula
@@ -495,7 +494,7 @@ export function create(canvas, initParams = {}) {
       gridLines: 6,
     });
 
-    const wig = computeWigner(simTime);
+    const wig = computeWigner();
     const cellW = wigW / wig.NX;
     const cellH = wigH / wig.NP;
 

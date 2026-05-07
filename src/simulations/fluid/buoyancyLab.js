@@ -1,6 +1,6 @@
 /**
  * Buoyancy Lab Simulation
- * Ported from FluidSandboxPage.jsx
+ * High-fidelity Archimedes' Principle Laboratory
  */
 
 const FLUIDS = [
@@ -65,7 +65,7 @@ const FLUIDS = [
     color: '#a07200',
     colorTop: '#e0a800',
     alpha: 0.88,
-    viscFactor: 250.0,
+    viscFactor: 400.0,
   },
 ];
 
@@ -85,18 +85,19 @@ const PX_M = 0.003;
 const DEPTH_M = 0.08;
 const G = 9.81;
 const G_SIM = 900;
+const DENSITY_UNIT_SCALE = 1000; // g/cm^3 -> kg/m^3
 
 function bVol(mat) {
   return mat.w * PX_M * mat.h * PX_M * DEPTH_M;
 }
 function bWeight(mat) {
-  return mat.density * bVol(mat) * G;
+  return mat.density * DENSITY_UNIT_SCALE * bVol(mat) * G;
 }
 function bBuoy(mat, fl, subFrac) {
-  return fl.density * G * bVol(mat) * subFrac;
+  return fl.density * DENSITY_UNIT_SCALE * bVol(mat) * subFrac * G;
 }
-function bApparent(mat, fl, sub) {
-  return bWeight(mat) - bBuoy(mat, fl, sub);
+function bApparent(mat, fl, subFrac) {
+  return Math.max(0, bWeight(mat) - bBuoy(mat, fl, subFrac));
 }
 
 function hexAlpha(hex, a) {
@@ -106,7 +107,7 @@ function hexAlpha(hex, a) {
   return `rgba(${r},${g},${b},${a})`;
 }
 function lighten(hex, f) {
-  return `rgb(${Math.min(255, parseInt(hex.slice(1, 3), 16) + Math.round(f * 255))},${Math.min(255, parseInt(hex.slice(3, 5), 16) + Math.round(f * 255))},${Math.min(255, parseInt(hex.slice(5, 7), 16) + Math.round(f * 255))})`;
+  return `rgb(${Math.min(255, parseInt(hex.slice(1, 3), 16) + Math.round(f * 255))},${Math.min(255, parseInt(hex.slice(5, 7), 16) + Math.round(f * 255))},${Math.min(255, parseInt(hex.slice(5, 7), 16) + Math.round(f * 255))})`;
 }
 function blend(h1, h2, t) {
   const r = Math.round(parseInt(h1.slice(1, 3), 16) * (1 - t) + parseInt(h2.slice(1, 3), 16) * t);
@@ -162,7 +163,7 @@ export const equationSections = [
   {
     title: 'Introduction',
     content:
-      'Buoyancy is the upward force that fluids exert on objects submerged in them. This principle explains why objects float or sink, and why submarines can control their depth. The buoyant force depends on the fluid density and the volume of fluid displaced. This simulation lets you experiment with different materials and fluids to see buoyancy in action.',
+      'Buoyancy is the upward force that fluids exert on objects submerged in them. This principle explains why objects float or sink, and why submarines can control their depth. The buoyant force depends on the fluid density and the volume of fluid displaced.',
   },
   {
     title: "Archimedes' Principle",
@@ -175,68 +176,59 @@ export const equationSections = [
     ],
     variables: [
       { symbol: 'F_b', description: 'Buoyant force (upward)' },
-      { symbol: 'ρ_f', description: 'Density of the fluid (mass per volume)' },
-      { symbol: 'V_sub', description: 'Volume of fluid displaced (submerged volume)' },
+      { symbol: 'ρ_f', description: 'Density of the fluid' },
+      { symbol: 'V_sub', description: 'Volume of fluid displaced' },
     ],
   },
   {
-    title: 'Floating Condition',
+    title: 'Floating & Sinking',
+    content:
+      'An object floats if its density is less than the fluid density. In this state, it displaces exactly its own weight in fluid. If it is denser, it sinks to the bottom, though it still feels an upward buoyant force that reduces its "apparent weight".',
     equations: [
       {
-        latex: String.raw`F_b = W_{object}`,
-        description: 'Object floats when buoyant force equals object weight.',
-      },
-      {
-        latex: String.raw`\rho_{object} < \rho_{fluid}`,
-        description: 'Object density must be less than fluid density to float.',
+        latex: String.raw`W_{apparent} = W_{actual} - F_b`,
+        description: 'The weight measured when the object is submerged.',
       },
     ],
-  },
-  {
-    title: 'Apparent Weight',
-    equations: [
-      {
-        latex: String.raw`W_{apparent} = W_{object} - F_b`,
-        description: "Weight you feel when lifting submerged object. It's less than actual weight.",
-      },
-    ],
-  },
-  {
-    title: 'How to Use',
-    content:
-      '1. Click in the tank to add blocks of different materials.\n2. Select different fluids (water, oil, mercury) to see how density affects buoyancy.\n3. Try materials denser than fluid (sink) vs less dense (float).\n4. Drag blocks around to see how depth affects buoyant force.\n5. Watch the graphs: weight, buoyancy, and apparent weight.\n6. Experiment with partial submersion.',
-  },
-  {
-    title: 'Beginner Tips',
-    content:
-      'Denser fluids provide more buoyancy. Objects float when their average density is less than the fluid. The buoyant force increases with depth. Steel ships float because they displace a lot of water. Try the "Eureka!" moment - objects lose weight in water!',
   },
 ];
 
-export const equations = [];
-
 export const graphParams = [
-  { key: 'weight', label: 'Object Weight (in air)', color: '#FF6B6B' },
-  { key: 'buoyancy', label: 'Buoyant Force', color: '#60a5fa' },
-  { key: 'appWeight', label: 'Apparent Weight', color: '#FFD166' },
+  { key: 'weight', label: 'Weight (N)', color: '#FF6B6B' },
+  { key: 'buoyancy', label: 'Buoyancy (N)', color: '#60a5fa' },
+  { key: 'appWeight', label: 'Apparent Weight (N)', color: '#FFD166' },
 ];
 
 export function create(canvas, initParams = {}) {
   const ctx = canvas.getContext('2d');
   let p = { ...defaultParams, ...initParams };
 
-  const TK_X = 72,
-    TK_Y = 50,
-    TK_W = 390,
-    TK_H = 380;
+  const TK_W = 390,
+    TK_H = 380,
+    TK_Y = 50;
   const FLUID_FILL = 0.75;
-  const SC_X = TK_X + TK_W + 60;
+  const SCALE_BOX_W = 140;
+  const LAYOUT_GAP = 60;
+  const MAX_SCALE_FORCE = 120; // Newtons for full spring extension
 
   let blocks = [];
   let bubbles = [];
   let time = 0;
   let dragging = null;
   let selectedId = null;
+
+  function getLayout() {
+    const W = canvas.width;
+    const viewScale = p.viewScale ?? 1.0;
+    const currentTK_W = TK_W * viewScale;
+    const contentW = currentTK_W + LAYOUT_GAP * viewScale + SCALE_BOX_W * viewScale;
+    const startX = (W - contentW) / 2;
+    return {
+      tkX: startX,
+      scX: startX + currentTK_W + LAYOUT_GAP * viewScale + (SCALE_BOX_W * viewScale) / 2,
+      viewScale,
+    };
+  }
 
   canvas.addEventListener('pointerdown', (e) => {
     const rect = canvas.getBoundingClientRect();
@@ -245,7 +237,8 @@ export function create(canvas, initParams = {}) {
     const sx = (e.clientX - rect.left) * scaleX;
     const sy = (e.clientY - rect.top) * scaleY;
 
-    // hit test
+    const { tkX } = getLayout();
+
     let hit = null;
     for (let i = blocks.length - 1; i >= 0; i--) {
       const b = blocks[i];
@@ -262,14 +255,13 @@ export function create(canvas, initParams = {}) {
       hit.dragging = true;
       selectedId = hit.id;
     } else {
-      // Spawn new block if clicked in top area or empty space
       const mat = MATERIALS[p.matIdx];
       if (blocks.length < 10) {
         const newBlock = {
           id: Date.now() + Math.random(),
           mat,
-          x: Math.max(TK_X + 20, Math.min(sx, TK_X + TK_W - 20)),
-          y: Math.max(TK_Y + 20, sy),
+          x: Math.max(tkX + mat.w / 2 + 5, Math.min(sx, tkX + TK_W - mat.w / 2 - 5)),
+          y: Math.max(TK_Y + mat.h / 2 + 5, sy),
           vy: 0,
         };
         blocks.push(newBlock);
@@ -286,13 +278,15 @@ export function create(canvas, initParams = {}) {
     const sx = (e.clientX - rect.left) * scaleX;
     const sy = (e.clientY - rect.top) * scaleY;
 
+    const { tkX } = getLayout();
+
     dragging.block.x = sx - dragging.offX;
     dragging.block.y = sy - dragging.offY;
     dragging.block.vy = 0;
 
     const hw = dragging.block.mat.w / 2,
       hh = dragging.block.mat.h / 2;
-    dragging.block.x = Math.max(TK_X + hw + 2, Math.min(TK_X + TK_W - hw - 2, dragging.block.x));
+    dragging.block.x = Math.max(tkX + hw + 2, Math.min(tkX + TK_W - hw - 2, dragging.block.x));
     dragging.block.y = Math.max(TK_Y + hh + 2, Math.min(TK_Y + TK_H - hh - 2, dragging.block.y));
   });
 
@@ -306,16 +300,21 @@ export function create(canvas, initParams = {}) {
   canvas.addEventListener('pointerleave', stopDrag);
 
   function dynamicFluidTopPx() {
-    const baseTop = TK_Y + TK_H * (1 - FLUID_FILL);
-    let totalDisplacedArea = 0;
+    const baseH = TK_H * FLUID_FILL;
     const tankInnerW = TK_W - 4;
-    for (const b of blocks) {
-      const hh = b.mat.h / 2;
-      const subPx = Math.max(0, Math.min(b.mat.h, b.y + hh - baseTop));
-      totalDisplacedArea += b.mat.w * subPx;
+    let hLevel = baseH;
+
+    for (let i = 0; i < 3; i++) {
+      let totalDisplacedVol = 0;
+      const currentFTop = TK_Y + TK_H - hLevel;
+      for (const b of blocks) {
+        const hh = b.mat.h / 2;
+        const subPx = Math.max(0, Math.min(b.mat.h, b.y + hh - currentFTop));
+        totalDisplacedVol += b.mat.w * subPx;
+      }
+      hLevel = baseH + totalDisplacedVol / tankInnerW;
     }
-    const rise = totalDisplacedArea / tankInnerW;
-    return Math.max(TK_Y + 8, baseTop - rise);
+    return Math.max(TK_Y + 12, TK_Y + TK_H - hLevel);
   }
 
   function computeSubFrac(block, fTop) {
@@ -329,41 +328,47 @@ export function create(canvas, initParams = {}) {
     const fTop = dynamicFluidTopPx();
     const tankBot = TK_Y + TK_H - 4;
     const tankTop = TK_Y + 4;
+    const { tkX } = getLayout();
 
     for (const b of blocks) {
       if (b.dragging) continue;
-      const hh = b.mat.h / 2;
-      const sub = Math.max(0, Math.min(b.mat.h, b.y + hh - fTop));
-      const subFrac = sub / b.mat.h;
+
+      const hw = b.mat.w / 2;
+      b.x = Math.max(tkX + hw + 2, Math.min(tkX + TK_W - hw - 2, b.x));
+
+      const subFrac = computeSubFrac(b, fTop);
       const accelB = (fl.density / b.mat.density) * G_SIM * subFrac;
       const net = G_SIM - accelB;
-      const viscDamp = fl.viscFactor * 0.012;
-      const damp = b.vy * (0.5 + viscDamp);
+
+      const baseDamp = 0.45;
+      const fluidDamp = fl.viscFactor * 0.12 * subFrac;
+      const dampingCoeff = (baseDamp + fluidDamp) / Math.sqrt(b.mat.density);
+
       const oldVy = b.vy;
-      b.vy += (net - damp) * dt;
-      b.vy = Math.max(-800, Math.min(800, b.vy));
+      b.vy += (net - b.vy * dampingCoeff) * dt;
+      b.vy = Math.max(-1000, Math.min(1000, b.vy));
       b.y += b.vy * dt;
 
-      if (subFrac > 0.05 && Math.abs(oldVy) > 40) {
-        const nBub = Math.floor(Math.abs(oldVy) / 60);
-        for (let i = 0; i < Math.min(nBub, 3); i++) {
+      if (b.y + b.mat.h / 2 > tankBot) {
+        b.y = tankBot - b.mat.h / 2;
+        b.vy = -b.vy * 0.15;
+      }
+      if (b.y - b.mat.h / 2 < tankTop) {
+        b.y = tankTop + b.mat.h / 2;
+        b.vy = Math.max(0, b.vy);
+      }
+
+      if (subFrac > 0.1 && subFrac < 0.9 && Math.abs(oldVy) > 100) {
+        const nBub = Math.floor(Math.abs(oldVy) / 150);
+        for (let i = 0; i < Math.min(nBub, 4); i++) {
           bubbles.push({
-            x: b.x + (Math.random() - 0.5) * b.mat.w * 0.8,
-            y: fTop + sub * Math.random(),
-            r: 1.5 + Math.random() * 2.5,
-            vy: -20 - Math.random() * 40,
+            x: b.x + (Math.random() - 0.5) * b.mat.w,
+            y: fTop + (b.y + b.mat.h / 2 - fTop) * Math.random(),
+            r: 1.0 + Math.random() * 2.5,
+            vy: -30 - Math.random() * 50,
             life: 1.0,
           });
         }
-      }
-
-      if (b.y + hh > tankBot) {
-        b.y = tankBot - hh;
-        b.vy = -b.vy * 0.12;
-      }
-      if (b.y - hh < tankTop) {
-        b.y = tankTop + hh;
-        b.vy = Math.max(0, b.vy);
       }
 
       for (const other of blocks) {
@@ -373,13 +378,17 @@ export function create(canvas, initParams = {}) {
         const overlapX = (b.mat.w + other.mat.w) / 2 - dx,
           overlapY = (b.mat.h + other.mat.h) / 2 - dy;
         if (overlapX > 0 && overlapY > 0) {
-          const pushY = overlapY * 0.5 + 0.5;
+          const pushY = overlapY * 0.5 + 0.1;
           if (b.y < other.y) {
-            b.y -= pushY * 0.3;
-            other.y += pushY * 0.3;
+            b.y -= pushY * 0.5;
+            other.y += pushY * 0.5;
+            b.vy *= 0.8;
+            other.vy *= 0.8;
           } else {
-            b.y += pushY * 0.3;
-            other.y -= pushY * 0.3;
+            b.y += pushY * 0.5;
+            other.y -= pushY * 0.5;
+            b.vy *= 0.8;
+            other.vy *= 0.8;
           }
         }
       }
@@ -388,14 +397,14 @@ export function create(canvas, initParams = {}) {
     for (let i = bubbles.length - 1; i >= 0; i--) {
       const bub = bubbles[i];
       bub.y += bub.vy * dt;
-      bub.x += Math.sin(bub.y * 0.1) * 0.3;
-      bub.life -= dt * 0.8;
-      if (bub.life <= 0 || bub.y < fTop - 5) bubbles.splice(i, 1);
+      bub.x += Math.sin(bub.y * 0.05 + time * 2) * 0.5;
+      bub.life -= dt * 0.7;
+      if (bub.life <= 0 || bub.y < fTop - 10) bubbles.splice(i, 1);
     }
     time += dt;
   }
 
-  function bDrawBlock(b, fl, isSelected, fTop) {
+  function bDrawBlock(b, fl, isSelected, fTop, tkX) {
     const { mat, x, y } = b;
     const hw = mat.w / 2,
       hh = mat.h / 2;
@@ -409,19 +418,17 @@ export function create(canvas, initParams = {}) {
 
     ctx.save();
     ctx.beginPath();
-    ctx.rect(TK_X + 2, TK_Y + 2, TK_W - 4, TK_H - 4);
+    ctx.rect(tkX + 2, TK_Y + 2, TK_W - 4, TK_H - 4);
     ctx.clip();
 
-    ctx.shadowBlur = isSelected ? 18 : 8;
-    ctx.shadowColor = isSelected ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = isSelected ? 20 : 8;
+    ctx.shadowColor = isSelected ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.5)';
     ctx.shadowOffsetX = 2;
     ctx.shadowOffsetY = 3;
     roundRect(ctx, bLeft, bTop, mat.w, mat.h, r);
     ctx.fillStyle = 'rgba(0,0,0,0.01)';
     ctx.fill();
     ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
 
     if (dryH > 0) {
       ctx.save();
@@ -429,15 +436,13 @@ export function create(canvas, initParams = {}) {
       roundRect(ctx, bLeft, bTop, mat.w, mat.h, r);
       ctx.clip();
       const g1 = ctx.createLinearGradient(bLeft, bTop, bLeft + mat.w, bTop + dryH);
-      g1.addColorStop(0, lighten(mat.color, 0.22));
+      g1.addColorStop(0, lighten(mat.color, 0.25));
       g1.addColorStop(0.5, mat.color);
-      g1.addColorStop(1, lighten(mat.color, -0.05));
+      g1.addColorStop(1, lighten(mat.color, -0.1));
       ctx.fillStyle = g1;
       ctx.fillRect(bLeft, bTop, mat.w, dryH);
-      ctx.fillStyle = 'rgba(255,255,255,0.12)';
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
       ctx.fillRect(bLeft, bTop, mat.w, 2);
-      ctx.fillStyle = '#2A3441';
-      ctx.fillRect(bLeft, bTop, 2, dryH);
       ctx.restore();
     }
 
@@ -448,357 +453,227 @@ export function create(canvas, initParams = {}) {
       ctx.clip();
       const wetTop = bTop + dryH;
       const g2 = ctx.createLinearGradient(bLeft, wetTop, bLeft + mat.w, wetTop + wetH);
-      g2.addColorStop(0, blend(mat.color, fl.color, 0.3));
-      g2.addColorStop(0.5, blend(mat.color, fl.color, 0.42));
-      g2.addColorStop(1, blend(mat.color, fl.color, 0.55));
+      g2.addColorStop(0, blend(mat.color, fl.color, 0.35));
+      g2.addColorStop(0.5, blend(mat.color, fl.color, 0.5));
+      g2.addColorStop(1, blend(mat.color, fl.color, 0.65));
       ctx.fillStyle = g2;
-      ctx.fillRect(bLeft, wetTop, mat.w, wetH);
-      ctx.fillStyle = hexAlpha(fl.colorTop, 0.1);
       ctx.fillRect(bLeft, wetTop, mat.w, wetH);
       ctx.restore();
     }
 
     ctx.beginPath();
     roundRect(ctx, bLeft, bTop, mat.w, mat.h, r);
-    if (isSelected) {
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.shadowBlur = 12;
-      ctx.shadowColor = 'rgba(255,255,255,0.4)';
-    } else {
-      ctx.strokeStyle = mat.stroke;
-      ctx.lineWidth = 1.5;
-    }
+    ctx.strokeStyle = isSelected ? '#ffffff' : mat.stroke;
+    ctx.lineWidth = isSelected ? 2.5 : 1.5;
     ctx.stroke();
-    ctx.shadowBlur = 0;
 
-    ctx.fillStyle = isSelected ? '#ffffff' : 'rgba(255,255,255,0.78)';
-    ctx.font = `bold ${Math.max(8, Math.min(11, mat.h / 3.5))}px "Montserrat", sans-serif`;
+    ctx.fillStyle = isSelected ? '#ffffff' : 'rgba(255,255,255,0.8)';
+    ctx.font = `bold ${Math.max(9, Math.min(12, mat.h / 3))}px "Montserrat", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(mat.name, x, y - 1);
-    ctx.fillStyle = isSelected ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.30)';
-    ctx.font = `${Math.max(7, Math.min(9, mat.h / 5))}px "JetBrains Mono", monospace`;
-    ctx.fillText(`${mat.density}`, x, y + Math.max(7, mat.h / 4));
     ctx.restore();
   }
 
-  function bDrawScale(sel, fl, fTop) {
-    const sx = SC_X;
+  function bDrawScale(sel, fl, fTop, sx) {
     const mountY = TK_Y;
 
-    ctx.fillStyle = '#1a2538';
-    roundRect(ctx, sx - 40, mountY - 14, 80, 16, 4);
+    // Scale Mount
+    ctx.fillStyle = '#1e293b';
+    roundRect(ctx, sx - 45, mountY - 16, 90, 18, 4);
     ctx.fill();
-    ctx.strokeStyle = '#2d4060';
-    ctx.lineWidth = 1;
-    roundRect(ctx, sx - 40, mountY - 14, 80, 16, 4);
-    ctx.stroke();
-    ctx.fillStyle = '#3a5070';
-    ctx.fillRect(sx - 3, mountY + 2, 6, 22);
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(sx - 45, mountY - 16, 90, 18);
 
-    const hookY = mountY + 24;
-    const appW = sel ? bApparent(sel.mat, fl, computeSubFrac(sel, fTop)) : 0;
-    const maxW = sel ? Math.max(bWeight(sel.mat), 0.001) : 1;
-    const baseLen = 85,
-      maxExt = 105;
-    const ext = sel ? Math.max(0, (Math.abs(appW) / maxW) * maxExt) : 0;
+    const hookY = mountY + 2;
+    const subFrac = sel ? computeSubFrac(sel, fTop) : 0;
+    const wt = sel ? bWeight(sel.mat) : 0;
+    const bf = sel ? bBuoy(sel.mat, fl, subFrac) : 0;
+    const appW = Math.max(0, wt - bf); // Apparent weight is what the spring feels
+
+    const baseLen = 70;
+    const maxExt = 120;
+    // Spring extension is proportional to the LOAD (apparent weight)
+    const ext = sel ? Math.min(maxExt, (appW / MAX_SCALE_FORCE) * maxExt) : 0;
     const springLen = baseLen + ext;
     const panY = hookY + springLen;
 
-    const coils = 11;
+    // Spring Coils (Dynamic length)
+    const coils = 12;
     ctx.beginPath();
     ctx.moveTo(sx, hookY);
     for (let i = 0; i <= coils * 2; i++) {
       const t = i / (coils * 2);
-      const side = (i % 2 === 0 ? 1 : -1) * 10;
+      const side = (i % 2 === 0 ? 1 : -1) * 8;
       ctx.lineTo(sx + side, hookY + springLen * t);
     }
     ctx.lineTo(sx, panY);
     ctx.strokeStyle = '#60a5fa';
     ctx.lineWidth = 2;
-    ctx.shadowBlur = 6;
-    ctx.shadowColor = '#3b82f680';
     ctx.stroke();
-    ctx.shadowBlur = 0;
 
+    // Pan (Moves with spring extension)
     ctx.beginPath();
-    ctx.moveTo(sx - 26, panY);
-    ctx.lineTo(sx + 26, panY);
-    ctx.strokeStyle = '#8899aa';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(sx - 26, panY);
-    ctx.lineTo(sx - 20, panY + 5);
-    ctx.lineTo(sx + 20, panY + 5);
-    ctx.lineTo(sx + 26, panY);
-    ctx.strokeStyle = '#556677';
-    ctx.lineWidth = 1;
+    ctx.moveTo(sx - 30, panY);
+    ctx.lineTo(sx + 30, panY);
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 4;
     ctx.stroke();
 
     if (sel) {
-      const sc = 0.5,
-        mw = sel.mat.w * sc,
+      const sc = 0.6;
+      const mw = sel.mat.w * sc,
         mh = sel.mat.h * sc;
-      roundRect(ctx, sx - mw / 2, panY - mh + 1, mw, mh, 3);
+      // Object sits ON the pan
+      roundRect(ctx, sx - mw / 2, panY - mh, mw, mh, 3);
       ctx.fillStyle = sel.mat.color;
       ctx.fill();
       ctx.strokeStyle = sel.mat.stroke;
       ctx.lineWidth = 1;
       ctx.stroke();
-      ctx.fillStyle = 'rgba(255,255,255,0.65)';
-      ctx.font = 'bold 7px "Montserrat", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(sel.mat.name, sx, panY - mh / 2 + 1);
     }
 
-    const boxY = panY + 16,
-      boxW = 136,
-      boxH = 130;
-    ctx.fillStyle = 'rgba(8,14,26,0.94)';
-    roundRect(ctx, sx - boxW / 2, boxY, boxW, boxH, 8);
+    // Readout Box
+    const boxY = TK_Y + 220,
+      boxW = 140,
+      boxH = 140;
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+    roundRect(ctx, sx - boxW / 2, boxY, boxW, boxH, 12);
     ctx.fill();
-    ctx.strokeStyle = '#1a3050';
-    ctx.lineWidth = 1;
-    roundRect(ctx, sx - boxW / 2, boxY, boxW, boxH, 8);
+    ctx.strokeStyle = '#334155';
     ctx.stroke();
 
-    ctx.textAlign = 'center';
     if (sel) {
-      const subFrac = computeSubFrac(sel, fTop);
-      const wt = bWeight(sel.mat),
-        buoyF = bBuoy(sel.mat, fl, subFrac),
-        appWt = bApparent(sel.mat, fl, subFrac);
-      const floats = appWt < -0.00005,
-        neutral = Math.abs(appWt) <= 0.00005;
+      const wt = bWeight(sel.mat);
+      const bf = bBuoy(sel.mat, fl, subFrac);
+      const aw = bApparent(sel.mat, fl, subFrac);
 
-      ctx.fillStyle = '#5a6a7a';
-      ctx.font = '9px "Montserrat", sans-serif';
-      ctx.fillText('Weight (in air)', sx, boxY + 16);
-      ctx.fillStyle = '#f1f5f9';
-      ctx.font = 'bold 12px "JetBrains Mono", monospace';
-      ctx.fillText(`${wt.toFixed(4)} N`, sx, boxY + 30);
-      ctx.fillStyle = '#5a6a7a';
-      ctx.font = '9px "Montserrat", sans-serif';
-      ctx.fillText('Buoyant force', sx, boxY + 46);
-      ctx.fillStyle = '#60a5fa';
-      ctx.font = 'bold 12px "JetBrains Mono", monospace';
-      ctx.fillText(`${buoyF.toFixed(4)} N`, sx, boxY + 60);
-      ctx.fillStyle = '#5a6a7a';
-      ctx.font = '9px "Montserrat", sans-serif';
-      ctx.fillText('Apparent weight', sx, boxY + 76);
-      ctx.fillStyle = floats ? '#86efac' : neutral ? '#FFD166' : '#fca5a5';
-      ctx.font = 'bold 13px "JetBrains Mono", monospace';
-      ctx.fillText(`${appWt >= 0 ? '' : '−'}${Math.abs(appWt).toFixed(4)} N`, sx, boxY + 92);
+      const drawMetric = (label, val, unit, color, yOff) => {
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px "Montserrat", sans-serif';
+        ctx.fillText(label, sx, boxY + yOff);
+        ctx.fillStyle = color;
+        ctx.font = 'bold 13px "JetBrains Mono", monospace';
+        ctx.fillText(`${val.toFixed(3)} ${unit}`, sx, boxY + yOff + 16);
+      };
 
-      const tag = floats ? '↑ FLOATS' : neutral ? '◆ NEUTRAL' : '↓ SINKS';
-      const tagCol = floats ? '#86efac' : neutral ? '#FFD166' : '#FF6B6B';
-      const tagBg = floats
-        ? 'rgba(134,239,172,0.10)'
-        : neutral
-          ? 'rgba(255, 209, 102,0.10)'
-          : 'rgba(248,113,113,0.10)';
-      roundRect(ctx, sx - 36, boxY + 102, 72, 18, 4);
-      ctx.fillStyle = tagBg;
-      ctx.fill();
-      ctx.strokeStyle = floats
-        ? 'rgba(134,239,172,0.25)'
-        : neutral
-          ? 'rgba(255, 209, 102,0.25)'
-          : 'rgba(248,113,113,0.25)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.fillStyle = tagCol;
-      ctx.font = 'bold 9px "Montserrat", sans-serif';
-      ctx.fillText(tag, sx, boxY + 114);
+      drawMetric('Actual Weight', wt, 'N', '#fca5a5', 24);
+      drawMetric('Buoyant Force', bf, 'N', '#60a5fa', 64);
+      drawMetric('Apparent Weight', aw, 'N', aw > 0 ? '#fde047' : '#86efac', 104);
+
+      if (aw <= 0.0001 && subFrac > 0) {
+        ctx.fillStyle = '#86efac';
+        ctx.font = 'bold 9px "Montserrat", sans-serif';
+        ctx.fillText('NEUTRAL / FLOATING', sx, boxY + 130);
+      }
     } else {
-      ctx.fillStyle = '#334050';
-      ctx.font = '11px "Montserrat", sans-serif';
-      ctx.fillText('Click empty space', sx, boxY + 42);
-      ctx.fillText('to spawn blocks.', sx, boxY + 58);
-      ctx.fillText('Click blocks to', sx, boxY + 74);
-      ctx.fillText('drag & inspect.', sx, boxY + 90);
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'italic 11px "Montserrat", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Select an object', sx, boxY + 70);
     }
-
-    ctx.fillStyle = 'rgba(148,163,184,0.4)';
-    ctx.font = '9px "Montserrat", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('⚖  SPRING SCALE', sx, TK_Y - 2);
   }
 
   function render() {
     const W = canvas.width,
       H = canvas.height;
+    const { tkX, scX } = getLayout();
     ctx.clearRect(0, 0, W, H);
-
     const fl = FLUIDS[p.fluidIdx];
 
-    const bgGrad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, W * 0.8);
-    bgGrad.addColorStop(0, '#0a0c16');
-    bgGrad.addColorStop(1, '#050610');
-    ctx.fillStyle = bgGrad;
+    // Background
+    ctx.fillStyle = '#0f172a';
     ctx.fillRect(0, 0, W, H);
-    ctx.strokeStyle = 'rgba(255,255,255,0.02)';
-    ctx.lineWidth = 1;
-    for (let x = 0; x < W; x += 30) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, H);
-      ctx.stroke();
-    }
-    for (let y = 0; y < H; y += 30) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(W, y);
-      ctx.stroke();
-    }
 
-    ctx.save();
-    const tankGrad = ctx.createLinearGradient(TK_X, TK_Y, TK_X, TK_Y + TK_H);
-    tankGrad.addColorStop(0, 'rgba(8,14,28,0.95)');
-    tankGrad.addColorStop(1, 'rgba(4,8,18,0.98)');
+    // Tank
+    const tankGrad = ctx.createLinearGradient(tkX, TK_Y, tkX, TK_Y + TK_H);
+    tankGrad.addColorStop(0, '#1e293b');
+    tankGrad.addColorStop(1, '#0f172a');
     ctx.fillStyle = tankGrad;
-    ctx.fillRect(TK_X, TK_Y, TK_W, TK_H);
-    ctx.fillStyle = 'rgba(255,255,255,0.015)';
-    ctx.fillRect(TK_X, TK_Y, 3, TK_H);
-    ctx.fillRect(TK_X + TK_W - 3, TK_Y, 3, TK_H);
-    ctx.restore();
+    ctx.fillRect(tkX, TK_Y, TK_W, TK_H);
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(tkX, TK_Y, TK_W, TK_H);
 
-    ctx.strokeStyle = '#2a3650';
-    ctx.lineWidth = 2.5;
-    ctx.strokeRect(TK_X, TK_Y, TK_W, TK_H);
-    ctx.strokeStyle = 'rgba(100,140,200,0.08)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(TK_X + 1, TK_Y + 1, TK_W - 2, TK_H - 2);
+    const fTop = dynamicFluidTopPx();
+    const fH = TK_Y + TK_H - fTop;
 
-    const fTop = dynamicFluidTopPx(),
-      fH = TK_Y + TK_H - fTop;
-
+    // Fluid
     ctx.save();
     ctx.beginPath();
-    ctx.rect(TK_X + 2, fTop, TK_W - 4, fH);
+    ctx.rect(tkX + 2, fTop, TK_W - 4, fH);
     ctx.clip();
-    const fGrad = ctx.createLinearGradient(TK_X, fTop, TK_X, TK_Y + TK_H);
-    fGrad.addColorStop(0, hexAlpha(fl.colorTop, fl.alpha * 0.85));
-    fGrad.addColorStop(0.06, hexAlpha(fl.color, fl.alpha * 0.95));
-    fGrad.addColorStop(0.5, hexAlpha(fl.color, fl.alpha));
-    fGrad.addColorStop(1, hexAlpha(fl.color, Math.min(1, fl.alpha + 0.15)));
+    const fGrad = ctx.createLinearGradient(tkX, fTop, tkX, TK_Y + TK_H);
+    fGrad.addColorStop(0, hexAlpha(fl.colorTop, fl.alpha * 0.8));
+    fGrad.addColorStop(1, hexAlpha(fl.color, fl.alpha));
     ctx.fillStyle = fGrad;
-    ctx.fillRect(TK_X + 2, fTop, TK_W - 4, fH);
-
-    ctx.globalAlpha = 0.04;
-    for (let i = 0; i < 6; i++) {
-      const rx = TK_X + 20 + ((i * 67 + time * 15) % (TK_W - 40));
-      const rw = 8 + Math.sin(time * 1.2 + i * 2) * 4;
-      const cGrad = ctx.createLinearGradient(rx, fTop, rx, fTop + fH * 0.7);
-      cGrad.addColorStop(0, 'rgba(255,255,255,0.8)');
-      cGrad.addColorStop(1, 'rgba(255,255,255,0)');
-      ctx.fillStyle = cGrad;
-      ctx.fillRect(rx, fTop, rw, fH * 0.7);
-    }
-    ctx.globalAlpha = 1;
+    ctx.fillRect(tkX + 2, fTop, TK_W - 4, fH);
     ctx.restore();
 
-    ctx.save();
+    // Surface Wave
     ctx.beginPath();
-    ctx.moveTo(TK_X + 2, fTop);
-    for (let px = TK_X + 2; px <= TK_X + TK_W - 2; px += 2) {
-      const wave =
-        Math.sin(((px - TK_X) / TK_W) * Math.PI * 6 + time * 3) * 1.2 +
-        Math.sin(((px - TK_X) / TK_W) * Math.PI * 10 + time * 5) * 0.5;
+    ctx.moveTo(tkX + 2, fTop);
+    for (let px = tkX + 2; px <= tkX + TK_W - 2; px += 4) {
+      const wave = Math.sin(px / 40 + time * 3) * 2;
       ctx.lineTo(px, fTop + wave);
     }
-    ctx.lineTo(TK_X + TK_W - 2, fTop + 8);
-    ctx.lineTo(TK_X + 2, fTop + 8);
-    ctx.closePath();
-    const surfGrad = ctx.createLinearGradient(0, fTop - 2, 0, fTop + 8);
-    surfGrad.addColorStop(0, hexAlpha(fl.colorTop, 0.95));
-    surfGrad.addColorStop(1, hexAlpha(fl.color, 0.3));
-    ctx.fillStyle = surfGrad;
-    ctx.fill();
-    ctx.restore();
-
-    ctx.beginPath();
-    ctx.moveTo(TK_X + 2, fTop);
-    for (let px = TK_X + 2; px <= TK_X + TK_W - 2; px += 2) {
-      const wave =
-        Math.sin(((px - TK_X) / TK_W) * Math.PI * 6 + time * 3) * 1.2 +
-        Math.sin(((px - TK_X) / TK_W) * Math.PI * 10 + time * 5) * 0.5;
-      ctx.lineTo(px, fTop + wave);
-    }
-    ctx.strokeStyle = hexAlpha(fl.colorTop, 0.9);
-    ctx.lineWidth = 1.5;
-    ctx.shadowBlur = 4;
-    ctx.shadowColor = hexAlpha(fl.colorTop, 0.4);
+    ctx.strokeStyle = fl.colorTop;
+    ctx.lineWidth = 2;
     ctx.stroke();
-    ctx.shadowBlur = 0;
 
+    // Bubbles
     for (const bub of bubbles) {
       ctx.beginPath();
       ctx.arc(bub.x, bub.y, bub.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(180,220,255,${bub.life * 0.3})`;
+      ctx.fillStyle = `rgba(255, 255, 255, ${bub.life * 0.4})`;
       ctx.fill();
-      ctx.strokeStyle = `rgba(200,235,255,${bub.life * 0.25})`;
-      ctx.lineWidth = 0.5;
-      ctx.stroke();
     }
 
+    // Blocks
     for (const b of blocks) {
-      if (b.id !== selectedId) bDrawBlock(b, fl, false, fTop);
+      if (b.id !== selectedId) bDrawBlock(b, fl, false, fTop, tkX);
     }
     const sel = blocks.find((b) => b.id === selectedId);
-    if (sel) bDrawBlock(sel, fl, true, fTop);
+    if (sel) bDrawBlock(sel, fl, true, fTop, tkX);
 
+    // Forces visualization
     if (sel) {
-      const subFrac = computeSubFrac(sel, fTop),
-        wt = bWeight(sel.mat),
-        buoyF = bBuoy(sel.mat, fl, subFrac);
-      const maxF = Math.max(wt, buoyF, 0.001),
-        arrowScale = 60,
-        wtLen = (wt / maxF) * arrowScale;
-      const bCx = sel.x,
-        bCy = sel.y + sel.mat.h / 2;
+      const subFrac = computeSubFrac(sel, fTop);
+      const wt = bWeight(sel.mat);
+      const bf = bBuoy(sel.mat, fl, subFrac);
+      const maxF = Math.max(wt, bf, 1);
 
+      const arrowLen = (f) => (f / maxF) * 80;
+      const bx = sel.x,
+        by = sel.y + sel.mat.h / 2;
+
+      // Weight arrow
       ctx.beginPath();
-      ctx.moveTo(bCx - 12, bCy + 2);
-      ctx.lineTo(bCx - 12, bCy + 2 + wtLen);
-      ctx.strokeStyle = '#FF6B6B';
-      ctx.lineWidth = 2.5;
+      ctx.moveTo(bx - 15, by);
+      ctx.lineTo(bx - 15, by + arrowLen(wt));
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 3;
       ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(bCx - 12, bCy + 2 + wtLen);
-      ctx.lineTo(bCx - 16, bCy + 2 + wtLen - 6);
-      ctx.lineTo(bCx - 8, bCy + 2 + wtLen - 6);
-      ctx.closePath();
-      ctx.fillStyle = '#FF6B6B';
-      ctx.fill();
 
-      if (subFrac > 0.001) {
-        const buoyLen = (buoyF / maxF) * arrowScale;
+      // Buoyancy arrow
+      if (bf > 0.01) {
         ctx.beginPath();
-        ctx.moveTo(bCx + 12, bCy + 2);
-        ctx.lineTo(bCx + 12, bCy + 2 - buoyLen);
-        ctx.strokeStyle = '#60a5fa';
-        ctx.lineWidth = 2.5;
+        ctx.moveTo(bx + 15, by);
+        ctx.lineTo(bx + 15, by - arrowLen(bf));
+        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 3;
         ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(bCx + 12, bCy + 2 - buoyLen);
-        ctx.lineTo(bCx + 8, bCy + 2 - buoyLen + 6);
-        ctx.lineTo(bCx + 16, bCy + 2 - buoyLen + 6);
-        ctx.closePath();
-        ctx.fillStyle = '#60a5fa';
-        ctx.fill();
       }
     }
 
-    bDrawScale(sel, fl, fTop);
-    ctx.fillStyle = 'rgba(255,255,255,0.14)';
-    ctx.font = 'bold 11px "Montserrat", sans-serif';
+    bDrawScale(sel, fl, fTop, scX);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 12px "Montserrat", sans-serif';
     ctx.textAlign = 'center';
-    ctx.letterSpacing = '0.1em';
-    ctx.fillText("ARCHIMEDES' BUOYANCY TANK", TK_X + TK_W / 2, TK_Y - 10);
+    ctx.fillText("ARCHIMEDES' BUOYANCY LAB", tkX + TK_W / 2, TK_Y - 15);
   }
 
   let rafId,
@@ -825,13 +700,11 @@ export function create(canvas, initParams = {}) {
       cancelAnimationFrame(rafId);
     },
     reset() {
-      this.stop();
       blocks = [];
       bubbles = [];
       time = 0;
       selectedId = null;
       render();
-      this.start();
     },
     destroy() {
       this.stop();
@@ -842,11 +715,11 @@ export function create(canvas, initParams = {}) {
     getData() {
       const fl = FLUIDS[p.fluidIdx];
       const sel = blocks.find((b) => b.id === selectedId);
-      if (!sel) return {};
+      if (!sel) return { time };
       const fTop = dynamicFluidTopPx();
       const subFrac = computeSubFrac(sel, fTop);
       return {
-        blocks: blocks.length,
+        time,
         fluidDensity: fl.density,
         weight: bWeight(sel.mat),
         buoyancy: bBuoy(sel.mat, fl, subFrac),

@@ -466,8 +466,6 @@ export function create(canvas, initParams = {}) {
     ctx.stroke();
 
     for (let y = TN_TOP + 20; y < TN_BOT; y += 38) {
-      const lenY = OBJ_CY - y;
-      const dist = Math.sqrt((TN_LEFT - OBJ_CX) ** 2 + lenY ** 2);
       const speed = Math.min(1, U / (U + 20));
       const arrowLen = 18 + speed * 10;
       ctx.beginPath();

@@ -168,13 +168,28 @@ const CONTROL_MARKERS = {
   },
 };
 
-function withControlTooltips(simId, controls = []) {
+function withCommonControls(simId, controls = []) {
   const markerMap = CONTROL_MARKERS[simId] || {};
-  return controls.map((control) => ({
+  const hasScale = controls.some((c) => c.key === 'viewScale');
+
+  const finalControls = controls.map((control) => ({
     ...control,
     tooltip: control.tooltip ?? inferControlTooltip(control),
     markers: control.markers ?? markerMap[control.key],
   }));
+
+  if (!hasScale) {
+    finalControls.push({
+      key: 'viewScale',
+      label: 'View Scale',
+      min: 0.1,
+      max: 2.5,
+      step: 0.1,
+      tooltip: 'Zoom level of the simulation view.',
+    });
+  }
+
+  return finalControls;
 }
 
 export const TOPICS = {
@@ -653,10 +668,19 @@ export const TOPICS = {
 };
 
 Object.values(TOPICS).forEach((topic) => {
-  topic.sims = topic.sims.map((sim) => ({
-    ...sim,
-    controls: withControlTooltips(sim.id, sim.controls),
-  }));
+  topic.sims = topic.sims.map((sim) => {
+    const isMobile = window.innerWidth <= 900;
+    const defaultScale = isMobile ? 0.65 : 1.0;
+
+    return {
+      ...sim,
+      controls: withCommonControls(sim.id, sim.controls),
+      defaultParams: {
+        ...sim.defaultParams,
+        viewScale: sim.defaultParams.viewScale ?? defaultScale,
+      },
+    };
+  });
 });
 
 export const SIM_BY_ID = Object.fromEntries(

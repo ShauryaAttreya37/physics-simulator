@@ -30,10 +30,7 @@ export function setGravity(x, y) {
 
 export function startEngine(onTick, getIsRunning) {
   if (!engine) return;
-  let last = performance.now();
-  const tick = (now) => {
-    const delta = Math.min(now - last, 50);
-    last = now;
+  const tick = () => {
     if (getIsRunning && getIsRunning()) {
       // Step oscillators
       engine.world.constraints.forEach((c) => {

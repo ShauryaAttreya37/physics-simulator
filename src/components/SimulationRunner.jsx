@@ -8,17 +8,13 @@ import {
   BookOpen,
   Sliders,
   Download,
-  Crosshair,
   Gauge,
-  FlaskConical,
-  Layers,
   Video,
   Square,
 } from 'lucide-react';
 import MakieGraph, { drawMakieGraph } from './MakieGraph';
 import DataReadout from './DataReadout';
 import TheoryChalkboard, { legacyToSections } from './TheoryChalkboard';
-import GuidedExperiment from './GuidedExperiment';
 import { inferControlTooltip } from '../constants/physicsTooltips';
 import { usePhysicsEngine } from '../hooks/usePhysicsEngine';
 
@@ -29,13 +25,6 @@ function formatValue(value, step) {
   if (step >= 0.1) return value.toFixed(2);
   if (step >= 0.01) return value.toFixed(3);
   return value.toFixed(4);
-}
-
-function formatClock(seconds) {
-  const safe = Math.max(0, Number(seconds) || 0);
-  const mins = Math.floor(safe / 60);
-  const secs = Math.floor(safe % 60);
-  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
 function ParamControl({ control, value, onChange }) {
@@ -58,6 +47,27 @@ function ParamControl({ control, value, onChange }) {
             <div className="toggle-handle" />
           </div>
         </label>
+      </div>
+    );
+  }
+
+  if (control.type === 'tiles') {
+    return (
+      <div className="form-group">
+        <label>{control.label}</label>
+        <div className="tile-grid">
+          {control.tiles.map((tile) => (
+            <button
+              key={tile.value}
+              className={`tile-btn ${value === tile.value ? 'active' : ''}`}
+              onClick={() => onChange(tile.value)}
+              style={{ '--tile-color': tile.color }}
+            >
+              <div className="tile-label">{tile.label}</div>
+              {tile.sub && <div className="tile-sub">{tile.sub}</div>}
+            </button>
+          ))}
+        </div>
       </div>
     );
   }
@@ -123,32 +133,6 @@ function ParamControl({ control, value, onChange }) {
   );
 }
 
-function TileControl({ control, value, onChange }) {
-  const tiles = control.tiles ?? [];
-  return (
-    <div className="form-group">
-      <label>
-        <span>{control.label}</span>
-      </label>
-      <div className="tile-grid">
-        {tiles.map((tile) => (
-          <button
-            key={tile.value}
-            className={`tile-btn${value === tile.value ? ' active' : ''}`}
-            onClick={() => onChange(tile.value)}
-            title={tile.sub || tile.label}
-            style={tile.color ? { '--tile-accent': tile.color } : undefined}
-          >
-            {tile.color && <span className="tile-swatch" style={{ background: tile.color }} />}
-            <span className="tile-label">{tile.label}</span>
-            {tile.sub && <span className="tile-sub">{tile.sub}</span>}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function formatOverlayValue(value) {
   if (typeof value === 'number') {
     if (!Number.isFinite(value)) return '-';
@@ -172,92 +156,105 @@ function drawExportOverlayFrame({
 }) {
   if (!targetCanvas || !sourceCanvas) return;
   const ctx = targetCanvas.getContext('2d');
-  const width = 1280;
-  const height = 720;
-  const panelWidth = 360;
+
+  // High-definition export (1920x1080)
+  const width = 1920;
+  const height = 1080;
+  const panelWidth = 480;
   const simWidth = width - panelWidth;
+
   targetCanvas.width = width;
   targetCanvas.height = height;
 
-  ctx.fillStyle = '#070b10';
+  // Background
+  ctx.fillStyle = '#050608';
   ctx.fillRect(0, 0, width, height);
 
-  const srcW = sourceCanvas.width || sourceCanvas.clientWidth || simWidth;
-  const srcH = sourceCanvas.height || sourceCanvas.clientHeight || height;
+  // Draw Simulation Canvas
+  const srcW = sourceCanvas.width || simWidth;
+  const srcH = sourceCanvas.height || height;
   const scale = Math.min(simWidth / srcW, height / srcH);
   const drawW = srcW * scale;
   const drawH = srcH * scale;
   const dx = (simWidth - drawW) / 2;
   const dy = (height - drawH) / 2;
+
+  ctx.imageSmoothingEnabled = false; // Keep it crisp
   ctx.drawImage(sourceCanvas, dx, dy, drawW, drawH);
 
+  // Sidebar Panel
   const panelX = simWidth;
-  ctx.fillStyle = 'rgba(8, 13, 20, 0.96)';
+  ctx.fillStyle = '#0c0e14';
   ctx.fillRect(panelX, 0, panelWidth, height);
-  const grad = ctx.createLinearGradient(panelX, 0, width, height);
-  grad.addColorStop(0, 'rgba(79, 195, 247, 0.08)');
-  grad.addColorStop(1, 'rgba(251, 113, 133, 0.06)');
-  ctx.fillStyle = grad;
-  ctx.fillRect(panelX, 0, panelWidth, height);
-  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+
+  // Vertical separator
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(panelX + 0.5, 0);
-  ctx.lineTo(panelX + 0.5, height);
+  ctx.moveTo(panelX, 0);
+  ctx.lineTo(panelX, height);
   ctx.stroke();
 
-  const x = panelX + 28;
-  let y = 42;
-  ctx.fillStyle = '#E6EDF3';
-  ctx.font = '700 24px Inter, system-ui, sans-serif';
+  const x = panelX + 40;
+  let y = 60;
+
+  // Title
+  ctx.fillStyle = '#f1f5f9';
+  ctx.font = '700 32px "Source Serif 4", serif';
   ctx.fillText(sim.title, x, y);
-  y += 26;
-  ctx.fillStyle = 'rgba(230,237,243,0.58)';
-  ctx.font = '600 12px JetBrains Mono, monospace';
-  ctx.fillText(`METHOD ${String(sim.method || 'rk4').toUpperCase()}   SPEED ${speed}x`, x, y);
+  y += 32;
+
+  // Metadata
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '600 14px "JetBrains Mono", monospace';
+  ctx.fillText(`SOLVER: ${String(sim.method || 'RK4').toUpperCase()}`, x, y);
+  y += 20;
+  ctx.fillText(`TIMESTEP_SCALE: ${speed}x`, x, y);
 
   const section = (label) => {
-    y += 38;
-    ctx.fillStyle = '#81D4FA';
-    ctx.font = '800 12px Inter, system-ui, sans-serif';
+    y += 60;
+    ctx.fillStyle = '#3b82f6';
+    ctx.font = '800 13px "Inter", sans-serif';
     ctx.fillText(label.toUpperCase(), x, y);
-    y += 14;
-    ctx.strokeStyle = 'rgba(129,212,250,0.22)';
+    y += 16;
+    ctx.strokeStyle = 'rgba(59, 130, 246, 0.3)';
     ctx.beginPath();
     ctx.moveTo(x, y);
-    ctx.lineTo(width - 28, y);
+    ctx.lineTo(width - 40, y);
     ctx.stroke();
-    y += 18;
+    y += 32;
   };
 
-  const row = (label, value, color = '#E6EDF3') => {
-    if (y > height - 38) return;
-    ctx.fillStyle = 'rgba(230,237,243,0.62)';
-    ctx.font = '500 13px Inter, system-ui, sans-serif';
+  const row = (label, value, color = '#f1f5f9') => {
+    if (y > height - 60) return;
+    ctx.fillStyle = '#64748b';
+    ctx.font = '500 15px "Inter", sans-serif';
     ctx.fillText(label, x, y);
+
     ctx.fillStyle = color;
-    ctx.font = '700 13px JetBrains Mono, monospace';
+    ctx.font = '600 15px "JetBrains Mono", monospace';
     ctx.textAlign = 'right';
-    ctx.fillText(formatOverlayValue(value), width - 28, y);
+    ctx.fillText(formatOverlayValue(value), width - 40, y);
     ctx.textAlign = 'left';
-    y += 22;
+    y += 28;
   };
 
-  section('Parameters');
+  section('System Parameters');
   const visibleControls = controls.length
     ? controls
     : Object.keys(params).map((key) => ({ key, label: key }));
-  visibleControls.slice(0, 12).forEach((control) => {
+  visibleControls.slice(0, 15).forEach((control) => {
     row(control.label || control.key, params[control.key]);
   });
 
-  section('Stats');
+  section('Instrumentation');
   const entries = readoutData
     ? Object.entries(readoutData).filter(
         ([, value]) => typeof value === 'number' && Number.isFinite(value),
       )
     : [];
   entries.slice(0, 12).forEach(([key, value]) => {
-    row(key, value, key.toLowerCase().includes('error') ? '#FFD166' : '#7dd3a8');
+    row(key, value, key.toLowerCase().includes('error') ? '#f59e0b' : '#10b981');
   });
 }
 
@@ -278,15 +275,11 @@ export default function SimulationRunner({ sim, onBack }) {
   const [graphData, setGraphData] = useState([]);
   const [readoutData, setReadoutData] = useState(null);
   const [speed, setSpeed] = useState(1);
-  const [activeExperiment, setActiveExperiment] = useState(null);
   const [reloadNonce, setReloadNonce] = useState(0);
   const [runnerError, setRunnerError] = useState('');
   const [exportToast, setExportToast] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [globalPan, setGlobalPan] = useState({ x: 0, y: 0 });
-  const [isPanning, setIsPanning] = useState(false);
-  const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
-  const lastPanPosRef = useRef({ x: 0, y: 0 });
 
   const isModern = !!(sim.init && sim.update);
   const engine = usePhysicsEngine(
@@ -322,7 +315,7 @@ export default function SimulationRunner({ sim, onBack }) {
         setReadoutData(d);
         setGraphData((prev) => {
           const next = [...prev, d];
-          if (next.length > 300) next.shift();
+          if (next.length > 500) next.shift(); // Higher resolution history
           return next;
         });
       }
@@ -336,10 +329,10 @@ export default function SimulationRunner({ sim, onBack }) {
           setReadoutData(d);
           setGraphData((prev) => {
             const next = [...prev, d];
-            if (next.length > 300) next.shift();
+            if (next.length > 500) next.shift();
             return next;
           });
-        }, 40);
+        }, 32); // Slightly faster polling
       }
       return () => clearInterval(timer);
     }
@@ -351,7 +344,7 @@ export default function SimulationRunner({ sim, onBack }) {
     return () => clearTimeout(timer);
   }, [exportToast]);
 
-  // Instantiate simulation — only re-create when `sim` identity or reloadNonce changes
+  // Instantiate simulation
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -370,12 +363,17 @@ export default function SimulationRunner({ sim, onBack }) {
       const nextWidth = wrapper.offsetWidth;
       const nextHeight = wrapper.offsetHeight;
       if (canvas.width === nextWidth && canvas.height === nextHeight) return false;
+
       canvas.width = nextWidth;
       canvas.height = nextHeight;
+      canvas.style.width = `${nextWidth}px`;
+      canvas.style.height = `${nextHeight}px`;
       return true;
     };
 
-    const instantiate = () => {
+    instantiate();
+
+    function instantiate() {
       if (isModern) return;
       try {
         if (!resizeCanvas() && simRef.current) return;
@@ -396,16 +394,13 @@ export default function SimulationRunner({ sim, onBack }) {
         setRunning(false);
         setRunnerError(err?.message || 'Failed to initialize simulation.');
       }
-    };
-
-    instantiate();
+    }
 
     function onResize() {
       if (resizeRaf !== null) cancelAnimationFrame(resizeRaf);
       resizeRaf = requestAnimationFrame(() => {
         resizeRaf = null;
         if (!resizeCanvas()) return;
-        // Canvas resize clears pixels; ask paused simulations to redraw without resetting state.
         simRef.current?.setParams?.({});
       });
     }
@@ -418,22 +413,10 @@ export default function SimulationRunner({ sim, onBack }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sim, reloadNonce]);
 
-  // Push params to the live simulation instance and restart with new values
-  const prevParamsRef = useRef(params);
+  // Push params to the live simulation instance
   useEffect(() => {
     if (!simRef.current) return;
-    const paramsChanged = prevParamsRef.current !== params;
-    prevParamsRef.current = params;
-
-    // Always sync params (including pan offsets)
     simRef.current.setParams?.({ ...params, panX: globalPan.x, panY: globalPan.y });
-
-    // Auto-restart simulation when user tweaks sliders (but not on pan-only changes)
-    // Removed automatic reset to prevent stuttering/jumping during slider drags.
-    // Users can manually click Reset to apply initial condition changes.
-    if (paramsChanged && simRef.current.setParams) {
-      // Just ensure we are running if we want live updates, or maybe don't force start.
-    }
   }, [params, globalPan]);
 
   const togglePlay = useCallback(() => {
@@ -454,7 +437,7 @@ export default function SimulationRunner({ sim, onBack }) {
       runningRef.current = true;
       setRunning(true);
     }
-  }, [isModern, engine, running]);
+  }, [isModern, engine]);
 
   const reset = useCallback(() => {
     setGlobalPan({ x: 0, y: 0 });
@@ -480,7 +463,7 @@ export default function SimulationRunner({ sim, onBack }) {
 
   const exportCSV = useCallback(() => {
     if (graphData.length === 0) {
-      setExportToast('No data yet. Press Play for a few seconds, then export again.');
+      setExportToast('No data collected for export.');
       return;
     }
     const keys = Object.keys(graphData[0]);
@@ -491,20 +474,17 @@ export default function SimulationRunner({ sim, onBack }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${sim.id}_data.csv`;
+    a.download = `simulation_export_${sim.id}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    setExportToast('Exported. Open in Sheets or Excel and plot velocity vs time to compare runs.');
+    setExportToast('CSV export complete.');
   }, [graphData, sim.id]);
 
   const downloadGraphPlot = useCallback(
     ({ series, title, xLabel = 't [s]', yLabel, phaseSpace = false, filename }) => {
-      if (graphData.length < 2) {
-        setExportToast('No graph data yet. Press Play for a few seconds, then export again.');
-        return false;
-      }
+      if (graphData.length < 2) return false;
       const canvas = document.createElement('canvas');
       const ok = drawMakieGraph(canvas, {
         data: graphData,
@@ -513,17 +493,14 @@ export default function SimulationRunner({ sim, onBack }) {
         xLabel,
         yLabel,
         title,
-        width: 960,
-        height: phaseSpace ? 960 : 600,
+        width: 1200,
+        height: phaseSpace ? 1200 : 720,
         colormap: phaseSpace ? 'plasma' : 'viridis',
         phaseSpace,
         showLegend: !phaseSpace && series.length > 1,
         dpr: 2,
       });
-      if (!ok) {
-        setExportToast('Could not render that graph from the current data.');
-        return false;
-      }
+      if (!ok) return false;
       const a = document.createElement('a');
       a.href = canvas.toDataURL('image/png');
       a.download = filename;
@@ -538,37 +515,17 @@ export default function SimulationRunner({ sim, onBack }) {
   const exportCurrentGraphPlot = useCallback(() => {
     const gp = sim.graphParams?.find((item) => item.key === graphKey);
     if (!gp) return;
-    const ok = downloadGraphPlot({
+    downloadGraphPlot({
       series: [{ key: gp.key, label: gp.label }],
-      title: `${sim.title} - ${gp.label}`,
+      title: `${sim.title} Analysis - ${gp.label}`,
       yLabel: gp.label,
       filename: `${sim.id}_${gp.key}_plot.png`,
     });
-    if (ok) setExportToast('Graph plot downloaded.');
   }, [downloadGraphPlot, graphKey, sim]);
 
-  const exportAllGraphPlots = useCallback(() => {
-    const plots = sim.graphParams ?? [];
-    if (!plots.length) return;
-    let count = 0;
-    plots.forEach((gp) => {
-      if (
-        downloadGraphPlot({
-          series: [{ key: gp.key, label: gp.label }],
-          title: `${sim.title} - ${gp.label}`,
-          yLabel: gp.label,
-          filename: `${sim.id}_${gp.key}_plot.png`,
-        })
-      ) {
-        count += 1;
-      }
-    });
-    if (count > 0) setExportToast(`Downloaded ${count} graph plot${count === 1 ? '' : 's'}.`);
-  }, [downloadGraphPlot, sim]);
-
   const clearRecordingFrameTimer = useCallback(() => {
-    if (recordingFrameTimerRef.current !== null) {
-      window.clearInterval(recordingFrameTimerRef.current);
+    if (recordingFrameTimerRef.current) {
+      clearInterval(recordingFrameTimerRef.current);
       recordingFrameTimerRef.current = null;
     }
   }, []);
@@ -580,384 +537,152 @@ export default function SimulationRunner({ sim, onBack }) {
       sim,
       controls: controlsRef.current,
       params: paramsRef.current,
-      readoutData: readoutDataRef.current || simRef.current?.getData?.(),
+      readoutData: readoutDataRef.current,
       speed: speedRef.current,
     });
   }, [sim]);
 
-  const stopRecording = useCallback(() => {
-    const recorder = mediaRecorderRef.current;
-    if (!recorder) return;
-    if (recorder.state === 'inactive') return;
-    drawRecordingFrame();
-    const [videoTrack] = recorder.stream?.getVideoTracks?.() ?? [];
-    videoTrack?.requestFrame?.();
-    recorder.requestData?.();
-    setExportToast('Finalizing video...');
-    window.setTimeout(() => {
-      if (recorder.state !== 'inactive') recorder.stop();
-    }, 80);
-  }, [drawRecordingFrame]);
-
   const startRecording = useCallback(() => {
-    if (runnerError) {
-      setExportToast('Cannot start recording while the simulation is in an error state.');
-      return;
-    }
-
-    const canvas = canvasRef.current;
-    if (!canvas || typeof canvas.captureStream !== 'function') {
-      setExportToast('Video export is not supported in this browser.');
-      return;
-    }
-
-    if (typeof MediaRecorder === 'undefined') {
-      setExportToast('MediaRecorder is not available in this browser.');
-      return;
-    }
-
+    if (runnerError) return;
     const recordingCanvas = recordingCanvasRef.current;
-    if (!recordingCanvas || typeof recordingCanvas.captureStream !== 'function') {
-      setExportToast('Composited video export is not supported in this browser.');
-      return;
-    }
+    if (!recordingCanvas) return;
 
     drawRecordingFrame();
-    const stream = recordingCanvas.captureStream(30);
-    const cleanupStream = () => {
-      stream.getTracks().forEach((track) => track.stop());
-    };
-
-    let audioCtx = null;
-    try {
-      const AudioCtxConstructor = window.AudioContext || window.webkitAudioContext;
-      if (AudioCtxConstructor) {
-        audioCtx = new AudioCtxConstructor();
-        if (audioCtx.state === 'suspended') {
-          audioCtx.resume().catch(() => {});
-        }
-        const dest = audioCtx.createMediaStreamDestination();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        gain.gain.value = 0;
-        osc.connect(gain);
-        gain.connect(dest);
-        osc.start();
-        const dummyTrack = dest.stream.getAudioTracks()[0];
-        if (dummyTrack) stream.addTrack(dummyTrack);
-      }
-    } catch (err) {
-      audioCtx = null;
-      console.warn('Video export continuing without silent audio track:', err);
-    }
-
-    const preferredTypes = ['video/webm', 'video/mp4'];
-    const mimeType = preferredTypes.find((type) => MediaRecorder.isTypeSupported(type));
-    const options = mimeType
-      ? { mimeType, videoBitsPerSecond: 3000000 }
-      : { videoBitsPerSecond: 3000000 };
+    const stream = recordingCanvas.captureStream(60);
+    const options = { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 8000000 };
 
     let recorder;
     try {
       recorder = new MediaRecorder(stream, options);
-    } catch (err) {
-      cleanupStream();
-      audioCtx?.close?.().catch(() => {});
-      setExportToast('Could not start video recording in this browser.');
-      console.warn('MediaRecorder initialization failed:', err);
-      return;
+    } catch {
+      recorder = new MediaRecorder(stream);
     }
 
     recordedChunksRef.current = [];
     recordingStartedAtRef.current = Date.now();
 
     recorder.ondataavailable = (event) => {
-      if (event.data && event.data.size > 0) recordedChunksRef.current.push(event.data);
-    };
-
-    recorder.onerror = () => {
-      setExportToast('Recording failed. Please try again.');
-      setIsRecording(false);
-      clearRecordingFrameTimer();
-      mediaRecorderRef.current = null;
-      cleanupStream();
-      audioCtx?.close?.().catch(() => {});
+      if (event.data.size > 0) recordedChunksRef.current.push(event.data);
     };
 
     recorder.onstop = () => {
       clearRecordingFrameTimer();
-      cleanupStream();
-      audioCtx?.close?.().catch(() => {});
-      const chunks = recordedChunksRef.current;
-      mediaRecorderRef.current = null;
-      setIsRecording(false);
-
-      if (!chunks.length) {
-        setExportToast('Recording ended, but no video frames were captured.');
-        return;
-      }
-
-      const blobType = mimeType || 'video/webm';
-      const blob = new Blob(chunks, { type: blobType });
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const extension = blobType.includes('mp4') ? 'mp4' : 'webm';
-      const filename = `${sim.id}_${timestamp}.${extension}`;
+      const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
+      a.download = `${sim.id}_recording_${Date.now()}.webm`;
       a.click();
-      document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      setExportToast(
-        `Video exported (${formatClock((Date.now() - recordingStartedAtRef.current) / 1000)}).`,
-      );
     };
-
-    if (!runningRef.current && simRef.current) {
-      simRef.current.start?.();
-      runningRef.current = true;
-      setRunning(true);
-    }
 
     const [videoTrack] = stream.getVideoTracks();
     recordingFrameTimerRef.current = window.setInterval(() => {
       drawRecordingFrame();
       videoTrack?.requestFrame?.();
-    }, 1000 / 30);
+    }, 1000 / 60);
 
-    try {
-      // Using a timeslice gives WebM its cluster timestamps so it properly plays with a correct duration format.
-      recorder.start(100);
-      mediaRecorderRef.current = recorder;
-    } catch (err) {
-      clearRecordingFrameTimer();
-      cleanupStream();
-      audioCtx?.close?.().catch(() => {});
-      setExportToast('Could not start video recording in this browser.');
-      console.warn('MediaRecorder start failed:', err);
-      return;
-    }
-
+    recorder.start();
+    mediaRecorderRef.current = recorder;
     setIsRecording(true);
-    setExportToast('Recording started. Press Stop Video when you are done.');
-  }, [clearRecordingFrameTimer, drawRecordingFrame, runnerError, sim.id]);
+  }, [clearRecordingFrameTimer, drawRecordingFrame, sim.id, runnerError]);
 
-  // Apply scenario preset
-  const applyScenario = useCallback((scenario) => {
-    if (scenario.params) {
-      setParams((prev) => ({ ...prev, ...scenario.params }));
-    }
-    if (scenario.setup && simRef.current) {
-      scenario.setup(simRef.current);
-    }
+  const stopRecording = useCallback(() => {
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
   }, []);
 
-  // Apply params from guided experiment step (no auto-play)
-  const handleGuideApplyParams = useCallback((stepParams) => {
-    setParams((prev) => ({ ...prev, ...stepParams }));
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      const recorder = mediaRecorderRef.current;
-      if (recorder && recorder.state !== 'inactive') recorder.stop();
-      clearRecordingFrameTimer();
-    };
-  }, [clearRecordingFrameTimer]);
-
-  useEffect(() => {
-    return () => {
-      const recorder = mediaRecorderRef.current;
-      if (recorder && recorder.state !== 'inactive') recorder.stop();
-    };
-  }, [sim.id]);
-
-  // Build graph series from graphParams
-  const graphSeries = useMemo(() => {
-    if (!sim.graphParams) return [];
-    if (sideTab === 'phase' && sim.graphParams.length >= 2) {
-      return sim.graphParams.slice(0, 2).map((gp) => ({ key: gp.key, label: gp.label }));
-    }
-    if (graphKey) {
-      return [
-        {
-          key: graphKey,
-          label: sim.graphParams.find((gp) => gp.key === graphKey)?.label || graphKey,
-        },
-      ];
-    }
-    return [];
-  }, [sim.graphParams, graphKey, sideTab]);
-
-  const exportPhasePlot = useCallback(() => {
-    if (graphSeries.length < 2) return;
-    const ok = downloadGraphPlot({
-      series: graphSeries,
-      title: `${sim.title} - ${graphSeries[0].label} vs ${graphSeries[1].label}`,
-      xLabel: graphSeries[0].label,
-      yLabel: graphSeries[1].label,
-      phaseSpace: true,
-      filename: `${sim.id}_phase_plot.png`,
-    });
-    if (ok) setExportToast('Phase plot downloaded.');
-  }, [downloadGraphPlot, graphSeries, sim]);
-
-  // Equation sections
   const eqSections = useMemo(() => {
     return sim.equationSections || legacyToSections(sim.equations, sim.title);
   }, [sim]);
 
-  // Graph dimensions
-  const graphWidth = 300;
-  const graphHeight = 220;
+  const [showMobilePanel, setShowMobilePanel] = useState(false);
 
   return (
-    <div className={`sim-runner-research ${isMobilePanelOpen ? 'mobile-panel-open' : ''}`}>
-      {/* ── Main area (canvas + controls) ────────────────────── */}
+    <div className={`sim-runner-research ${showMobilePanel ? 'mobile-panel-open' : ''}`}>
       <div className="sim-main-area">
-        {/* Top bar */}
         <div className="sim-runner-top-bar">
-          <button className="icon-btn" onClick={onBack} title="Back">
+          <button className="icon-btn" onClick={onBack} title="Return to Laboratory">
             <ArrowLeft size={16} />
           </button>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                fontFamily: 'var(--font-serif)',
-                fontSize: 15,
-                fontWeight: 600,
-                color: 'var(--text)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {sim.title}
-            </div>
-            <div
-              style={{
-                fontSize: 11,
-                color: 'var(--text-muted)',
-                marginTop: 2,
-                display: 'flex',
-                gap: 6,
-                alignItems: 'center',
-              }}
-            >
-              {sim.method && (
-                <span
-                  className={`method-badge ${sim.method === 'rk45' ? 'rk45' : sim.method === 'yoshida4' ? 'symplectic' : sim.method === 'fdm' ? 'fdm' : 'rk45'}`}
-                >
-                  {sim.method === 'rk45'
-                    ? 'RK45'
-                    : sim.method === 'yoshida4'
-                      ? 'Yoshida⁴'
-                      : sim.method === 'fdm'
-                        ? 'FDM'
-                        : 'RK4'}
-                </span>
-              )}
+          <div className="sim-title-block">
+            <div className="sim-title">{sim.title}</div>
+            <div className="sim-meta">
+              <span className="method-badge rk45">{String(sim.method || 'RK4').toUpperCase()}</span>
+              <span>Live solver</span>
             </div>
           </div>
-          {/* Playback controls */}
-          <button
-            className={`icon-btn ${running ? 'pause-btn' : 'play-btn'}`}
-            onClick={togglePlay}
-            title={running ? 'Pause' : 'Play'}
-          >
-            {running ? <Pause size={14} /> : <Play size={14} fill="currentColor" />}
-          </button>
-          <button className="icon-btn" onClick={reset} title="Reset">
-            <RotateCcw size={14} />
-          </button>
-          <div className="export-actions">
-            <button className="btn-export" onClick={exportCSV} title="Export CSV">
+
+          <div className="sim-toolbar-group">
+            <button
+              className={`icon-btn ${running ? 'pause-btn' : 'play-btn'}`}
+              onClick={togglePlay}
+              title={running ? 'Pause' : 'Play'}
+            >
+              {running ? <Pause size={14} /> : <Play size={14} fill="currentColor" />}
+            </button>
+            <button className="icon-btn" onClick={reset} title="Reset">
+              <RotateCcw size={14} />
+            </button>
+          </div>
+
+          <div className="export-actions hide-mobile">
+            <button className="btn-export" onClick={exportCSV}>
               <Download size={12} /> CSV
             </button>
             <button
-              className={`btn-export btn-record${isRecording ? ' active' : ''}`}
+              className={`btn-export ${isRecording ? 'active' : ''}`}
               onClick={isRecording ? stopRecording : startRecording}
-              title={isRecording ? 'Stop video recording' : 'Start video recording'}
             >
-              {isRecording ? <Square size={11} /> : <Video size={12} />}
-              {isRecording ? 'Stop' : 'Video'}
+              {isRecording ? <Square size={11} /> : <Video size={12} />}{' '}
+              {isRecording ? 'Stop' : 'Record'}
             </button>
           </div>
-          {/* Speed control */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginLeft: 2 }}>
-            <Gauge
-              size={13}
-              className="speed-gauge-icon"
-              style={{
-                color: speed !== 1 ? '#FFD166' : 'var(--text-muted)',
-                transition: 'color 0.2s',
-              }}
-            />
+
+          <div className="sim-toolbar-group sim-speed-control hide-mobile">
+            <Gauge size={14} />
             <select
-              className={`speed-select${speed !== 1 ? ' active' : ''}`}
+              className="form-input speed-select"
               value={speed}
-              onChange={(e) => {
-                const s = Number(e.target.value);
-                setSpeed(s);
-                if (simRef.current?.setSpeed) simRef.current.setSpeed(s);
-              }}
+              onChange={(e) => setSpeed(Number(e.target.value))}
             >
               <option value={0.25}>0.25x</option>
               <option value={0.5}>0.5x</option>
-              <option value={1}>1x</option>
-              <option value={2}>2x</option>
+              <option value={1}>1.00x</option>
+              <option value={2}>2.00x</option>
             </select>
           </div>
+
+          <button
+            className={`icon-btn mobile-only-btn ${showMobilePanel ? 'active' : ''}`}
+            onClick={() => setShowMobilePanel(!showMobilePanel)}
+            title="Toggle Parameters"
+          >
+            <Sliders size={16} />
+          </button>
         </div>
 
-        {/* Canvas with figure frame */}
-        <div
-          className="sim-canvas-wrapper"
-          onPointerDown={(e) => {
-            if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
-              e.preventDefault();
-              setIsPanning(true);
-              lastPanPosRef.current = { x: e.clientX, y: e.clientY };
-            }
-          }}
-          onPointerMove={(e) => {
-            if (isPanning) {
-              const dx = e.clientX - lastPanPosRef.current.x;
-              const dy = e.clientY - lastPanPosRef.current.y;
-              setGlobalPan((p) => ({ x: p.x + dx, y: p.y + dy }));
-              lastPanPosRef.current = { x: e.clientX, y: e.clientY };
-            }
-          }}
-          onPointerUp={() => setIsPanning(false)}
-          onPointerLeave={() => setIsPanning(false)}
-          style={{ cursor: isPanning ? 'grabbing' : undefined }}
-        >
+        <div className="sim-canvas-wrapper">
           <canvas ref={canvasRef} className="sim-runner-canvas" style={{ touchAction: 'none' }} />
-          <canvas ref={recordingCanvasRef} className="recording-export-canvas" aria-hidden="true" />
+          <canvas ref={recordingCanvasRef} style={{ display: 'none' }} />
+          <DataReadout data={readoutData} method={sim.method || 'rk4'} />
+
           {runnerError && (
-            <div className="sim-runner-error">
-              <div className="sim-runner-error-title">Simulation paused</div>
-              <div className="sim-runner-error-msg">{runnerError}</div>
-              <button className="btn" onClick={() => setReloadNonce((n) => n + 1)}>
-                Retry
-              </button>
+            <div className="sim-error-overlay">
+              <div className="sim-error-card">
+                <div className="sim-error-title">Simulation error</div>
+                <div className="sim-error-msg">{runnerError}</div>
+                <button className="btn" onClick={() => setReloadNonce((n) => n + 1)}>
+                  Restart simulation
+                </button>
+              </div>
             </div>
           )}
-          <DataReadout data={readoutData} method={sim.method || 'rk4'} />
         </div>
-        {exportToast && <div className="sim-toast">{exportToast}</div>}
 
-        <button
-          className={`mobile-panel-toggle ${isMobilePanelOpen ? 'active' : ''}`}
-          onClick={() => setIsMobilePanelOpen(!isMobilePanelOpen)}
-        >
-          <Sliders size={20} />
-        </button>
+        {exportToast && <div className="sim-toast">{exportToast}</div>}
       </div>
 
-      {/* ── Side panel ───────────────────────────────────────── */}
       <div className="sim-side-panel">
         <div className="sim-side-tabs">
           <button
@@ -970,359 +695,63 @@ export default function SimulationRunner({ sim, onBack }) {
             className={`sim-side-tab ${sideTab === 'graph' ? 'active' : ''}`}
             onClick={() => setSideTab('graph')}
           >
-            <LineChartIcon size={13} /> Graph
+            <LineChartIcon size={13} /> Data
           </button>
-          {sim.graphParams?.length >= 2 && (
-            <button
-              className={`sim-side-tab ${sideTab === 'phase' ? 'active' : ''}`}
-              onClick={() => setSideTab('phase')}
-            >
-              <Crosshair size={13} /> Phase
-            </button>
-          )}
           <button
             className={`sim-side-tab ${sideTab === 'equations' ? 'active' : ''}`}
             onClick={() => setSideTab('equations')}
-            title="Theory Chalkboard"
-            style={{ flex: 0, padding: '0 16px' }}
           >
-            <BookOpen size={16} />
+            <BookOpen size={13} /> Theory
           </button>
-          {(sim.guidedExperiments?.length > 0 || sim.scenarios?.length > 0) && (
-            <button
-              className={`sim-side-tab ${sideTab === 'guide' ? 'active' : ''}`}
-              onClick={() => setSideTab('guide')}
-              title="Guided Experiments & Scenarios"
-              style={{ flex: 0, padding: '0 16px' }}
-            >
-              <FlaskConical size={15} />
-            </button>
-          )}
         </div>
 
-        <div className="sim-side-content">
-          {/* ── Controls tab ────────────────────────────────── */}
+        <div className="sim-side-content custom-scroll">
           {sideTab === 'controls' && (
-            <div style={{ padding: '14px 16px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: 14,
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.12em',
-                    color: 'var(--text-muted)',
-                  }}
-                >
-                  Parameters
-                </span>
-                <button
-                  className="btn"
-                  style={{ padding: '3px 8px', fontSize: 10 }}
-                  onClick={resetParams}
-                >
-                  Defaults
+            <div className="side-pane">
+              <div className="side-pane-header">
+                <span className="side-pane-title">Parameters</span>
+                <button className="btn" onClick={resetParams}>
+                  Reset
                 </button>
               </div>
-              {controls.length > 0 ? (
-                <div className="property-section" style={{ paddingTop: 0, borderBottom: 'none' }}>
-                  {controls.map((control) => {
-                    const handleChange = (next) => {
-                      setParams((prev) => {
-                        const updated = { ...prev, [control.key]: next };
-                        // Sync linked angle controls (rad ↔ deg)
-                        if (control.key === 'theta0' && 'theta0Deg' in prev) {
-                          updated.theta0Deg = parseFloat(((next * 180) / Math.PI).toFixed(1));
-                        } else if (control.key === 'theta0Deg' && 'theta0' in prev) {
-                          updated.theta0 = parseFloat(((next * Math.PI) / 180).toFixed(4));
-                        }
-                        return updated;
-                      });
-                    };
-                    return control.type === 'tiles' ? (
-                      <TileControl
-                        key={control.key}
-                        control={control}
-                        value={params[control.key] ?? 0}
-                        onChange={handleChange}
-                      />
-                    ) : (
-                      <ParamControl
-                        key={control.key}
-                        control={control}
-                        value={params[control.key] ?? control.min ?? 0}
-                        onChange={handleChange}
-                      />
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="empty-state">
-                  <p>No runtime parameters available.</p>
-                </div>
-              )}
-              {/* Sim description */}
-              <div
-                style={{
-                  marginTop: 16,
-                  padding: '12px 14px',
-                  background: 'rgba(0,0,0,0.2)',
-                  borderRadius: 'var(--r-sm)',
-                  border: '1px solid rgba(255,255,255,0.04)',
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: 12,
-                    color: 'var(--text-sub)',
-                    lineHeight: 1.6,
-                    fontFamily: 'var(--font-serif)',
-                  }}
-                >
-                  {sim.description}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* ── Graph tab ───────────────────────────────────── */}
-          {sideTab === 'graph' && sim.graphParams && (
-            <div style={{ padding: '14px 12px' }}>
-              <div style={{ marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <select
-                  className="graph-select"
-                  style={{ flex: 1 }}
-                  value={graphKey}
-                  onChange={(e) => setGraphKey(e.target.value)}
-                >
-                  {sim.graphParams.map((gp) => (
-                    <option key={gp.key} value={gp.key}>
-                      {gp.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="graph-export-actions">
-                <button
-                  className="btn-export"
-                  onClick={exportCurrentGraphPlot}
-                  title="Download selected plot"
-                >
-                  <Download size={12} /> Plot PNG
-                </button>
-                <button
-                  className="btn-export"
-                  onClick={exportAllGraphPlots}
-                  title="Download one plot for each graph variable"
-                >
-                  <Download size={12} /> All Plots
-                </button>
-              </div>
-              <MakieGraph
-                data={graphData}
-                series={graphSeries}
-                xKey="time"
-                xLabel="t [s]"
-                yLabel={graphSeries[0]?.label || ''}
-                title={graphSeries[0]?.label || ''}
-                width={graphWidth}
-                height={graphHeight}
-                colormap="viridis"
-                showLegend={false}
-              />
-              {graphData.length > 0 && graphData[graphData.length - 1] && (
-                <div
-                  style={{
-                    marginTop: 8,
-                    padding: '8px 10px',
-                    background: 'rgba(0,0,0,0.2)',
-                    borderRadius: 6,
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 10,
-                    color: 'var(--text-sub)',
-                  }}
-                >
-                  Current: {(graphData[graphData.length - 1][graphKey] ?? 0).toFixed(6)}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── Phase space tab ──────────────────────────────── */}
-          {sideTab === 'phase' && sim.graphParams?.length >= 2 && (
-            <div style={{ padding: '14px 12px' }}>
-              <div
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.12em',
-                  color: 'var(--text-muted)',
-                  marginBottom: 8,
-                }}
-              >
-                Phase Space Plot
-              </div>
-              <div className="graph-export-actions">
-                <button
-                  className="btn-export"
-                  onClick={exportPhasePlot}
-                  title="Download phase plot"
-                >
-                  <Download size={12} /> Phase PNG
-                </button>
-              </div>
-              <MakieGraph
-                data={graphData}
-                series={graphSeries}
-                xLabel={graphSeries[0]?.label || ''}
-                yLabel={graphSeries[1]?.label || ''}
-                title={`${graphSeries[0]?.label} vs ${graphSeries[1]?.label}`}
-                width={graphWidth}
-                height={graphWidth}
-                colormap="plasma"
-                phaseSpace={true}
-                showLegend={false}
-              />
-            </div>
-          )}
-
-          {/* ── Equations tab ───────────────────────────────── */}
-          {sideTab === 'equations' && (
-            <div className="panel-content custom-scroll" style={{ padding: 0 }}>
-              <TheoryChalkboard sections={eqSections} title={sim.title} />
-            </div>
-          )}
-
-          {/* ── Guide tab (Scenarios + Guided Experiments) ──── */}
-          {sideTab === 'guide' && (
-            <div
-              style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 16 }}
-            >
-              {/* Active guided experiment */}
-              {activeExperiment && (
-                <GuidedExperiment
-                  experiment={activeExperiment}
-                  onApplyParams={handleGuideApplyParams}
-                  onClose={() => setActiveExperiment(null)}
+              {controls.map((control) => (
+                <ParamControl
+                  key={control.key}
+                  control={control}
+                  value={params[control.key]}
+                  onChange={(value) => setParams((prev) => ({ ...prev, [control.key]: value }))}
                 />
-              )}
-
-              {/* Scenarios section */}
-              {!activeExperiment && sim.scenarios?.length > 0 && (
-                <div>
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.12em',
-                      color: 'var(--accent)',
-                      marginBottom: 10,
-                    }}
-                  >
-                    Preset Scenarios
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {sim.scenarios.map((scenario, i) => (
-                      <button
-                        key={i}
-                        onClick={() => applyScenario(scenario)}
-                        style={{
-                          textAlign: 'left',
-                          padding: '10px 12px',
-                          background: 'rgba(255,255,255,0.03)',
-                          border: '1px solid rgba(255,255,255,0.08)',
-                          borderRadius: 'var(--r-sm)',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 4,
-                        }}
-                        className="scenario-btn"
-                      >
-                        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>
-                          {scenario.name}
-                        </span>
-                        {scenario.description && (
-                          <span style={{ fontSize: 11, color: 'var(--text-sub)', lineHeight: 1.5 }}>
-                            {scenario.description}
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Guided experiments launcher */}
-              {!activeExperiment && sim.guidedExperiments?.length > 0 && (
-                <div>
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.12em',
-                      color: 'var(--sci-green)',
-                      marginBottom: 10,
-                    }}
-                  >
-                    Guided Experiments
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {sim.guidedExperiments.map((exp, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setActiveExperiment(exp)}
-                        style={{
-                          textAlign: 'left',
-                          padding: '10px 12px',
-                          background: 'rgba(94,201,98,0.05)',
-                          border: '1px solid rgba(94,201,98,0.15)',
-                          borderRadius: 'var(--r-sm)',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 10,
-                        }}
-                        className="scenario-btn"
-                      >
-                        <FlaskConical
-                          size={14}
-                          style={{ color: 'var(--sci-green)', flexShrink: 0 }}
-                        />
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>
-                            {exp.title}
-                          </span>
-                          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-                            {exp.steps.length} steps · Predict → Observe → Explain
-                          </span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Empty state */}
-              {!activeExperiment && !sim.scenarios?.length && !sim.guidedExperiments?.length && (
-                <div className="empty-state">
-                  <p>No guided experiments available for this simulation yet.</p>
-                </div>
-              )}
+              ))}
+              <div className="sim-description">{sim.description}</div>
             </div>
           )}
+
+          {sideTab === 'graph' && (
+            <div className="side-pane">
+              <select
+                className="form-input"
+                value={graphKey}
+                onChange={(e) => setGraphKey(e.target.value)}
+              >
+                {sim.graphParams?.map((gp) => (
+                  <option key={gp.key} value={gp.key}>
+                    {gp.label}
+                  </option>
+                ))}
+              </select>
+              <MakieGraph
+                data={graphData}
+                series={[{ key: graphKey, label: graphKey }]}
+                xKey="time"
+                height={240}
+              />
+              <button className="btn" onClick={exportCurrentGraphPlot}>
+                <Download size={14} /> Download plot
+              </button>
+            </div>
+          )}
+
+          {sideTab === 'equations' && <TheoryChalkboard sections={eqSections} title={sim.title} />}
         </div>
       </div>
     </div>

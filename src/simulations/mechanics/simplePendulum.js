@@ -207,16 +207,12 @@ export function create(canvas, initParams = {}) {
     const W = canvas.width,
       H = canvas.height;
 
-    // Sky gradient
-    const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
-    skyGrad.addColorStop(0, '#06080f');
-    skyGrad.addColorStop(0.4, '#0a0f1e');
-    skyGrad.addColorStop(1, '#0d1225');
-    ctx.fillStyle = skyGrad;
+    // Clean background
+    ctx.fillStyle = '#f8fafc';
     ctx.fillRect(0, 0, W, H);
 
     // Subtle grid
-    ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+    ctx.strokeStyle = 'rgba(0,0,0,0.04)';
     ctx.lineWidth = 0.5;
     for (let gx = 0; gx < W; gx += 60) {
       ctx.beginPath();
@@ -233,11 +229,11 @@ export function create(canvas, initParams = {}) {
 
     const centerX = W / 2 + (p.panX || 0);
     const centerY = H * 0.22 + (p.panY || 0);
-    const scale = Math.min(W, H) * 0.16;
+    const scale = Math.min(W, H) * 0.16 * (p.viewScale ?? 1.0);
 
     // Vertical reference line (equilibrium)
     ctx.setLineDash([4, 6]);
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
@@ -256,8 +252,8 @@ export function create(canvas, initParams = {}) {
         ctx.beginPath();
         ctx.moveTo(tx0, ty0);
         ctx.lineTo(tx1, ty1);
-        ctx.strokeStyle = `rgba(251, 113, 133, ${alpha * 0.35})`;
-        ctx.lineWidth = 1 + alpha * 1.5;
+        ctx.strokeStyle = `rgba(244, 63, 94, ${alpha * 0.4})`;
+        ctx.lineWidth = 1.5;
         ctx.stroke();
       }
     }
@@ -278,7 +274,7 @@ export function create(canvas, initParams = {}) {
       } else {
         ctx.arc(centerX, centerY, arcR, startAngle, endAngle, false);
       }
-      ctx.strokeStyle = 'rgba(253, 224, 71, 0.5)';
+      ctx.strokeStyle = 'rgba(217, 119, 6, 0.6)';
       ctx.lineWidth = 2;
       ctx.stroke();
 
@@ -288,25 +284,22 @@ export function create(canvas, initParams = {}) {
       const lx = centerX + labelR * Math.cos(labelAngle);
       const ly = centerY + labelR * Math.sin(labelAngle);
       ctx.font = 'bold 11px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(253, 224, 71, 0.8)';
+      ctx.fillStyle = '#b45309';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       const degVal = ((theta * 180) / Math.PI).toFixed(1);
       const radVal = theta.toFixed(3);
       ctx.fillText(`${degVal}°`, lx, ly);
       ctx.font = '9px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(253, 224, 71, 0.45)';
+      ctx.fillStyle = '#d97706';
       ctx.fillText(`${radVal} rad`, lx, ly + 13);
     }
 
-    // Rod with gradient
-    const rodGrad = ctx.createLinearGradient(centerX, centerY, px, py);
-    rodGrad.addColorStop(0, '#94a3b8');
-    rodGrad.addColorStop(1, '#64748b');
+    // Rod
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
     ctx.lineTo(px, py);
-    ctx.strokeStyle = rodGrad;
+    ctx.strokeStyle = '#64748b';
     ctx.lineWidth = 3;
     ctx.stroke();
 
@@ -351,36 +344,29 @@ export function create(canvas, initParams = {}) {
     }
 
     // Pivot mount (bracket)
-    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.fillStyle = '#e2e8f0';
     ctx.fillRect(centerX - 30, centerY - 8, 60, 8);
-    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.strokeStyle = '#cbd5e1';
     ctx.lineWidth = 1;
     ctx.strokeRect(centerX - 30, centerY - 8, 60, 8);
 
     // Pivot dot
-    ctx.fillStyle = '#e2e8f0';
+    ctx.fillStyle = '#475569';
     ctx.beginPath();
     ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.strokeStyle = '#1e293b';
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Bob with radial gradient and glow
+    // Bob
     const bobR = 14 + Math.sqrt(p.mass) * 4;
-    ctx.shadowBlur = 25;
-    ctx.shadowColor = 'rgba(251, 113, 133, 0.6)';
-    const bobGrad = ctx.createRadialGradient(px - 3, py - 3, 2, px, py, bobR);
-    bobGrad.addColorStop(0, '#fecdd3');
-    bobGrad.addColorStop(0.5, '#fb7185');
-    bobGrad.addColorStop(1, '#e11d48');
-    ctx.fillStyle = bobGrad;
+    ctx.fillStyle = '#ef4444';
     ctx.beginPath();
     ctx.arc(px, py, bobR, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = '#b91c1c';
+    ctx.lineWidth = 2;
     ctx.stroke();
 
     // Mass label on bob
@@ -405,16 +391,16 @@ export function create(canvas, initParams = {}) {
       const barW = 18;
 
       // Background
-      ctx.fillStyle = 'rgba(10, 10, 20, 0.7)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
       ctx.beginPath();
       ctx.roundRect(barX - 14, barBottom - barHeight - 35, barW + 28, barHeight + 55, 8);
       ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.strokeStyle = '#e2e8f0';
       ctx.lineWidth = 1;
       ctx.stroke();
 
       // Title
-      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.fillStyle = '#64748b';
       ctx.font = 'bold 8px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
       ctx.fillText('ENERGY', barX + barW / 2, barBottom - barHeight - 20);
@@ -438,14 +424,14 @@ export function create(canvas, initParams = {}) {
       ctx.fillRect(barX, barBottom - keH, barW, keH);
 
       // Border
-      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      ctx.strokeStyle = '#cbd5e1';
       ctx.lineWidth = 1;
       ctx.strokeRect(barX, barBottom - barHeight, barW, barHeight);
 
       // Total line
       const totalH = (total / maxE) * barHeight;
       ctx.setLineDash([3, 3]);
-      ctx.strokeStyle = 'rgba(253, 224, 71, 0.5)';
+      ctx.strokeStyle = '#b45309';
       ctx.beginPath();
       ctx.moveTo(barX - 6, barBottom - totalH);
       ctx.lineTo(barX + barW + 6, barBottom - totalH);
@@ -456,20 +442,20 @@ export function create(canvas, initParams = {}) {
       ctx.font = '8px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
       if (keH > 12) {
-        ctx.fillStyle = '#93c5fd';
+        ctx.fillStyle = '#fff';
         ctx.fillText('KE', barX + barW / 2, barBottom - keH / 2 + 3);
       }
       if (peH > 12) {
-        ctx.fillStyle = '#86efac';
+        ctx.fillStyle = '#fff';
         ctx.fillText('PE', barX + barW / 2, barBottom - keH - peH / 2 + 3);
       }
 
       // Values
       ctx.textAlign = 'left';
       ctx.font = '8px "JetBrains Mono", monospace';
-      ctx.fillStyle = '#93c5fd';
+      ctx.fillStyle = '#2563eb';
       ctx.fillText(`${ke.toFixed(2)}J`, barX - 12, barBottom + 14);
-      ctx.fillStyle = '#86efac';
+      ctx.fillStyle = '#16a34a';
       ctx.fillText(`${pe.toFixed(2)}J`, barX - 12, barBottom + 24);
     }
 
@@ -486,38 +472,38 @@ export function create(canvas, initParams = {}) {
     const hudW = 185;
     const hudH = 175;
 
-    ctx.fillStyle = 'rgba(10, 10, 20, 0.75)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
     ctx.beginPath();
     ctx.roundRect(hudX, hudY, hudW, hudH, 8);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.strokeStyle = '#e2e8f0';
     ctx.lineWidth = 1;
     ctx.stroke();
 
     ctx.font = 'bold 10px "JetBrains Mono", monospace';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillStyle = '#64748b';
     ctx.fillText('PENDULUM DATA', hudX + 10, hudY + 8);
 
     const hudLines = [
-      { label: 'Time', value: `${simTime.toFixed(2)} s`, color: '#e4e4e7' },
+      { label: 'Time', value: `${simTime.toFixed(2)} s`, color: '#0f172a' },
       {
         label: 'Angle',
         value: `${((theta * 180) / Math.PI).toFixed(1)}° (${theta.toFixed(3)} rad)`,
-        color: '#fde047',
+        color: '#b45309',
       },
-      { label: 'Velocity', value: `${omega.toFixed(3)} rad/s`, color: '#60a5fa' },
-      { label: 'Speed', value: `${Math.abs(v).toFixed(2)} m/s`, color: '#22d3ee' },
-      { label: 'KE', value: `${ke.toFixed(3)} J`, color: '#93c5fd' },
-      { label: 'PE', value: `${pe.toFixed(3)} J`, color: '#86efac' },
-      { label: 'T (meas)', value: `${tPeriod} s`, color: '#fb7185' },
-      { label: 'T (theory)', value: `${tTheory.toFixed(3)} s`, color: 'rgba(251,113,133,0.5)' },
+      { label: 'Velocity', value: `${omega.toFixed(3)} rad/s`, color: '#2563eb' },
+      { label: 'Speed', value: `${Math.abs(v).toFixed(2)} m/s`, color: '#0891b2' },
+      { label: 'KE', value: `${ke.toFixed(3)} J`, color: '#2563eb' },
+      { label: 'PE', value: `${pe.toFixed(3)} J`, color: '#16a34a' },
+      { label: 'T (meas)', value: `${tPeriod} s`, color: '#e11d48' },
+      { label: 'T (theory)', value: `${tTheory.toFixed(3)} s`, color: 'rgba(225,29,72,0.5)' },
     ];
 
     hudLines.forEach((line, i) => {
       const ly = hudY + 24 + i * 18;
-      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.fillStyle = '#64748b';
       ctx.font = '9px "JetBrains Mono", monospace';
       ctx.textAlign = 'left';
       ctx.fillText(line.label, hudX + 10, ly);
@@ -531,10 +517,13 @@ export function create(canvas, initParams = {}) {
     if (p.showForces) {
       const legX = 14;
       const legY = H - 90;
-      ctx.fillStyle = 'rgba(10, 10, 20, 0.7)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
       ctx.beginPath();
       ctx.roundRect(legX, legY, 120, 76, 6);
       ctx.fill();
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1;
+      ctx.stroke();
 
       ctx.font = 'bold 9px "JetBrains Mono", monospace';
       ctx.textAlign = 'left';

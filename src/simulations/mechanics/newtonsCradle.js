@@ -237,15 +237,16 @@ export function create(canvas, initParams = {}) {
 
   function render() {
     const { W, H, cx, cy, spacing } = frameGeometry();
+    const scale = p.viewScale ?? 1.0;
     const n = thetas.length;
-    const offset = ((n - 1) * spacing) / 2;
+    const offset = ((n - 1) * spacing * scale) / 2;
 
     ctx.fillStyle = '#0B0F14';
     ctx.fillRect(0, 0, W, H);
 
     // Draw frame bar
-    const barX = cx - offset - p.radius - 12;
-    const barW = (n - 1) * spacing + p.radius * 2 + 24;
+    const barX = cx - offset - p.radius * scale - 12;
+    const barW = (n - 1) * spacing * scale + p.radius * scale * 2 + 24;
     const barY = cy - 8;
 
     ctx.fillStyle = 'rgba(79, 195, 247, 0.18)';
@@ -266,9 +267,9 @@ export function create(canvas, initParams = {}) {
 
     // Draw strings and balls
     for (let i = 0; i < n; i++) {
-      const ancX = cx - offset + i * spacing;
-      const bx = ancX + p.stringLength * Math.sin(thetas[i]);
-      const by = cy + p.stringLength * Math.cos(thetas[i]);
+      const ancX = cx - offset + i * spacing * scale;
+      const bx = ancX + p.stringLength * scale * Math.sin(thetas[i]);
+      const by = cy + p.stringLength * scale * Math.cos(thetas[i]);
       const f = flash.get(i) || 0;
       if (f > 0) flash.set(i, f * 0.82);
 
@@ -281,18 +282,12 @@ export function create(canvas, initParams = {}) {
       ctx.stroke();
 
       // Ball glow
-      ctx.shadowBlur = 18 + f * 30;
+      ctx.shadowBlur = (18 + f * 30) * scale;
       ctx.shadowColor = f > 0.1 ? 'rgba(200,160,255,0.9)' : 'rgba(80,70,120,0.4)';
 
       // Ball gradient
-      const grad = ctx.createRadialGradient(
-        bx - p.radius * 0.32,
-        by - p.radius * 0.38,
-        p.radius * 0.08,
-        bx,
-        by,
-        p.radius,
-      );
+      const r = p.radius * scale;
+      const grad = ctx.createRadialGradient(bx - r * 0.32, by - r * 0.38, r * 0.08, bx, by, r);
 
       if (f > 0.08) {
         grad.addColorStop(0, '#f0e8ff');

@@ -329,8 +329,7 @@ export function create(canvas, initParams = {}) {
   const ctx = canvas.getContext('2d', { alpha: false });
   let p = { ...DEFAULTS, ...initParams };
 
-  let simTime = 0,
-    stepCount = 0;
+  let simTime = 0;
   let th, ph, ps, th_v, ph_v, ps_v;
   let currentDt = 1 / 60 / 10;
   let H0;
@@ -391,7 +390,6 @@ export function create(canvas, initParams = {}) {
 
   function initState() {
     simTime = 0;
-    stepCount = 0;
     th = p.tiltAngle;
     ph = 0;
     ps = 0;
@@ -447,7 +445,6 @@ export function create(canvas, initParams = {}) {
         [th, ph, ps, th_v, ph_v, ps_v] = result.state;
         remaining -= h;
         simTime += h;
-        stepCount++;
       }
       h = Math.max(1e-6, Math.min(result.hNew, 0.05));
       currentDt = h;
@@ -643,7 +640,6 @@ export function create(canvas, initParams = {}) {
     for (let j = -1; j <= 1; j += 2) {
       const zOffset = j * 0.02; // Thickness
       ctx.beginPath();
-      let firstPoint = null;
       for (let i = 0; i <= rimSegments; i++) {
         const a = (i / rimSegments) * Math.PI * 2;
         const cA = Math.cos(a),
@@ -662,7 +658,6 @@ export function create(canvas, initParams = {}) {
         if (pr.z < 0.1) continue;
         if (i === 0) {
           ctx.moveTo(pr.x, pr.y);
-          firstPoint = pr;
         } else ctx.lineTo(pr.x, pr.y);
       }
       ctx.strokeStyle = '#334155';

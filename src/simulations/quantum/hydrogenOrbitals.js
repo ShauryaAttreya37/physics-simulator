@@ -319,7 +319,6 @@ export function create(canvas, initParams = {}) {
   // ── Render loop ──────────────────────────────────────────────────────
   let rafId,
     running = false;
-  let autoPan = 0;
 
   function loop() {
     if (!running) return;

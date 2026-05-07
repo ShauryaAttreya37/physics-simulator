@@ -1,360 +1,90 @@
-import { ArrowLeft, Video, LineChart, Play, Sliders } from 'lucide-react';
+import { LineChart, Play, Sliders, Video } from 'lucide-react';
 import { BlockMath, InlineMath } from '../components/KaTeX';
 
-export default function DocsPage({ onBack }) {
+export default function DocsPage() {
   return (
-    <div className="home-wrapper" style={{ overflowY: 'auto' }}>
-      <div
-        className="home-container"
-        style={{
-          padding: '2.5rem 4rem',
-          height: 'auto',
-          minHeight: 'calc(100vh - 5rem)',
-          alignItems: 'flex-start',
-          justifyContent: 'flex-start',
-          overflowY: 'auto',
-        }}
-      >
-        <button className="nav-btn" onClick={onBack} style={{ marginBottom: '2rem' }}>
-          <ArrowLeft size={16} /> Back
-        </button>
+    <div className="page-content">
+      <main className="content-page">
+        <h1>Physics Engine Documentation</h1>
 
-        <h1
-          style={{
-            fontFamily: 'var(--font-serif)',
-            fontSize: '3.5rem',
-            marginBottom: '1rem',
-            color: '#fff',
-            letterSpacing: '-0.02em',
-          }}
-        >
-          Physics Engine Documentation
-        </h1>
-        <p
-          style={{
-            fontSize: '1.25rem',
-            color: 'rgba(255,255,255,0.7)',
-            maxWidth: '900px',
-            lineHeight: '1.7',
-          }}
-        >
-          The computational core leverages deeply intertwined algebraic integrators to project WebGL
-          limits and abstract math models accurately in real-time. This documentation breaks down
-          our fundamental constraints.
+        <p>
+          The app combines canvas-based visualizations with numerical solvers for common classroom
+          physics systems. The goal is practical exploration: adjust a parameter, observe the
+          system, then compare the resulting data.
         </p>
 
-        {/* Section 1: Hamiltonian */}
-        <div style={{ marginTop: '4rem', width: '100%', maxWidth: '900px' }}>
-          <h2
-            style={{
-              fontFamily: 'Montserrat, sans-serif',
-              color: '#fff',
-              marginBottom: '1.5rem',
-              fontSize: '2rem',
-              fontWeight: 600,
-            }}
-          >
-            Classical Dynamics: Hamiltonian Mechanics
-          </h2>
-          <p style={{ color: '#a1a1aa', lineHeight: '1.7', fontSize: '1.1rem' }}>
-            Within the rigid body simulators (cradle, pendulum loops) and multi-body gravitation
-            networks, exact energy preservation is achieved by tracking the continuous Hamiltonian
-            invariant system states computed at every simulation tick:
-          </p>
-          <div
-            style={{
-              background: 'rgba(0,0,0,0.3)',
-              padding: '2.5rem',
-              borderRadius: '16px',
-              margin: '2rem 0',
-              border: '1px solid rgba(255,255,255,0.05)',
-              boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.2)',
-            }}
-          >
-            <BlockMath
-              math={String.raw`\mathcal{H}(\mathbf{q}, \mathbf{p}) = \sum_{i=1}^{N} \frac{\left| \mathbf{p}_i \right|^2}{2m_i} + \sum_{i<j}^{N} \mathcal{V}(|\mathbf{q}_i - \mathbf{q}_j|)`}
-            />
-          </div>
-          <p style={{ color: '#a1a1aa', lineHeight: '1.7', fontSize: '1.1rem' }}>
-            Where <InlineMath math={String.raw`\mathcal{H}`} /> maps to the absolute conserved
-            magnitude. If the variance{' '}
-            <InlineMath math={String.raw`\frac{\partial \mathcal{H}}{\partial t}`} /> steps away
-            from <InlineMath math="0" /> by floating-point error, the Yoshida symplectic
-            back-corrects to true geometric orbit constraints.
-          </p>
+        <h2>Classical Dynamics</h2>
+        <p>
+          Mechanics simulations track state variables such as position, velocity, energy, and
+          angular momentum. For conservative systems, the Hamiltonian is the reference quantity used
+          to monitor drift.
+        </p>
+        <div className="math-panel">
+          <BlockMath
+            math={String.raw`\mathcal{H}(\mathbf{q}, \mathbf{p}) = \sum_{i=1}^{N} \frac{\left| \mathbf{p}_i \right|^2}{2m_i} + \sum_{i<j}^{N} V(|\mathbf{q}_i - \mathbf{q}_j|)`}
+          />
         </div>
 
-        {/* Section 2: Quantum States */}
-        <div style={{ marginTop: '5rem', width: '100%', maxWidth: '900px' }}>
-          <h2
-            style={{
-              fontFamily: 'Montserrat, sans-serif',
-              color: '#fff',
-              marginBottom: '1.5rem',
-              fontSize: '2rem',
-              fontWeight: 600,
-            }}
-          >
-            Quantum Simulators: Wave Mechanics & Probabilities
-          </h2>
-          <p style={{ color: '#a1a1aa', lineHeight: '1.7', fontSize: '1.1rem' }}>
-            Our quantum modules—such as the Particle in a Box, Double Slit diffraction setup, and
-            Harmonic Oscillators—utilize explicit Finite Difference Time Domain methods (FDTD)
-            mapping deterministic continuous functions into array space.
-          </p>
-          <div
-            style={{
-              background: 'rgba(0,0,0,0.3)',
-              padding: '2.5rem',
-              borderRadius: '16px',
-              margin: '2rem 0',
-              border: '1px solid rgba(255,255,255,0.05)',
-              boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.2)',
-            }}
-          >
-            <BlockMath
-              math={String.raw`i\hbar \frac{\partial}{\partial t}\Psi(\mathbf{r},t) = \left[ -\frac{\hbar^2}{2m} \nabla^2 + V(\mathbf{r}, t) \right] \Psi(\mathbf{r},t)`}
-            />
-          </div>
-          <p style={{ color: '#a1a1aa', lineHeight: '1.7', fontSize: '1.1rem' }}>
-            This temporal derivation allows canvas pixels to accurately depict probability densities
-            mapped mathematically through{' '}
-            <InlineMath math={String.raw`\rho = |\Psi(\mathbf{r}, t)|^2`} />, which dynamically glow
-            dependent on amplitude phase bounds.
-          </p>
+        <h2>Quantum Models</h2>
+        <p>
+          Quantum simulations render probability density from wave functions. The displayed quantity
+          is typically <InlineMath math={String.raw`\rho = |\Psi(\mathbf{r}, t)|^2`} />.
+        </p>
+        <div className="math-panel">
+          <BlockMath
+            math={String.raw`i\hbar \frac{\partial}{\partial t}\Psi(\mathbf{r},t) = \left[ -\frac{\hbar^2}{2m} \nabla^2 + V(\mathbf{r}, t) \right] \Psi(\mathbf{r},t)`}
+          />
         </div>
 
-        {/* Section 3: Navier-Stokes */}
-        <div style={{ marginTop: '5rem', width: '100%', maxWidth: '900px' }}>
-          <h2
-            style={{
-              fontFamily: 'Montserrat, sans-serif',
-              color: '#fff',
-              marginBottom: '1.5rem',
-              fontSize: '2rem',
-              fontWeight: 600,
-            }}
-          >
-            Fluid Dynamics: Smoothed Particle Hydrodynamics
-          </h2>
-          <p style={{ color: '#a1a1aa', lineHeight: '1.7', fontSize: '1.1rem' }}>
-            The SPH fluid lab and buoyancy simulator implement particle approximations of the
-            incompressible Navier-Stokes distributions. Continuous spatial functions are sampled at
-            discrete particle coordinates leveraging a smoothing kernel <InlineMath math="W" />.
-          </p>
-          <div
-            style={{
-              background: 'rgba(0,0,0,0.3)',
-              padding: '2.5rem',
-              borderRadius: '16px',
-              margin: '2rem 0',
-              border: '1px solid rgba(255,255,255,0.05)',
-              boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.2)',
-            }}
-          >
-            <BlockMath math={String.raw`\rho_i = \sum_{j} m_j W(\mathbf{r}_i - \mathbf{r}_j, h)`} />
-            <br />
-            <BlockMath
-              math={String.raw`\frac{d\mathbf{v}_i}{dt} = -\sum_{j} m_j \left( \frac{P_i}{\rho_i^2} + \frac{P_j}{\rho_j^2} \right) \nabla W_{ij} + \nu \nabla^2 \mathbf{v} + \mathbf{g}`}
-            />
-          </div>
-          <p style={{ color: '#a1a1aa', lineHeight: '1.7', fontSize: '1.1rem' }}>
-            With the kernel radius <InlineMath math="h" /> defined tightly around neighboring
-            thresholds, creating viscosity gradients handling both surface waves and turbulent
-            currents simultaneously.
-          </p>
+        <h2>Fluid Dynamics</h2>
+        <p>
+          SPH simulations approximate fluid behavior using particles and a smoothing kernel
+          <InlineMath math="W" />. Density is estimated from nearby particles inside the kernel
+          radius.
+        </p>
+        <div className="math-panel">
+          <BlockMath math={String.raw`\rho_i = \sum_{j} m_j W(\mathbf{r}_i - \mathbf{r}_j, h)`} />
         </div>
 
-        {/* Section 4: Maxwell Electromagnetics */}
-        <div style={{ marginTop: '5rem', width: '100%', maxWidth: '900px' }}>
-          <h2
-            style={{
-              fontFamily: 'Montserrat, sans-serif',
-              color: '#fff',
-              marginBottom: '1.5rem',
-              fontSize: '2rem',
-              fontWeight: 600,
-            }}
-          >
-            Electromagnetism: Field Integrals
-          </h2>
-          <p style={{ color: '#a1a1aa', lineHeight: '1.7', fontSize: '1.1rem' }}>
-            The electrostatic and electrodynamic sandboxes rely heavily on calculating aggregate
-            vector potentials across multiple interacting point charges in real-time. Net field
-            strengths calculate exactly via Coulomb tensors mapping the canvas context space.
-          </p>
-          <div
-            style={{
-              background: 'rgba(0,0,0,0.3)',
-              padding: '2.5rem',
-              borderRadius: '16px',
-              margin: '2rem 0',
-              border: '1px solid rgba(255,255,255,0.05)',
-              boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.2)',
-            }}
-          >
-            <BlockMath
-              math={String.raw`\mathbf{E}(\mathbf{r}) = \frac{1}{4\pi\varepsilon_0} \sum_{i} q_i \frac{\mathbf{r} - \mathbf{r}_i}{|\mathbf{r} - \mathbf{r}_i|^3}`}
-            />
-          </div>
+        <h2>Electromagnetism</h2>
+        <p>
+          Field simulations calculate vector fields from charge positions and strengths. The visual
+          layer samples those fields across the canvas.
+        </p>
+        <div className="math-panel">
+          <BlockMath
+            math={String.raw`\mathbf{E}(\mathbf{r}) = \frac{1}{4\pi\varepsilon_0} \sum_i q_i \frac{\mathbf{r} - \mathbf{r}_i}{|\mathbf{r} - \mathbf{r}_i|^3}`}
+          />
         </div>
 
-        {/* Section 5: About the Simulator */}
-        <div style={{ marginTop: '5rem', width: '100%', maxWidth: '900px' }}>
-          <h2
-            style={{
-              fontFamily: 'Montserrat, sans-serif',
-              color: '#fff',
-              marginBottom: '1.5rem',
-              fontSize: '2rem',
-              fontWeight: 600,
-            }}
-          >
-            About the Platform
-          </h2>
-          <p style={{ color: '#a1a1aa', lineHeight: '1.7', fontSize: '1.1rem' }}>
-            Physics Simulator is an immersive environment engineered to bridge abstract theory and
-            physical reality. Built with extreme modularity in mind, it provides developers and
-            students an uncompromising portal into simulated phenomena.
-          </p>
-        </div>
-
-        {/* Section 6: Features */}
-        <div style={{ marginTop: '5rem', width: '100%', maxWidth: '900px', paddingBottom: '6rem' }}>
-          <h2
-            style={{
-              fontFamily: 'Montserrat, sans-serif',
-              color: '#fff',
-              marginBottom: '1.5rem',
-              fontSize: '2rem',
-              fontWeight: 600,
-            }}
-          >
-            Interactive Core Features
-          </h2>
-          <p
-            style={{
-              color: '#a1a1aa',
-              lineHeight: '1.7',
-              fontSize: '1.1rem',
-              marginBottom: '1.5rem',
-            }}
-          >
-            Take ultimate control of the physical environments with specialized research controls
-            mapped directly into every experiment:
-          </p>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: '1.5rem',
-              margin: '2rem 0',
-            }}
-          >
-            <div
-              style={{
-                background: 'rgba(255,255,255,0.03)',
-                padding: '1.5rem',
-                borderRadius: '12px',
-                border: '1px solid rgba(255,255,255,0.05)',
-              }}
-            >
-              <h3
-                style={{
-                  color: '#fff',
-                  fontSize: '1.2rem',
-                  marginBottom: '0.75rem',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                }}
-              >
-                <Video size={20} style={{ color: '#60a5fa' }} /> Video Export
-              </h3>
-              <p style={{ color: '#a1a1aa', fontSize: '0.95rem', lineHeight: '1.5' }}>
-                Record continuous simulations in lossless rendering directly to WebM/MP4 format.
-              </p>
-            </div>
-            <div
-              style={{
-                background: 'rgba(255,255,255,0.03)',
-                padding: '1.5rem',
-                borderRadius: '12px',
-                border: '1px solid rgba(255,255,255,0.05)',
-              }}
-            >
-              <h3
-                style={{
-                  color: '#fff',
-                  fontSize: '1.2rem',
-                  marginBottom: '0.75rem',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                }}
-              >
-                <LineChart size={20} style={{ color: '#34d399' }} /> Live Graphing
-              </h3>
-              <p style={{ color: '#a1a1aa', fontSize: '0.95rem', lineHeight: '1.5' }}>
-                Track kinematic and energy transformations asynchronously via high-precision live
-                curves.
-              </p>
-            </div>
-            <div
-              style={{
-                background: 'rgba(255,255,255,0.03)',
-                padding: '1.5rem',
-                borderRadius: '12px',
-                border: '1px solid rgba(255,255,255,0.05)',
-              }}
-            >
-              <h3
-                style={{
-                  color: '#fff',
-                  fontSize: '1.2rem',
-                  marginBottom: '0.75rem',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                }}
-              >
-                <Play size={20} style={{ color: '#fbbf24' }} /> Play / Pause
-              </h3>
-              <p style={{ color: '#a1a1aa', fontSize: '0.95rem', lineHeight: '1.5' }}>
-                Lock physical frame loops immediately for granular analytical state debugging.
-              </p>
-            </div>
-            <div
-              style={{
-                background: 'rgba(255,255,255,0.03)',
-                padding: '1.5rem',
-                borderRadius: '12px',
-                border: '1px solid rgba(255,255,255,0.05)',
-              }}
-            >
-              <h3
-                style={{
-                  color: '#fff',
-                  fontSize: '1.2rem',
-                  marginBottom: '0.75rem',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                }}
-              >
-                <Sliders size={20} style={{ color: '#f87171' }} /> Live Adjustments
-              </h3>
-              <p style={{ color: '#a1a1aa', fontSize: '0.95rem', lineHeight: '1.5' }}>
-                Alter underlying parameters mid-orbit and watch theoretical reactions live.
-              </p>
-            </div>
+        <h2>Core Features</h2>
+        <div className="feature-grid">
+          <div className="feature-card">
+            <h3>
+              <Video size={18} /> Video export
+            </h3>
+            <p>Record a simulation run as a WebM video.</p>
+          </div>
+          <div className="feature-card">
+            <h3>
+              <LineChart size={18} /> Live graphing
+            </h3>
+            <p>Plot selected variables while the simulation runs.</p>
+          </div>
+          <div className="feature-card">
+            <h3>
+              <Play size={18} /> Playback control
+            </h3>
+            <p>Pause, reset, and adjust speed during an experiment.</p>
+          </div>
+          <div className="feature-card">
+            <h3>
+              <Sliders size={18} /> Parameters
+            </h3>
+            <p>Change model inputs and compare outcomes.</p>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

@@ -128,14 +128,6 @@ function viridis(t) {
   return `rgb(${r},${g},${b})`;
 }
 
-function plasmaColor(t) {
-  t = Math.max(0, Math.min(1, t));
-  const r = Math.round(13 + t * (240 - 13));
-  const g = Math.round(8 + t * (249 - 8));
-  const b = Math.round(135 + t * (33 - 135));
-  return `rgb(${r},${g},${b})`;
-}
-
 // ── Simulation ─────────────────────────────────────────────────────────
 export function create(canvas, initParams = {}) {
   const ctx = canvas.getContext('2d');
@@ -282,7 +274,7 @@ export function create(canvas, initParams = {}) {
     ctx.stroke();
   }
 
-  function drawFilledProb(ctx, pts, gx, baseY, gw) {
+  function drawFilledProb(ctx, pts, gx, baseY) {
     if (pts.length < 2) return;
     const grad = ctx.createLinearGradient(gx, baseY - 200, gx, baseY);
     grad.addColorStop(0, 'rgba(99,102,241,0.6)');
@@ -340,7 +332,7 @@ export function create(canvas, initParams = {}) {
       const py = plotY + plotH - (wf.prob[i] / probMax) * (plotH - 30);
       probPts.push({ x: px, y: py });
     }
-    drawFilledProb(ctx, probPts, plotX, plotY + plotH, plotW);
+    drawFilledProb(ctx, probPts, plotX, plotY + plotH);
     drawGlowLine(ctx, probPts, '#4FC3F7', 2, 10);
 
     // ⟨x⟩ marker

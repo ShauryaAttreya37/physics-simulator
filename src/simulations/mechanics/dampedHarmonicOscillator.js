@@ -234,12 +234,6 @@ export function create(canvas, initParams = {}) {
   const wn = () => Math.sqrt(p.springK / p.mass);
   const zeta = () => p.damping / (2 * Math.sqrt(p.mass * p.springK));
   const energy = () => 0.5 * p.mass * v * v + 0.5 * p.springK * x * x;
-  const regime = () => {
-    const z = zeta();
-    if (z < 1 - 1e-4) return 'underdamped';
-    if (z > 1 + 1e-4) return 'critical';
-    return 'overdamped';
-  };
 
   function initState() {
     x = p.x0;
@@ -282,10 +276,11 @@ export function create(canvas, initParams = {}) {
     // ── Left: Mass-spring visualization ──────────────────────
     const eqY = H * 0.5;
     const wallX = midX * 0.15;
-    const massW = 40,
+    const massW = 44,
       massH = 30;
-    const restLen = midX * 0.4;
-    const scale = midX * 0.12;
+    const viewScale = p.viewScale ?? 1.0;
+    const restLen = midX * 0.4 * viewScale;
+    const scale = midX * 0.12 * viewScale;
     const massX = wallX + restLen + x * scale;
 
     // Wall
@@ -356,7 +351,6 @@ export function create(canvas, initParams = {}) {
     ctx.setLineDash([]);
 
     // Regime label
-    const r = regime();
     const z = zeta();
     const regimeLabel =
       z < 1 - 1e-4 ? 'UNDERDAMPED' : z > 1 + 1e-4 ? 'OVERDAMPED' : 'CRITICALLY DAMPED';

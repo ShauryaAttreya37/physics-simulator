@@ -187,7 +187,6 @@ export function create(canvas, initParams = {}) {
       { color: '#f59e0b', lineWidth: 3 },
     );
 
-    const currentTorque = p.force * p.radius - p.damping * omega;
     const omegaScale = Math.min(52, Math.abs(omega) * 4);
     drawArrow(ctx, cx - diskR - 20, cy, cx - diskR - 20, cy - (omega >= 0 ? 1 : -1) * omegaScale, {
       color: '#22d3ee',

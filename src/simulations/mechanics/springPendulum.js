@@ -183,7 +183,7 @@ export function create(canvas, initParams = {}) {
 
     const centerX = W / 2 + (p.panX || 0);
     const centerY = H * 0.2 + (p.panY || 0);
-    const scale = Math.min(W, H) * 0.15;
+    const scale = Math.min(W, H) * 0.15 * (p.viewScale ?? 1.0);
 
     // Draw Trail
     if (trail.length > 2) {
