@@ -23,9 +23,6 @@ export default function Home({ onNavigate }) {
             <span className="logo-text">Physics Simulator</span>
           </div>
           <div className="nav-links">
-            <button className="nav-link-btn" onClick={() => handleNavigate('topics')}>
-              Laboratory
-            </button>
             <button className="nav-link-btn" onClick={() => handleNavigate('integrators')}>
               Integrators
             </button>
