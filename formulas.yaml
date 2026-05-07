@@ -1,7 +1,6 @@
 ﻿meta:
   title: Mechanics Sandbox Governing Formulas
   version: 1.0
-  format: 'LLM-readable YAML'
   conventions:
     - 'SI base units unless explicitly overridden'
     - 'Angles in radians unless otherwise stated'

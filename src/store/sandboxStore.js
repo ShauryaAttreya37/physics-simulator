@@ -8,11 +8,13 @@ export const useSandboxStore = create((set) => ({
   gravity: { x: 0, y: 1 },
   activeTool: 'select',
   showPropertiesPanel: window.innerWidth > 768,
+  showReadout: false,
 
   setActiveTool: (tool) => set({ activeTool: tool, selectedId: null }),
   setRunning: (v) => set({ isRunning: v }),
   setSelectedId: (id) => set({ selectedId: id }),
   togglePropertiesPanel: () => set((s) => ({ showPropertiesPanel: !s.showPropertiesPanel })),
+  toggleReadout: () => set((s) => ({ showReadout: !s.showReadout })),
 
   addBody: (id, data) => set((s) => ({ bodies: { ...s.bodies, [id]: data } })),
   removeBody: (id) =>

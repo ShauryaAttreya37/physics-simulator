@@ -40,7 +40,7 @@ export default function DataReadout({ data, method }) {
   const isMobile = window.innerWidth <= 900;
   if (isMobile) return null;
 
-  const transform = `translate(calc(-50% + ${position.x}px), ${position.y}px)`;
+  const transform = `translate(${position.x}px, ${position.y}px)`;
 
   return (
     <div

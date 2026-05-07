@@ -406,36 +406,6 @@ const ICONS = {
       <circle cx="32" cy="32" r="4" fill="currentColor" opacity="0.8" />
     </svg>
   ),
-  'particle-in-box': (
-    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-      <rect
-        x="8"
-        y="10"
-        width="48"
-        height="44"
-        stroke="currentColor"
-        strokeWidth="2"
-        fill="none"
-        opacity="0.4"
-      />
-      <path
-        d="M 12 50 Q 20 20 32 50 Q 44 20 52 50"
-        stroke="currentColor"
-        strokeWidth="2"
-        fill="none"
-        opacity="0.8"
-      />
-      <path
-        d="M 12 50 Q 20 35 32 50 Q 44 35 52 50"
-        stroke="currentColor"
-        strokeWidth="1"
-        fill="none"
-        opacity="0.3"
-        strokeDasharray="3 3"
-      />
-      <line x1="8" y1="50" x2="56" y2="50" stroke="currentColor" strokeWidth="1" opacity="0.3" />
-    </svg>
-  ),
   'quantum-harmonic-oscillator': (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
       <path

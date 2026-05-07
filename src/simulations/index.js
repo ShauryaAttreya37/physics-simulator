@@ -23,7 +23,6 @@ import * as coulombLaw from './electromagnetism/coulombLaw';
 import * as electrostaticFields from './electromagnetism/electrostaticFields';
 import * as maxwellWaves from './electromagnetism/maxwellWaves';
 
-import * as particleInBox from './quantum/particleInBox';
 import * as harmonicOscillator from './quantum/harmonicOscillator';
 import * as doubleSlit from './quantum/doubleSlit';
 import * as hydrogenOrbitals from './quantum/hydrogenOrbitals';
@@ -597,22 +596,6 @@ export const TOPICS = {
   quantum: {
     label: 'Quantum Mechanics',
     sims: [
-      {
-        id: 'particle-in-box',
-        title: 'Particle in a Box',
-        description:
-          'Infinite square well with time-evolving superposition of eigenstates. Watch probability density slosh and interference fringes form in real time.',
-        tags: ['Schrödinger', 'Eigenstates', 'Born Rule'],
-        gradient: 'linear-gradient(135deg, #0a0520 0%, #150835 100%)',
-        accentColor: '#4FC3F7',
-        method: 'exact',
-        create: particleInBox.create,
-        controls: particleInBox.controls,
-        defaultParams: particleInBox.defaultParams,
-        equations: particleInBox.equations,
-        equationSections: particleInBox.equationSections,
-        graphParams: particleInBox.graphParams,
-      },
       {
         id: 'quantum-harmonic-oscillator',
         title: 'Quantum Harmonic Oscillator',

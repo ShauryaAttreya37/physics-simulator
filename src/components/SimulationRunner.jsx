@@ -17,6 +17,7 @@ import DataReadout from './DataReadout';
 import TheoryChalkboard, { legacyToSections } from './TheoryChalkboard';
 import { inferControlTooltip } from '../constants/physicsTooltips';
 import { usePhysicsEngine } from '../hooks/usePhysicsEngine';
+import { useSandboxStore } from '../store/sandboxStore';
 
 function formatValue(value, step) {
   if (typeof value !== 'number') return String(value);
@@ -597,6 +598,7 @@ export default function SimulationRunner({ sim, onBack }) {
   }, [sim]);
 
   const [showMobilePanel, setShowMobilePanel] = useState(false);
+  const { showReadout, toggleReadout } = useSandboxStore();
 
   return (
     <div className={`sim-runner-research ${showMobilePanel ? 'mobile-panel-open' : ''}`}>
@@ -653,6 +655,34 @@ export default function SimulationRunner({ sim, onBack }) {
             </select>
           </div>
 
+          <div
+            className="sim-toolbar-group hide-mobile"
+            style={{
+              marginLeft: 'var(--sp-2)',
+              paddingLeft: 'var(--sp-4)',
+              borderLeft: '1px solid var(--border)',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: '600',
+                color: 'var(--text-sub)',
+                marginRight: '8px',
+              }}
+            >
+              HUD
+            </span>
+            <div
+              className={`toggle-switch ${showReadout ? 'active' : ''}`}
+              onClick={toggleReadout}
+              title="Toggle HUD Readout"
+              style={{ cursor: 'pointer' }}
+            >
+              <div className="toggle-handle" />
+            </div>
+          </div>
+
           <button
             className={`icon-btn mobile-only-btn ${showMobilePanel ? 'active' : ''}`}
             onClick={() => setShowMobilePanel(!showMobilePanel)}
@@ -665,7 +695,7 @@ export default function SimulationRunner({ sim, onBack }) {
         <div className="sim-canvas-wrapper">
           <canvas ref={canvasRef} className="sim-runner-canvas" style={{ touchAction: 'none' }} />
           <canvas ref={recordingCanvasRef} style={{ display: 'none' }} />
-          <DataReadout data={readoutData} method={sim.method || 'rk4'} />
+          {showReadout && <DataReadout data={readoutData} method={sim.method || 'rk4'} />}
 
           {runnerError && (
             <div className="sim-error-overlay">
