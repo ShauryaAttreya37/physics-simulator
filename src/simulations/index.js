@@ -22,6 +22,11 @@ import * as electricCharges from './electromagnetism/electricCharges';
 import * as coulombLaw from './electromagnetism/coulombLaw';
 import * as electrostaticFields from './electromagnetism/electrostaticFields';
 import * as maxwellWaves from './electromagnetism/maxwellWaves';
+import * as faradayLaw from './electromagnetism/faradayLaw';
+import * as lorentzForce from './electromagnetism/lorentzForce';
+import * as biotSavart from './electromagnetism/biotSavart';
+import * as capacitor from './electromagnetism/capacitor';
+import * as rlcCircuit from './electromagnetism/rlcCircuit';
 
 import * as harmonicOscillator from './quantum/harmonicOscillator';
 import * as doubleSlit from './quantum/doubleSlit';
@@ -567,6 +572,96 @@ export const TOPICS = {
         equations: maxwellWaves.equations,
         equationSections: maxwellWaves.equationSections,
         graphParams: maxwellWaves.graphParams,
+      },
+      {
+        id: 'faraday-law',
+        title: "Faraday's Law of Induction",
+        description:
+          'Drag a bar magnet through a coil and watch the galvanometer respond. The lightbulb glows brighter when you move faster — because EMF depends on the RATE of flux change, not the flux itself.',
+        tags: ['Faraday', 'Induction', 'EMF', 'Lenz'],
+        gradient: 'linear-gradient(135deg, #0a0e1a 0%, #1a0a2e 100%)',
+        accentColor: '#f87171',
+        method: 'analytical',
+        create: faradayLaw.create,
+        controls: faradayLaw.controls,
+        defaultParams: faradayLaw.defaultParams,
+        equations: faradayLaw.equations,
+        equationSections: faradayLaw.equationSections,
+        graphParams: faradayLaw.graphParams,
+        guidedExperiments: faradayLaw.guidedExperiments,
+        scenarios: faradayLaw.scenarios,
+      },
+      {
+        id: 'lorentz-force',
+        title: 'Lorentz Force & Mass Spectrometer',
+        description:
+          'Charged particles curve in a magnetic field. Drag the detector to catch them. The radius r = mv/(qB) directly reveals the mass-to-charge ratio — this is how real mass spectrometers work.',
+        tags: ['Lorentz', 'Mass Spectrometer', 'Cross Product'],
+        gradient: 'linear-gradient(135deg, #050810 0%, #0a1628 100%)',
+        accentColor: '#4ade80',
+        method: 'rk4',
+        create: lorentzForce.create,
+        controls: lorentzForce.controls,
+        defaultParams: lorentzForce.defaultParams,
+        equations: lorentzForce.equations,
+        equationSections: lorentzForce.equationSections,
+        graphParams: lorentzForce.graphParams,
+        guidedExperiments: lorentzForce.guidedExperiments,
+        scenarios: lorentzForce.scenarios,
+      },
+      {
+        id: 'biot-savart',
+        title: 'Biot-Savart Law & Compass Field',
+        description:
+          'A current-carrying wire surrounded by responsive compass needles. Drag the test compass to explore the 1/r field. Flip the current to reverse every needle — the Right-Hand Rule in action.',
+        tags: ['Biot-Savart', 'Right-Hand Rule', 'Magnetism'],
+        gradient: 'linear-gradient(135deg, #0a0520 0%, #1a0a30 100%)',
+        accentColor: '#c084fc',
+        method: 'analytical',
+        create: biotSavart.create,
+        controls: biotSavart.controls,
+        defaultParams: biotSavart.defaultParams,
+        equations: biotSavart.equations,
+        equationSections: biotSavart.equationSections,
+        graphParams: biotSavart.graphParams,
+        guidedExperiments: biotSavart.guidedExperiments,
+        scenarios: biotSavart.scenarios,
+      },
+      {
+        id: 'capacitor',
+        title: 'Parallel Plate Capacitor',
+        description:
+          'Drag the plates apart, insert a dielectric, toggle the battery. The classic exam trap: battery connected vs disconnected gives OPPOSITE energy changes.',
+        tags: ['Capacitor', 'Dielectric', 'Energy Storage'],
+        gradient: 'linear-gradient(135deg, #0a0e1a 0%, #061020 100%)',
+        accentColor: '#22d3ee',
+        method: 'analytical',
+        create: capacitor.create,
+        controls: capacitor.controls,
+        defaultParams: capacitor.defaultParams,
+        equations: capacitor.equations,
+        equationSections: capacitor.equationSections,
+        graphParams: capacitor.graphParams,
+        guidedExperiments: capacitor.guidedExperiments,
+        scenarios: capacitor.scenarios,
+      },
+      {
+        id: 'rlc-circuit',
+        title: 'RLC Circuit Oscillator',
+        description:
+          'The electrical analog of a mass-spring-damper. Watch energy slosh between the capacitor (electric field) and inductor (magnetic field). Mathematically identical to the Damped Harmonic Oscillator.',
+        tags: ['RLC', 'Resonance', 'Oscillator', 'Analog'],
+        gradient: 'linear-gradient(135deg, #0a1628 0%, #061020 100%)',
+        accentColor: '#a78bfa',
+        method: 'rk4',
+        create: rlcCircuit.create,
+        controls: rlcCircuit.controls,
+        defaultParams: rlcCircuit.defaultParams,
+        equations: rlcCircuit.equations,
+        equationSections: rlcCircuit.equationSections,
+        graphParams: rlcCircuit.graphParams,
+        guidedExperiments: rlcCircuit.guidedExperiments,
+        scenarios: rlcCircuit.scenarios,
       },
     ],
   },

@@ -147,6 +147,17 @@ export function create(canvas, initParams = {}) {
   let trail1 = [];
   let trail2 = [];
 
+  // Interaction State
+  let currentCx1 = 0;
+  let currentCy1 = 0;
+  let currentCx2 = 0;
+  let currentCy2 = 0;
+  let currentX1 = 0;
+  let currentY1 = 0;
+  let currentX2 = 0;
+  let currentY2 = 0;
+  let dragTarget = null;
+
   function initState() {
     state = [p.theta1, p.theta2, p.omega1, p.omega2];
     trail1 = [];
@@ -248,26 +259,110 @@ export function create(canvas, initParams = {}) {
       ctx.fill();
     });
 
-    ctx.beginPath();
-    ctx.arc(x1, y1, p.bobRadius * scale, 0, Math.PI * 2);
-    ctx.fillStyle = '#3b82f6';
-    ctx.fill();
+    currentCx1 = ax1;
+    currentCy1 = ay1;
+    currentCx2 = ax2;
+    currentCy2 = ay2;
+    currentX1 = x1;
+    currentY1 = y1;
+    currentX2 = x2;
+    currentY2 = y2;
+
+    const r = p.bobRadius * scale;
+    const grad1 = ctx.createRadialGradient(x1 - r * 0.3, y1 - r * 0.3, r * 0.1, x1, y1, r);
+    grad1.addColorStop(0, '#93c5fd');
+    grad1.addColorStop(0.6, '#3b82f6');
+    grad1.addColorStop(1, '#1d4ed8');
 
     ctx.beginPath();
-    ctx.arc(x2, y2, p.bobRadius * scale, 0, Math.PI * 2);
-    ctx.fillStyle = '#10b981';
+    ctx.arc(x1, y1, r, 0, Math.PI * 2);
+    ctx.fillStyle = grad1;
     ctx.fill();
+    ctx.strokeStyle = dragTarget === 'bob1' ? '#fef08a' : '#1d4ed8';
+    ctx.lineWidth = dragTarget === 'bob1' ? 3 : 1;
+    ctx.stroke();
+
+    const grad2 = ctx.createRadialGradient(x2 - r * 0.3, y2 - r * 0.3, r * 0.1, x2, y2, r);
+    grad2.addColorStop(0, '#6ee7b7');
+    grad2.addColorStop(0.6, '#10b981');
+    grad2.addColorStop(1, '#047857');
+
+    ctx.beginPath();
+    ctx.arc(x2, y2, r, 0, Math.PI * 2);
+    ctx.fillStyle = grad2;
+    ctx.fill();
+    ctx.strokeStyle = dragTarget === 'bob2' ? '#fef08a' : '#047857';
+    ctx.lineWidth = dragTarget === 'bob2' ? 3 : 1;
+    ctx.stroke();
   }
 
   let rafId;
   let lastTs;
   let running = false;
 
+  function handlePointerDown(e) {
+    const rect = canvas.getBoundingClientRect();
+    const hitX = e.clientX - rect.left;
+    const hitY = e.clientY - rect.top;
+
+    const r = p.bobRadius * (p.viewScale ?? 1.0);
+    if (Math.hypot(hitX - currentX1, hitY - currentY1) <= r + 15) {
+      dragTarget = 'bob1';
+    } else if (Math.hypot(hitX - currentX2, hitY - currentY2) <= r + 15) {
+      dragTarget = 'bob2';
+    }
+
+    if (dragTarget) {
+      state[2] = 0;
+      state[3] = 0;
+      trail1 = [];
+      trail2 = [];
+    }
+  }
+
+  function handlePointerMove(e) {
+    if (!dragTarget) return;
+    const rect = canvas.getBoundingClientRect();
+    const hitX = e.clientX - rect.left;
+    const hitY = e.clientY - rect.top;
+
+    if (dragTarget === 'bob1') {
+      const dx = hitX - currentCx1;
+      const dy = hitY - currentCy1;
+      state[0] = Math.atan2(dx, dy);
+    } else if (dragTarget === 'bob2') {
+      const dx = hitX - currentCx2;
+      const dy = hitY - currentCy2;
+      state[1] = Math.atan2(dx, dy);
+    }
+
+    state[2] = 0;
+    state[3] = 0;
+    trail1 = [];
+    trail2 = [];
+    render();
+  }
+
+  function handlePointerUp() {
+    if (dragTarget) {
+      p.theta1 = state[0];
+      p.theta2 = state[1];
+    }
+    dragTarget = null;
+    render();
+  }
+
+  canvas.addEventListener('pointerdown', handlePointerDown);
+  window.addEventListener('pointermove', handlePointerMove);
+  window.addEventListener('pointerup', handlePointerUp);
+
   function loop(ts) {
     if (!running) return;
     const dt = lastTs === undefined ? 1 / 60 : Math.min((ts - lastTs) / 1000, 1 / 20);
     lastTs = ts;
-    tick(dt);
+    if (!dragTarget) {
+      tick(dt);
+    }
     render();
     rafId = requestAnimationFrame(loop);
   }
@@ -298,6 +393,9 @@ export function create(canvas, initParams = {}) {
     },
     destroy() {
       this.stop();
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
     },
     getData() {
       return {

@@ -160,6 +160,14 @@ export function create(canvas, initParams = {}) {
   let measuredPeriod = null;
   let prevTheta = 0;
 
+  // Interaction state
+  let currentCenterX = 0;
+  let currentCenterY = 0;
+  let currentBobX = 0;
+  let currentBobY = 0;
+  let currentBobR = 0;
+  let isDragging = false;
+
   function initState() {
     theta = p.theta0;
     omega = p.omega0 || 0;
@@ -231,6 +239,10 @@ export function create(canvas, initParams = {}) {
     const centerY = H * 0.22 + (p.panY || 0);
     const scale = Math.min(W, H) * 0.16 * (p.viewScale ?? 1.0);
 
+    // Save for interaction
+    currentCenterX = centerX;
+    currentCenterY = centerY;
+
     // Vertical reference line (equilibrium)
     ctx.setLineDash([4, 6]);
     ctx.strokeStyle = 'rgba(0,0,0,0.1)';
@@ -262,6 +274,9 @@ export function create(canvas, initParams = {}) {
     const bobY = p.length * Math.cos(theta);
     const px = centerX + bobX * scale;
     const py = centerY + bobY * scale;
+
+    currentBobX = px;
+    currentBobY = py;
 
     // Angle arc
     if (p.showAngleArc && Math.abs(theta) > 0.02) {
@@ -361,12 +376,27 @@ export function create(canvas, initParams = {}) {
 
     // Bob
     const bobR = 14 + Math.sqrt(p.mass) * 4;
-    ctx.fillStyle = '#ef4444';
+    currentBobR = bobR;
+
+    // PhET-style 3D radial gradient
+    const bobGrad = ctx.createRadialGradient(
+      px - bobR * 0.3,
+      py - bobR * 0.3,
+      bobR * 0.1,
+      px,
+      py,
+      bobR,
+    );
+    bobGrad.addColorStop(0, '#f87171');
+    bobGrad.addColorStop(0.8, '#dc2626');
+    bobGrad.addColorStop(1, '#991b1b');
+
+    ctx.fillStyle = bobGrad;
     ctx.beginPath();
     ctx.arc(px, py, bobR, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = '#b91c1c';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = isDragging ? '#fef08a' : '#7f1d1d'; // highlight when dragging
+    ctx.lineWidth = isDragging ? 3 : 1;
     ctx.stroke();
 
     // Mass label on bob
@@ -543,11 +573,55 @@ export function create(canvas, initParams = {}) {
     lastTs,
     running = false;
 
+  function handlePointerDown(e) {
+    const rect = canvas.getBoundingClientRect();
+    // Normalize coordinates for device pixel ratio if necessary, assuming 1:1 for simplicity
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const dx = x - currentBobX;
+    const dy = y - currentBobY;
+    if (Math.sqrt(dx * dx + dy * dy) <= currentBobR + 15) {
+      // +15 for easier grabbing
+      isDragging = true;
+      omega = 0; // stop motion
+      trail = []; // clear trail on drag
+    }
+  }
+
+  function handlePointerMove(e) {
+    if (!isDragging) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const dx = x - currentCenterX;
+    const dy = y - currentCenterY;
+
+    theta = Math.atan2(dx, dy);
+    omega = 0;
+
+    // Reset period measurement
+    lastCrossTime = null;
+    measuredPeriod = null;
+
+    render();
+  }
+
+  function handlePointerUp() {
+    isDragging = false;
+  }
+
+  canvas.addEventListener('pointerdown', handlePointerDown);
+  window.addEventListener('pointermove', handlePointerMove);
+  window.addEventListener('pointerup', handlePointerUp);
+
   function loop(ts) {
     if (!running) return;
     const dt = lastTs === undefined ? 1 / 60 : Math.min((ts - lastTs) / 1000, 1 / 20);
     lastTs = ts;
-    tick(dt);
+    if (!isDragging) {
+      tick(dt);
+    }
     render();
     rafId = requestAnimationFrame(loop);
   }
@@ -584,6 +658,9 @@ export function create(canvas, initParams = {}) {
     },
     destroy() {
       this.stop();
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
     },
     getData() {
       const v = p.length * omega;

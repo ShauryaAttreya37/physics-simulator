@@ -177,6 +177,14 @@ export function create(canvas, initParams = {}) {
   let closestGlobal = Infinity;
   let maxScatterAngle = 0;
 
+  // Interaction State
+  let nucleusOffsetX = 0;
+  let nucleusOffsetY = 0;
+  let currentCx = 0;
+  let currentCy = 0;
+  let currentNucleusR = 0;
+  let isDraggingNucleus = false;
+
   // Coulomb parameter: d₀ = kZze²/E (distance of closest approach for b=0)
   // We scale this to pixels. d₀ in px sets the visual scale.
   function d0() {
@@ -204,14 +212,21 @@ export function create(canvas, initParams = {}) {
     particles = [];
     const n = Math.max(1, Math.floor(p.nParticles));
     const W = canvas.width;
-    const startX = -W * 0.45; // Start from far left
-    const v0 = 3 + p.energy * 0.8; // Initial speed (scaled)
+    const H = canvas.height;
+
+    // Gun fixed at screen left (5% of width)
+    const absoluteStartX = W * 0.05;
+    const startX = absoluteStartX - (W / 2 + nucleusOffsetX);
+    const v0 = 3 + p.energy * 0.8;
 
     for (let i = 0; i < n; i++) {
-      // Evenly space impact parameters from -bMax to +bMax
       const b = n === 1 ? 0 : -p.bMax + (2 * p.bMax * i) / (n - 1);
+      // Gun fixed at vertical center + b
+      const absoluteStartY = H / 2 + b;
+      const startY = absoluteStartY - (H / 2 + nucleusOffsetY);
+
       particles.push({
-        state: [startX, b, v0, 0], // [x, y, vx, vy] relative to nucleus
+        state: [startX, startY, v0, 0],
         trail: [],
         active: true,
         closest: Infinity,
@@ -319,8 +334,10 @@ export function create(canvas, initParams = {}) {
   function render() {
     const W = canvas.width;
     const H = canvas.height;
-    const cx = W / 2;
-    const cy = H / 2;
+    const cx = W / 2 + nucleusOffsetX;
+    const cy = H / 2 + nucleusOffsetY;
+    currentCx = cx;
+    currentCy = cy;
 
     // Background
     ctx.fillStyle = '#020408';
@@ -392,11 +409,13 @@ export function create(canvas, initParams = {}) {
     }
 
     // Nucleus (gold)
-    ctx.shadowBlur = 30;
-    ctx.shadowColor = 'rgba(255, 180, 50, 0.8)';
+    ctx.shadowBlur = isDraggingNucleus ? 40 : 30;
+    ctx.shadowColor = isDraggingNucleus ? 'rgba(255, 255, 100, 1)' : 'rgba(255, 180, 50, 0.8)';
     const nucleusR = 8 + Math.sqrt(p.Z) * 1.2;
+    currentNucleusR = nucleusR;
+
     const nucGrad = ctx.createRadialGradient(cx - 3, cy - 3, 1, cx, cy, nucleusR);
-    nucGrad.addColorStop(0, '#ffd700');
+    nucGrad.addColorStop(0, '#ffff80');
     nucGrad.addColorStop(0.5, '#e6a800');
     nucGrad.addColorStop(1, '#996600');
     ctx.beginPath();
@@ -408,8 +427,8 @@ export function create(canvas, initParams = {}) {
     // Nucleus ring
     ctx.beginPath();
     ctx.arc(cx, cy, nucleusR, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255, 220, 100, 0.4)';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = isDraggingNucleus ? '#ffffff' : 'rgba(255, 220, 100, 0.4)';
+    ctx.lineWidth = isDraggingNucleus ? 3 : 1;
     ctx.stroke();
 
     // Nucleus label
@@ -476,11 +495,57 @@ export function create(canvas, initParams = {}) {
   let lastTs;
   let running = false;
 
+  function handlePointerDown(e) {
+    const rect = canvas.getBoundingClientRect();
+    const hitX = e.clientX - rect.left;
+    const hitY = e.clientY - rect.top;
+
+    if (Math.hypot(hitX - currentCx, hitY - currentCy) <= currentNucleusR + 15) {
+      isDraggingNucleus = true;
+    }
+  }
+
+  function handlePointerMove(e) {
+    if (!isDraggingNucleus) return;
+    const rect = canvas.getBoundingClientRect();
+    const hitX = e.clientX - rect.left;
+    const hitY = e.clientY - rect.top;
+
+    const dx = hitX - currentCx;
+    const dy = hitY - currentCy;
+
+    // Update relative positions of active particles so they don't visually jump
+    for (const part of particles) {
+      if (part.active) {
+        part.state[0] -= dx;
+        part.state[1] -= dy;
+      }
+    }
+
+    nucleusOffsetX += dx;
+    nucleusOffsetY += dy;
+    currentCx = hitX;
+    currentCy = hitY;
+
+    render();
+  }
+
+  function handlePointerUp() {
+    isDraggingNucleus = false;
+  }
+
+  canvas.addEventListener('pointerdown', handlePointerDown);
+  window.addEventListener('pointermove', handlePointerMove);
+  window.addEventListener('pointerup', handlePointerUp);
+
   function loop(ts) {
     if (!running) return;
     const dt = lastTs === undefined ? 1 / 60 : Math.min((ts - lastTs) / 1000, 1 / 20);
     lastTs = ts;
-    tick(dt);
+    // Don't step physics while actively dragging to prevent chaotic scattering spikes
+    if (!isDraggingNucleus) {
+      tick(dt);
+    }
     render();
     rafId = requestAnimationFrame(loop);
   }
@@ -511,6 +576,9 @@ export function create(canvas, initParams = {}) {
     },
     destroy() {
       this.stop();
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
     },
     getData() {
       return {

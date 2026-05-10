@@ -192,6 +192,13 @@ export function create(canvas, initParams = {}) {
   let maxHeight;
   let impactFrame; // frames since impact for animation
 
+  // Interaction State
+  let currentLaunchX = 0;
+  let currentLaunchY = 0;
+  let currentTipX = 0;
+  let currentTipY = 0;
+  let isDraggingVector = false;
+
   function energy() {
     return 0.5 * p.mass * (vx * vx + vy * vy) + p.mass * p.gravity * y;
   }
@@ -406,6 +413,9 @@ export function create(canvas, initParams = {}) {
     // --- Launch origin marker ---
     const launchX = sx(0);
     const launchY = sy(0);
+    currentLaunchX = launchX;
+    currentLaunchY = launchY;
+
     // Origin dot
     ctx.beginPath();
     ctx.arc(launchX, launchY, 5, 0, Math.PI * 2);
@@ -432,16 +442,32 @@ export function create(canvas, initParams = {}) {
       launchX + (arcR + 6) * Math.cos(-labelAngleRad),
       launchY + (arcR + 6) * Math.sin(-labelAngleRad),
     );
-    // Launch direction line
-    const dirLen = 30;
+
+    // Launch direction vector (Draggable)
+    const dirLen = Math.max(20, p.launchSpeed * 1.5);
+    const tipX = launchX + dirLen * Math.cos(rad);
+    const tipY = launchY - dirLen * Math.sin(rad);
+    currentTipX = tipX;
+    currentTipY = tipY;
+
+    // Vector line
     ctx.beginPath();
     ctx.moveTo(launchX, launchY);
-    ctx.lineTo(launchX + dirLen * Math.cos(rad), launchY - dirLen * Math.sin(rad));
-    ctx.strokeStyle = 'rgba(251, 113, 133, 0.4)';
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([4, 4]);
+    ctx.lineTo(tipX, tipY);
+    ctx.strokeStyle = isDraggingVector ? '#fbbf24' : 'rgba(251, 113, 133, 0.8)';
+    ctx.lineWidth = isDraggingVector ? 4 : 2;
+    ctx.setLineDash(isDraggingVector ? [] : [4, 4]);
     ctx.stroke();
     ctx.setLineDash([]);
+
+    // Draggable handle at the tip
+    ctx.beginPath();
+    ctx.arc(tipX, tipY, isDraggingVector ? 10 : 6, 0, Math.PI * 2);
+    ctx.fillStyle = isDraggingVector ? '#fbbf24' : '#e11d48';
+    ctx.fill();
+    ctx.strokeStyle = isDraggingVector ? '#fff' : '#be123c';
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
     // --- Ideal Parabola (dashed) ---
     const idealPts = getIdealTrajectory(rangeIdeal * 1.15 + 10);
@@ -713,11 +739,57 @@ export function create(canvas, initParams = {}) {
     running = false;
   let speedScale = 1.0;
 
+  function handlePointerDown(e) {
+    const rect = canvas.getBoundingClientRect();
+    const hitX = e.clientX - rect.left;
+    const hitY = e.clientY - rect.top;
+
+    if (Math.hypot(hitX - currentTipX, hitY - currentTipY) <= 25) {
+      isDraggingVector = true;
+    }
+  }
+
+  function handlePointerMove(e) {
+    if (!isDraggingVector) return;
+    const rect = canvas.getBoundingClientRect();
+    const hitX = e.clientX - rect.left;
+    const hitY = e.clientY - rect.top;
+
+    const dx = hitX - currentLaunchX;
+    const dy = currentLaunchY - hitY;
+
+    // Update angle
+    let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    if (angle < 0) angle = 0;
+    if (angle > 90) angle = 90;
+    p.launchAngle = Math.round(angle);
+
+    // Update speed
+    const dist = Math.hypot(dx, dy);
+    let speed = dist / 1.5;
+    if (speed < 5) speed = 5;
+    if (speed > 100) speed = 100;
+    p.launchSpeed = Math.round(speed);
+
+    initState(); // Reset trajectory while dragging
+    render();
+  }
+
+  function handlePointerUp() {
+    isDraggingVector = false;
+  }
+
+  canvas.addEventListener('pointerdown', handlePointerDown);
+  window.addEventListener('pointermove', handlePointerMove);
+  window.addEventListener('pointerup', handlePointerUp);
+
   function loop(ts) {
     if (!running) return;
     const rawDt = lastTs === undefined ? 1 / 60 : Math.min((ts - lastTs) / 1000, 1 / 20);
     lastTs = ts;
-    tick(rawDt * speedScale);
+    if (!isDraggingVector) {
+      tick(rawDt * speedScale);
+    }
     render();
     rafId = requestAnimationFrame(loop);
   }
@@ -744,10 +816,15 @@ export function create(canvas, initParams = {}) {
     },
     setParams(next) {
       Object.assign(p, next);
-      render();
+      if (!isDraggingVector) {
+        render();
+      }
     },
     destroy() {
       this.stop();
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
     },
     setSpeed(s) {
       speedScale = s;

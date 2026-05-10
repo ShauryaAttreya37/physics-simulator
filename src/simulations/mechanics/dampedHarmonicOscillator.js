@@ -231,6 +231,14 @@ export function create(canvas, initParams = {}) {
   let trail; // [{x, v, t}]
   let E0;
 
+  // Interaction state
+  let currentMassX = 0;
+  let currentEqY = 0;
+  let currentWallX = 0;
+  let currentRestLen = 0;
+  let currentScale = 1;
+  let isDragging = false;
+
   const wn = () => Math.sqrt(p.springK / p.mass);
   const zeta = () => p.damping / (2 * Math.sqrt(p.mass * p.springK));
   const energy = () => 0.5 * p.mass * v * v + 0.5 * p.springK * x * x;
@@ -283,6 +291,12 @@ export function create(canvas, initParams = {}) {
     const scale = midX * 0.12 * viewScale;
     const massX = wallX + restLen + x * scale;
 
+    currentMassX = massX;
+    currentEqY = eqY;
+    currentWallX = wallX;
+    currentRestLen = restLen;
+    currentScale = scale;
+
     // Wall
     ctx.fillStyle = '#3f3f46';
     ctx.fillRect(wallX - 5, eqY - 50, 5, 100);
@@ -324,13 +338,26 @@ export function create(canvas, initParams = {}) {
     ctx.strokeRect(dampX - 8, eqY + 20, 16, 24);
 
     // Mass block
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = 'rgba(96,165,250,0.5)';
+    ctx.shadowBlur = isDragging ? 25 : 15;
+    ctx.shadowColor = isDragging ? 'rgba(253,224,71,0.6)' : 'rgba(96,165,250,0.5)';
     ctx.fillStyle = '#60a5fa';
+
+    // PhET gradient for block
+    const blockGrad = ctx.createLinearGradient(
+      massX - massW / 2,
+      eqY - massH / 2,
+      massX + massW / 2,
+      eqY + massH / 2,
+    );
+    blockGrad.addColorStop(0, '#93c5fd');
+    blockGrad.addColorStop(0.5, '#3b82f6');
+    blockGrad.addColorStop(1, '#1d4ed8');
+    ctx.fillStyle = blockGrad;
+
     ctx.fillRect(massX - massW / 2, eqY - massH / 2, massW, massH);
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = '#93c5fd';
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = isDragging ? '#fde047' : '#93c5fd';
+    ctx.lineWidth = isDragging ? 3 : 1.5;
     ctx.strokeRect(massX - massW / 2, eqY - massH / 2, massW, massH);
 
     // Mass label
@@ -579,11 +606,61 @@ export function create(canvas, initParams = {}) {
     lastTs,
     running = false;
 
+  function handlePointerDown(e) {
+    const rect = canvas.getBoundingClientRect();
+    const hitX = e.clientX - rect.left;
+    const hitY = e.clientY - rect.top;
+
+    // Hitbox with 15px padding for easy grabbing
+    if (
+      hitX >= currentMassX - 22 - 15 &&
+      hitX <= currentMassX + 22 + 15 &&
+      hitY >= currentEqY - 15 - 15 &&
+      hitY <= currentEqY + 15 + 15
+    ) {
+      isDragging = true;
+      v = 0;
+      trail = [];
+    }
+  }
+
+  function handlePointerMove(e) {
+    if (!isDragging) return;
+    const rect = canvas.getBoundingClientRect();
+    const hitX = e.clientX - rect.left;
+
+    x = (hitX - (currentWallX + currentRestLen)) / currentScale;
+
+    // Clamp so spring doesn't compress past the wall
+    const minX = -currentRestLen / currentScale + 0.1;
+    if (x < minX) x = minX;
+
+    v = 0;
+    simTime = 0; // Restart sim time to sync with analytical chart on drag
+    trail = [];
+    E0 = energy();
+
+    render();
+  }
+
+  function handlePointerUp() {
+    if (isDragging) {
+      E0 = energy();
+    }
+    isDragging = false;
+  }
+
+  canvas.addEventListener('pointerdown', handlePointerDown);
+  window.addEventListener('pointermove', handlePointerMove);
+  window.addEventListener('pointerup', handlePointerUp);
+
   function loop(ts) {
     if (!running) return;
     const dt = lastTs === undefined ? 1 / 60 : Math.min((ts - lastTs) / 1000, 1 / 20);
     lastTs = ts;
-    tick(dt);
+    if (!isDragging) {
+      tick(dt);
+    }
     render();
     rafId = requestAnimationFrame(loop);
   }
@@ -614,6 +691,9 @@ export function create(canvas, initParams = {}) {
     },
     destroy() {
       this.stop();
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
     },
     getData() {
       const xA = analyticalSolution(simTime, p);

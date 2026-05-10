@@ -1,18 +1,24 @@
 /**
  * Coulomb's Law — Static Force Demonstration
  *
- * Two point charges at user-controlled positions.
+ * Two point charges at user-controlled positions in 2D space.
  * Displays force vectors, field lines, and the exact F = kq₁q₂/r² relationship.
- * No dynamics — purely a visualization of the force law.
+ * Interactive: Drag charges anywhere on the canvas.
  */
 
 const DEFAULTS = {
   q1: 3,
   q2: -2,
-  separation: 250, // px between charges
   k: 500, // Coulomb constant (visual scale)
   showFieldLines: 1,
   showForceDecomp: 1,
+  viewScale: 1.0,
+};
+
+// Internal state for positions if not provided by params
+const STATE = {
+  p1: { x: -125, y: 0 },
+  p2: { x: 125, y: 0 },
 };
 
 export const defaultParams = { ...DEFAULTS };
@@ -21,7 +27,7 @@ export const equationSections = [
   {
     title: 'Introduction',
     content:
-      "Coulomb's Law describes the electrostatic force between two point charges. Like charges repel, opposite charges attract. The force is proportional to the product of the charges and inversely proportional to the square of the distance between them. This simulation lets you directly see how changing charge magnitudes and separation affects the force.",
+      "Coulomb's Law describes the electrostatic force between two point charges. Like charges repel, opposite charges attract. The force is proportional to the product of the charges and inversely proportional to the square of the distance between them. This simulation lets you directly see how changing charge magnitudes, signs, and 2D positions affects the force.",
   },
   {
     title: "Coulomb's Law",
@@ -61,7 +67,7 @@ export const equationSections = [
   {
     title: 'How to Use',
     content:
-      '1. Adjust q₁ and q₂ to change charge magnitudes and signs.\n2. Move the separation slider to change the distance.\n3. Watch force arrows grow/shrink — they obey F ∝ 1/r².\n4. Same-sign charges → arrows point outward (repulsion).\n5. Opposite-sign charges → arrows point inward (attraction).\n6. The force magnitude is displayed numerically in the HUD.',
+      '1. Adjust q₁ and q₂ to change charge magnitudes and signs.\n2. **Drag the charges** anywhere on the canvas to see the force vectors update in real-time.\n3. Watch force arrows grow/shrink — they obey F ∝ 1/r².\n4. Same-sign charges → arrows point outward (repulsion).\n5. Opposite-sign charges → arrows point inward (attraction).\n6. The force magnitude and distance are displayed in the HUD.',
   },
 ];
 
@@ -72,13 +78,12 @@ export const equations = [
 
 export const graphParams = [
   { key: 'force', label: 'Force |F|' },
-  { key: 'separation', label: 'Separation r' },
+  { key: 'distance', label: 'Distance r' },
 ];
 
 export const controls = [
   { key: 'q1', label: 'Charge Q₁', min: -5, max: 5, step: 0.1 },
   { key: 'q2', label: 'Charge Q₂', min: -5, max: 5, step: 0.1 },
-  { key: 'separation', label: 'Separation r [px]', min: 60, max: 500, step: 1 },
   { key: 'k', label: 'Force Scale k', min: 100, max: 2000, step: 10 },
   { key: 'showFieldLines', label: 'Field Lines', min: 0, max: 1, step: 1 },
   { key: 'showForceDecomp', label: 'Show Annotations', min: 0, max: 1, step: 1 },
@@ -88,27 +93,22 @@ export const scenarios = [
   {
     name: 'Opposite Charges (Attraction)',
     description: 'A positive and negative charge attract each other.',
-    params: { q1: 3, q2: -3, separation: 250 },
+    params: { q1: 3, q2: -3 },
   },
   {
     name: 'Like Charges (Repulsion)',
     description: 'Two positive charges repel each other.',
-    params: { q1: 3, q2: 3, separation: 250 },
+    params: { q1: 3, q2: 3 },
   },
   {
     name: 'Inverse-Square Demo',
-    description: 'Move the separation slider to see force scale as 1/r².',
-    params: { q1: 4, q2: -4, separation: 150 },
+    description: 'Move the charges to see force scale as 1/r².',
+    params: { q1: 4, q2: -4 },
   },
   {
-    name: 'Weak Interaction',
-    description: 'Small charges far apart — barely any force.',
-    params: { q1: 0.5, q2: -0.5, separation: 400 },
-  },
-  {
-    name: 'Strong Repulsion',
-    description: 'Large same-sign charges close together.',
-    params: { q1: 5, q2: 5, separation: 80 },
+    name: 'Dipole Field',
+    description: 'A positive and negative charge close together creating a dipole field.',
+    params: { q1: 5, q2: -5 },
   },
 ];
 
@@ -117,71 +117,83 @@ export function create(canvas, initParams = {}) {
   const p = { ...DEFAULTS, ...initParams };
   let simTime = 0;
 
-  function computeForce() {
-    const r = Math.max(1, p.separation);
-    const F = (p.k * p.q1 * p.q2) / (r * r);
-    return F; // positive = repulsive, negative = attractive
+  // Interaction state
+  const pos1 = { ...STATE.p1 };
+  const pos2 = { ...STATE.p2 };
+  let dragTarget = null; // 'q1' or 'q2'
+  let dragOffset = { x: 0, y: 0 };
+
+  function computeDistance() {
+    return Math.hypot(pos1.x - pos2.x, pos1.y - pos2.y);
   }
 
-  function drawFieldLines(cx, cy, r) {
-    const c1x = cx - r / 2;
-    const c2x = cx + r / 2;
-    const nLines = 10;
+  function computeForce() {
+    const r = Math.max(10, computeDistance());
+    const F = (p.k * p.q1 * p.q2) / (r * r);
+    return F;
+  }
 
-    ctx.lineWidth = 0.8;
+  function drawFieldLines(W, H, cx, cy) {
+    const nLines = 16;
+    ctx.lineWidth = 1;
 
-    for (let i = 0; i < nLines; i++) {
-      const angle = (i / nLines) * Math.PI * 2;
+    // We draw from both charges
+    const sources = [
+      { x: cx + pos1.x, y: cy + pos1.y, q: p.q1 },
+      { x: cx + pos2.x, y: cy + pos2.y, q: p.q2 },
+    ];
 
-      // Draw from q1
-      if (p.q1 !== 0) {
+    for (const source of sources) {
+      if (source.q === 0) continue;
+
+      const absQ = Math.abs(source.q);
+      const linesForThisCharge = Math.ceil(nLines * (absQ / 5));
+
+      for (let i = 0; i < linesForThisCharge; i++) {
+        const angle = (i / linesForThisCharge) * Math.PI * 2 + (source.q < 0 ? 0.1 : 0);
+
         ctx.beginPath();
-        const startX = c1x + 20 * Math.cos(angle);
-        const startY = cy + 20 * Math.sin(angle);
+        let fx = source.x + 10 * Math.cos(angle);
+        let fy = source.y + 10 * Math.sin(angle);
+        ctx.moveTo(fx, fy);
 
-        ctx.moveTo(startX, startY);
-
-        let fx = startX;
-        let fy = startY;
-        const lineLen = 60;
-        const step = 4;
+        const step = 6;
+        const lineLen = 80;
 
         for (let s = 0; s < lineLen; s++) {
-          // Field direction at current point
-          let ex = 0;
-          let ey = 0;
+          let ex = 0,
+            ey = 0;
 
-          // From q1
-          const d1x = fx - c1x;
-          const d1y = fy - cy;
-          const r1sq = d1x * d1x + d1y * d1y + 25;
-          const r1 = Math.sqrt(r1sq);
-          ex += (p.q1 * d1x) / (r1sq * r1);
-          ey += (p.q1 * d1y) / (r1sq * r1);
-
-          // From q2
-          const d2x = fx - c2x;
-          const d2y = fy - cy;
-          const r2sq = d2x * d2x + d2y * d2y + 25;
-          const r2 = Math.sqrt(r2sq);
-          ex += (p.q2 * d2x) / (r2sq * r2);
-          ey += (p.q2 * d2y) / (r2sq * r2);
+          for (const s2 of sources) {
+            const dx = fx - s2.x;
+            const dy = fy - s2.y;
+            const r2 = dx * dx + dy * dy + 100;
+            const r = Math.sqrt(r2);
+            ex += (s2.q * dx) / (r2 * r);
+            ey += (s2.q * dy) / (r2 * r);
+          }
 
           const emag = Math.sqrt(ex * ex + ey * ey);
-          if (emag < 1e-8) break;
+          if (emag < 1e-10) break;
 
-          fx += (step * ex) / emag;
-          fy += (step * ey) / emag;
+          const dir = source.q > 0 ? 1 : -1;
+          fx += ((step * ex) / emag) * dir;
+          fy += ((step * ey) / emag) * dir;
 
           ctx.lineTo(fx, fy);
 
-          // Stop if too far from canvas
-          if (fx < 0 || fx > canvas.width || fy < 0 || fy > canvas.height) break;
-          // Stop if too close to q2
-          if (Math.hypot(fx - c2x, fy - cy) < 18) break;
+          if (fx < -50 || fx > W + 50 || fy < -50 || fy > H + 50) break;
+
+          const other = sources.find((s2) => s2 !== source);
+          if (other && Math.hypot(fx - other.x, fy - other.y) < 15) break;
         }
 
-        ctx.strokeStyle = 'rgba(100, 160, 255, 0.12)';
+        const gradient = ctx.createLinearGradient(source.x, source.y, fx, fy);
+        const color = source.q > 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)';
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+        ctx.strokeStyle = gradient;
         ctx.stroke();
       }
     }
@@ -240,321 +252,251 @@ export function create(canvas, initParams = {}) {
     }
 
     const scale = p.viewScale ?? 1.0;
-    const r = Math.max(1, p.separation * scale);
-    const c1x = cx - r / 2;
-    const c2x = cx + r / 2;
+    const c1x = cx + pos1.x * scale;
+    const c1y = cy + pos1.y * scale;
+    const c2x = cx + pos2.x * scale;
+    const c2y = cy + pos2.y * scale;
 
     // Field lines
     if (p.showFieldLines) {
-      drawFieldLines(cx, cy, r);
+      drawFieldLines(W, H, cx, cy);
     }
 
     // Distance line (dashed)
-    ctx.setLineDash([6, 6]);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.setLineDash([4, 6]);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(c1x, cy + 50);
-    ctx.lineTo(c2x, cy + 50);
+    ctx.moveTo(c1x, c1y);
+    ctx.lineTo(c2x, c2y);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Distance ticks
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(c1x, cy + 44);
-    ctx.lineTo(c1x, cy + 56);
-    ctx.moveTo(c2x, cy + 44);
-    ctx.lineTo(c2x, cy + 56);
-    ctx.stroke();
-
     // Distance label
+    const dist = computeDistance() * scale;
+    const midX = (c1x + c2x) / 2;
+    const midY = (c1y + c2y) / 2;
     ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.fillText(`r = ${r.toFixed(0)} px`, cx, cy + 60);
+    ctx.fillText(`r = ${dist.toFixed(0)} px`, midX, midY - 10);
 
     // Force computation
     const F = computeForce();
     const absF = Math.abs(F);
     const isRepulsive = F > 0;
 
-    // Force vector scale (cap for display)
-    const maxArrowLen = Math.min(W * 0.25, 180);
-    const arrowLen = Math.min(maxArrowLen, Math.sqrt(absF) * 3);
-
-    // Force arrows + clear labels
+    // Force arrows
     if (absF > 0.01) {
-      const dir1 = isRepulsive ? -1 : 1; // Q1: left if repulsive, right if attractive
-      const dir2 = isRepulsive ? 1 : -1; // Q2: opposite
-      const fcolor = isRepulsive ? '#ff6b6b' : '#4ade80';
-      const fMagText =
-        absF >= 100 ? absF.toFixed(0) : absF >= 1 ? absF.toFixed(1) : absF.toFixed(2);
-      const dirWord = isRepulsive ? 'repulsion' : 'attraction';
+      const dx = c2x - c1x;
+      const dy = c2y - c1y;
+      const len = Math.hypot(dx, dy);
+      const nx = dx / len;
+      const ny = dy / len;
 
-      // Charge radii (must match drawCharge)
+      const maxArrowLen = 150;
+      const arrowLen = Math.min(maxArrowLen, Math.sqrt(absF) * 15);
+
+      const fcolor = isRepulsive ? '#ff6b6b' : '#4ade80';
       const q1R = 18 + Math.abs(p.q1) * 4;
       const q2R = 18 + Math.abs(p.q2) * 4;
 
-      // Arrow starts at the edge of each sphere, not the center
-      const start1x = c1x + dir1 * (q1R + 4);
-      const tip1x = c1x + dir1 * (q1R + 4 + arrowLen);
-      const start2x = c2x + dir2 * (q2R + 4);
-      const tip2x = c2x + dir2 * (q2R + 4 + arrowLen);
+      // Q1 Force
+      const dir1 = isRepulsive ? -1 : 1;
+      const s1x = c1x + nx * dir1 * (q1R + 4);
+      const s1y = c1y + ny * dir1 * (q1R + 4);
+      const t1x = s1x + nx * dir1 * arrowLen;
+      const t1y = s1y + ny * dir1 * arrowLen;
+      drawArrow(s1x, s1y, t1x, t1y, fcolor, 3, 12);
 
-      drawArrow(start1x, cy, tip1x, cy, fcolor, 3.5, 14);
-      drawArrow(start2x, cy, tip2x, cy, fcolor, 3.5, 14);
+      // Q2 Force
+      const dir2 = isRepulsive ? 1 : -1;
+      const s2x = c2x + nx * dir2 * (q2R + 4);
+      const s2y = c2y + ny * dir2 * (q2R + 4);
+      const t2x = s2x + nx * dir2 * arrowLen;
+      const t2y = s2y + ny * dir2 * arrowLen;
+      drawArrow(s2x, s2y, t2x, t2y, fcolor, 3, 12);
 
-      // ── Force label pill above Q1 arrow midpoint ──────────────────
-      const pillH = 24;
-      const mid1x = (start1x + tip1x) / 2;
-      const labelText1 = `F₂→₁ = ${fMagText}`;
-      ctx.font = 'bold 11px "JetBrains Mono", monospace';
-      const tw1 = ctx.measureText(labelText1).width;
-      const pillW1 = tw1 + 18;
-      const pillX1 = mid1x - pillW1 / 2;
-      const pillY1 = cy - q1R - 20 - pillH;
+      if (p.showForceDecomp) {
+        const fMagText = absF.toFixed(2);
+        ctx.font = 'bold 10px "JetBrains Mono", monospace';
 
-      ctx.fillStyle = 'rgba(5, 8, 16, 0.85)';
-      ctx.beginPath();
-      ctx.roundRect(pillX1, pillY1, pillW1, pillH, 6);
-      ctx.fill();
-      ctx.strokeStyle = fcolor;
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
+        const drawPill = (tx, ty, label) => {
+          const tw = ctx.measureText(label).width;
+          const pw = tw + 16,
+            ph = 20;
+          const px = tx - pw / 2,
+            py = ty - ph - 10;
 
-      ctx.fillStyle = fcolor;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(labelText1, pillX1 + pillW1 / 2, pillY1 + pillH / 2);
+          ctx.fillStyle = 'rgba(5, 8, 16, 0.8)';
+          ctx.beginPath();
+          ctx.roundRect(px, py, pw, ph, 6);
+          ctx.fill();
+          ctx.strokeStyle = fcolor;
+          ctx.lineWidth = 1;
+          ctx.stroke();
 
-      // Connector line from pill to arrow
-      ctx.beginPath();
-      ctx.setLineDash([2, 3]);
-      ctx.moveTo(mid1x, pillY1 + pillH);
-      ctx.lineTo(mid1x, cy - 2);
-      ctx.strokeStyle = `${fcolor}44`;
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.setLineDash([]);
+          ctx.fillStyle = fcolor;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(label, px + pw / 2, py + ph / 2);
+        };
 
-      // ── Force label pill above Q2 arrow midpoint ──────────────────
-      const mid2x = (start2x + tip2x) / 2;
-      const labelText2 = `F₁→₂ = ${fMagText}`;
-      const tw2 = ctx.measureText(labelText2).width;
-      const pillW2 = tw2 + 18;
-      const pillX2 = mid2x - pillW2 / 2;
-      const pillY2 = cy - q2R - 20 - pillH;
-
-      ctx.fillStyle = 'rgba(5, 8, 16, 0.85)';
-      ctx.beginPath();
-      ctx.roundRect(pillX2, pillY2, pillW2, pillH, 6);
-      ctx.fill();
-      ctx.strokeStyle = fcolor;
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      ctx.fillStyle = fcolor;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(labelText2, pillX2 + pillW2 / 2, pillY2 + pillH / 2);
-
-      // Connector line from pill to arrow
-      ctx.beginPath();
-      ctx.setLineDash([2, 3]);
-      ctx.moveTo(mid2x, pillY2 + pillH);
-      ctx.lineTo(mid2x, cy - 2);
-      ctx.strokeStyle = `${fcolor}44`;
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // ── Force type badge (centered above the scene) ───────────────
-      const badge = isRepulsive ? '⟵  REPULSION  ⟶' : '⟶  ATTRACTION  ⟵';
-      ctx.font = 'bold 13px "JetBrains Mono", monospace';
-      const bw = ctx.measureText(badge).width + 24;
-      const bh = 28;
-      const bx = cx - bw / 2;
-      const topCharge = Math.max(q1R, q2R);
-      const by = cy - topCharge - 90;
-
-      ctx.fillStyle = 'rgba(5, 8, 16, 0.75)';
-      ctx.beginPath();
-      ctx.roundRect(bx, by, bw, bh, 8);
-      ctx.fill();
-      ctx.strokeStyle = fcolor;
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      ctx.fillStyle = fcolor;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(badge, cx, by + bh / 2);
-
-      // Direction note under badge
-      ctx.font = '9px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-      ctx.fillText(`q₁·q₂ ${p.q1 * p.q2 > 0 ? '> 0' : '< 0'} → ${dirWord}`, cx, by + bh + 6);
-
-      // ── Newton's 3rd law + magnitude below charges ────────────────
-      ctx.font = '10px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      ctx.fillText(`|F| = ${fMagText}   •   |F₂→₁| = |F₁→₂|  (Newton's 3rd Law)`, cx, cy + 85);
-    } else {
-      // No force label
-      ctx.font = 'bold 12px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('F = 0  (no force)', cx, cy - 70);
+        drawPill(t1x, t1y, `F₂₁: ${fMagText}`);
+        drawPill(t2x, t2y, `F₁₂: ${fMagText}`);
+      }
     }
 
     // Draw charges
-    const drawCharge = (x, q, label) => {
+    const drawCharge = (pos, q, label) => {
+      const x = cx + pos.x * scale;
+      const y = cy + pos.y * scale;
       const isPos = q > 0;
       const isZero = q === 0;
       const absQ = Math.abs(q);
-      const baseR = 18;
-      const chargeR = baseR + absQ * 4;
+      const chargeR = 18 + absQ * 4;
 
-      // Glow
       const glowColor = isZero
-        ? 'rgba(148, 163, 184, 0.2)'
+        ? 'rgba(100, 116, 139, 0.2)'
         : isPos
           ? 'rgba(239, 68, 68, 0.25)'
           : 'rgba(59, 130, 246, 0.25)';
-      const glowGrad = ctx.createRadialGradient(x, cy, chargeR * 0.5, x, cy, chargeR * 2.5);
+      const glowGrad = ctx.createRadialGradient(x, y, chargeR * 0.5, x, y, chargeR * 2.5);
       glowGrad.addColorStop(0, glowColor);
       glowGrad.addColorStop(1, 'transparent');
       ctx.fillStyle = glowGrad;
-      ctx.fillRect(x - chargeR * 3, cy - chargeR * 3, chargeR * 6, chargeR * 6);
+      ctx.fillRect(x - chargeR * 3, y - chargeR * 3, chargeR * 6, chargeR * 6);
 
-      // Body
       const bodyColor = isZero ? '#64748b' : isPos ? '#ef4444' : '#3b82f6';
-      const bodyGrad = ctx.createRadialGradient(x - 3, cy - 3, 1, x, cy, chargeR);
+      const bodyGrad = ctx.createRadialGradient(x - 3, y - 3, 1, x, y, chargeR);
       bodyGrad.addColorStop(0, isPos ? '#fca5a5' : '#93c5fd');
       bodyGrad.addColorStop(0.5, bodyColor);
       bodyGrad.addColorStop(1, isPos ? '#991b1b' : '#1e3a8a');
-      ctx.shadowBlur = 20;
-      ctx.shadowColor = bodyColor;
+
       ctx.beginPath();
-      ctx.arc(x, cy, chargeR, 0, Math.PI * 2);
+      ctx.arc(x, y, chargeR, 0, Math.PI * 2);
       ctx.fillStyle = bodyGrad;
       ctx.fill();
-      ctx.shadowBlur = 0;
 
-      // Ring
+      const isDragged =
+        (label === 'q₁' && dragTarget === 'q1') || (label === 'q₂' && dragTarget === 'q2');
       ctx.beginPath();
-      ctx.arc(x, cy, chargeR, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-      ctx.lineWidth = 1;
+      ctx.arc(x, y, chargeR, 0, Math.PI * 2);
+      ctx.strokeStyle = isDragged ? '#fef08a' : 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = isDragged ? 3 : 1;
       ctx.stroke();
 
-      // Symbol
       ctx.fillStyle = '#fff';
-      ctx.font = `bold ${Math.max(14, chargeR * 0.7)}px "JetBrains Mono", monospace`;
+      ctx.font = `bold ${Math.max(12, chargeR * 0.7)}px "JetBrains Mono", monospace`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(isZero ? '0' : isPos ? '+' : '−', x, cy);
+      ctx.fillText(isZero ? '0' : isPos ? '+' : '−', x, y);
 
-      // Label below
-      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.font = '10px "JetBrains Mono", monospace';
       ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
       ctx.textBaseline = 'top';
-      ctx.fillText(`${label} = ${q > 0 ? '+' : ''}${q.toFixed(1)}`, x, cy + chargeR + 8);
+      ctx.fillText(`${label}`, x, y + chargeR + 8);
     };
 
-    drawCharge(c1x, p.q1, 'q₁');
-    drawCharge(c2x, p.q2, 'q₂');
+    drawCharge(pos1, p.q1, 'q₁');
+    drawCharge(pos2, p.q2, 'q₂');
 
-    // HUD Panel
-    const hudX = 14;
-    const hudY = 14;
-    const hudW = 220;
-    const hudH = p.showForceDecomp ? 180 : 110;
+    const hudX = 20;
+    const hudY = 20;
+    const hudW = 200;
+    const hudH = 140;
 
-    ctx.fillStyle = 'rgba(5, 8, 16, 0.8)';
+    ctx.fillStyle = 'rgba(20, 25, 40, 0.75)';
     ctx.beginPath();
-    ctx.roundRect(hudX, hudY, hudW, hudH, 8);
+    ctx.roundRect(hudX, hudY, hudW, hudH, 12);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    ctx.font = 'bold 9px "JetBrains Mono", monospace';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.font = 'bold 10px "JetBrains Mono", monospace';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
     ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    ctx.fillText("COULOMB'S LAW", hudX + 12, hudY + 10);
+    ctx.fillText("COULOMB'S LAW", hudX + 16, hudY + 24);
 
-    const typeColor = isRepulsive ? '#ff6b6b' : '#4ade80';
-    const typeLabel = F === 0 ? 'No force' : isRepulsive ? 'REPULSIVE' : 'ATTRACTIVE';
+    const typeLabel = F === 0 ? 'NEUTRAL' : isRepulsive ? 'REPULSIVE' : 'ATTRACTIVE';
+    const typeColor = F === 0 ? '#94a3b8' : isRepulsive ? '#ff6b6b' : '#4ade80';
 
     const lines = [
-      {
-        label: 'q₁',
-        value: `${p.q1 > 0 ? '+' : ''}${p.q1.toFixed(1)}`,
-        color: p.q1 > 0 ? '#ef4444' : '#3b82f6',
-      },
-      {
-        label: 'q₂',
-        value: `${p.q2 > 0 ? '+' : ''}${p.q2.toFixed(1)}`,
-        color: p.q2 > 0 ? '#ef4444' : '#3b82f6',
-      },
-      { label: 'r', value: `${r.toFixed(0)} px`, color: '#e4e4e7' },
+      { label: 'q₁', value: `${p.q1.toFixed(1)}`, color: p.q1 > 0 ? '#ef4444' : '#3b82f6' },
+      { label: 'q₂', value: `${p.q2.toFixed(1)}`, color: p.q2 > 0 ? '#ef4444' : '#3b82f6' },
+      { label: 'r', value: `${(dist / scale).toFixed(0)} px`, color: '#e2e8f0' },
       { label: '|F|', value: `${absF.toFixed(2)}`, color: '#fde047' },
       { label: 'Type', value: typeLabel, color: typeColor },
     ];
 
-    ctx.font = '9px "JetBrains Mono", monospace';
     lines.forEach((line, i) => {
-      const ly = hudY + 28 + i * 17;
+      const ly = hudY + 45 + i * 18;
+      ctx.font = '9px "JetBrains Mono", monospace';
       ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
       ctx.textAlign = 'left';
-      ctx.fillText(line.label, hudX + 12, ly);
-      ctx.fillStyle = line.color;
+      ctx.fillText(line.label, hudX + 16, ly);
+
       ctx.font = 'bold 9px "JetBrains Mono", monospace';
+      ctx.fillStyle = line.color;
       ctx.textAlign = 'right';
-      ctx.fillText(line.value, hudX + hudW - 12, ly);
-      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillText(line.value, hudX + hudW - 16, ly);
     });
 
-    // Annotations
-    if (p.showForceDecomp) {
-      const annotY = hudY + 28 + lines.length * 17 + 6;
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-      ctx.font = '8px "JetBrains Mono", monospace';
-      ctx.textAlign = 'left';
-
-      const q1q2 = p.q1 * p.q2;
-      ctx.fillText(
-        `q₁·q₂ = ${q1q2.toFixed(1)} → ${q1q2 > 0 ? 'same sign → repel' : q1q2 < 0 ? 'opp sign → attract' : 'zero → no force'}`,
-        hudX + 12,
-        annotY,
-      );
-      ctx.fillText(
-        `F ∝ 1/r² → ${r < 100 ? 'close → strong' : r < 250 ? 'moderate' : 'far → weak'}`,
-        hudX + 12,
-        annotY + 14,
-      );
-    }
-
-    // Bottom: Equation rendered as text
-    ctx.font = '13px "JetBrains Mono", monospace';
+    ctx.font = '9px "JetBrains Mono", monospace';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'bottom';
-    ctx.fillText('F = k · q₁q₂ / r²', W / 2, H - 16);
+    ctx.fillText('Drag charges to explore the field', W / 2, H - 20);
   }
 
-  let rafId;
-  let running = false;
+  function handlePointerDown(e) {
+    const rect = canvas.getBoundingClientRect();
+    const hitX = (e.clientX - rect.left - canvas.width / 2) / (p.viewScale ?? 1);
+    const hitY = (e.clientY - rect.top - canvas.height / 2) / (p.viewScale ?? 1);
 
-  // This is a static simulation — no dynamics, just render on param change
+    const d1 = Math.hypot(hitX - pos1.x, hitY - pos1.y);
+    const d2 = Math.hypot(hitX - pos2.x, hitY - pos2.y);
+
+    const r1 = 18 + Math.abs(p.q1) * 4;
+    const r2 = 18 + Math.abs(p.q2) * 4;
+
+    if (d1 <= r1 + 10) {
+      dragTarget = 'q1';
+      dragOffset = { x: hitX - pos1.x, y: hitY - pos1.y };
+    } else if (d2 <= r2 + 10) {
+      dragTarget = 'q2';
+      dragOffset = { x: hitX - pos2.x, y: hitY - pos2.y };
+    }
+  }
+
+  function handlePointerMove(e) {
+    if (!dragTarget) return;
+    const rect = canvas.getBoundingClientRect();
+    const hitX = (e.clientX - rect.left - canvas.width / 2) / (p.viewScale ?? 1);
+    const hitY = (e.clientY - rect.top - canvas.height / 2) / (p.viewScale ?? 1);
+
+    if (dragTarget === 'q1') {
+      pos1.x = hitX - dragOffset.x;
+      pos1.y = hitY - dragOffset.y;
+    } else {
+      pos2.x = hitX - dragOffset.x;
+      pos2.y = hitY - dragOffset.y;
+    }
+    render();
+  }
+
+  function handlePointerUp() {
+    dragTarget = null;
+    render();
+  }
+
+  canvas.addEventListener('pointerdown', handlePointerDown);
+  window.addEventListener('pointermove', handlePointerMove);
+  window.addEventListener('pointerup', handlePointerUp);
+
+  let running = false;
+  let rafId;
+
   function loop() {
     if (!running) return;
     render();
@@ -575,7 +517,10 @@ export function create(canvas, initParams = {}) {
       cancelAnimationFrame(rafId);
     },
     reset() {
-      simTime = 0;
+      pos1.x = STATE.p1.x;
+      pos1.y = STATE.p1.y;
+      pos2.x = STATE.p2.x;
+      pos2.y = STATE.p2.y;
       render();
     },
     setParams(next) {
@@ -584,14 +529,16 @@ export function create(canvas, initParams = {}) {
     },
     destroy() {
       this.stop();
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
     },
     getData() {
-      const r = Math.max(1, p.separation);
-      const F = (p.k * p.q1 * p.q2) / (r * r);
+      const r = Math.max(1, computeDistance());
       return {
         time: simTime,
-        force: Math.abs(F),
-        separation: r,
+        force: Math.abs(computeForce()),
+        distance: r,
       };
     },
   };

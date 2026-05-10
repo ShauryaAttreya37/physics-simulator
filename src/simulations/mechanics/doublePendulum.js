@@ -286,6 +286,7 @@ export function init(p) {
     trail: new Float32Array(trailCap * 2),
     trailHead: 0,
     trailLen: 0,
+    dragTarget: null,
   };
 }
 
@@ -449,14 +450,32 @@ export function render(ctx, state, p, canvas) {
   // Bobs
   const r1 = 9 + Math.sqrt(p.m1) * 4;
   const r2 = 9 + Math.sqrt(p.m2) * 4;
+
+  const grad1 = ctx.createRadialGradient(x1 - r1 * 0.3, y1 - r1 * 0.3, r1 * 0.1, x1, y1, r1);
+  grad1.addColorStop(0, '#bae6fd');
+  grad1.addColorStop(0.6, '#38bdf8');
+  grad1.addColorStop(1, '#0284c7');
+
   ctx.beginPath();
   ctx.arc(x1, y1, r1, 0, Math.PI * 2);
-  ctx.fillStyle = '#81D4FA';
+  ctx.fillStyle = grad1;
   ctx.fill();
+  ctx.strokeStyle = state.dragTarget === 'bob1' ? '#fef08a' : '#0284c7';
+  ctx.lineWidth = state.dragTarget === 'bob1' ? 3 : 1.5;
+  ctx.stroke();
+
+  const grad2 = ctx.createRadialGradient(x2 - r2 * 0.3, y2 - r2 * 0.3, r2 * 0.1, x2, y2, r2);
+  grad2.addColorStop(0, '#bae6fd');
+  grad2.addColorStop(0.6, '#38bdf8');
+  grad2.addColorStop(1, '#0284c7');
+
   ctx.beginPath();
   ctx.arc(x2, y2, r2, 0, Math.PI * 2);
-  ctx.fillStyle = '#93c5fd';
+  ctx.fillStyle = grad2;
   ctx.fill();
+  ctx.strokeStyle = state.dragTarget === 'bob2' ? '#fef08a' : '#0284c7';
+  ctx.lineWidth = state.dragTarget === 'bob2' ? 3 : 1.5;
+  ctx.stroke();
 }
 
 export function getData(state, p) {
@@ -496,11 +515,92 @@ export function create(canvas, initParams = {}) {
     running = false;
   let speedScale = 1;
 
+  function handlePointerDown(e) {
+    const rect = canvas.getBoundingClientRect();
+    const hitX = e.clientX - rect.left;
+    const hitY = e.clientY - rect.top;
+
+    const W = canvas.width;
+    const H = canvas.height;
+    const cx = W / 2 + (p.panX || 0);
+    const cy = H * 0.28 + (p.panY || 0);
+    const scale = p.viewScale ?? 1.0;
+
+    const x1 = cx + p.l1 * scale * Math.sin(state.th1);
+    const y1 = cy + p.l1 * scale * Math.cos(state.th1);
+    const x2 = x1 + p.l2 * scale * Math.sin(state.th2);
+    const y2 = y1 + p.l2 * scale * Math.cos(state.th2);
+
+    const r1 = 9 + Math.sqrt(p.m1) * 4;
+    const r2 = 9 + Math.sqrt(p.m2) * 4;
+
+    if (Math.hypot(hitX - x2, hitY - y2) <= r2 + 15) {
+      state.dragTarget = 'bob2';
+    } else if (Math.hypot(hitX - x1, hitY - y1) <= r1 + 15) {
+      state.dragTarget = 'bob1';
+    }
+
+    if (state.dragTarget) {
+      state.om1 = 0;
+      state.om2 = 0;
+      state.trailLen = 0; // clear trail
+      draw();
+    }
+  }
+
+  function handlePointerMove(e) {
+    if (!state.dragTarget) return;
+    const rect = canvas.getBoundingClientRect();
+    const hitX = e.clientX - rect.left;
+    const hitY = e.clientY - rect.top;
+
+    const W = canvas.width;
+    const H = canvas.height;
+    const cx = W / 2 + (p.panX || 0);
+    const cy = H * 0.28 + (p.panY || 0);
+    const scale = p.viewScale ?? 1.0;
+
+    if (state.dragTarget === 'bob1') {
+      const dx = hitX - cx;
+      const dy = hitY - cy;
+      state.th1 = Math.atan2(dx, dy);
+    } else if (state.dragTarget === 'bob2') {
+      const x1 = cx + p.l1 * scale * Math.sin(state.th1);
+      const y1 = cy + p.l1 * scale * Math.cos(state.th1);
+      const dx = hitX - x1;
+      const dy = hitY - y1;
+      state.th2 = Math.atan2(dx, dy);
+    }
+
+    state.om1 = 0;
+    state.om2 = 0;
+    state.trailLen = 0;
+    draw();
+  }
+
+  function handlePointerUp() {
+    if (state.dragTarget) {
+      p.theta1 = state.th1;
+      p.theta2 = state.th2;
+      p.omega1 = 0;
+      p.omega2 = 0;
+      state.H0 = hamiltonian(state.th1, state.th2, 0, 0, p);
+    }
+    state.dragTarget = null;
+    draw();
+  }
+
+  canvas.addEventListener('pointerdown', handlePointerDown);
+  window.addEventListener('pointermove', handlePointerMove);
+  window.addEventListener('pointerup', handlePointerUp);
+
   function loop(ts) {
     if (!running) return;
     const dt = lastTs === undefined ? 1 / 60 : Math.min((ts - lastTs) / 1000, 1 / 20);
     lastTs = ts;
-    tick(dt * speedScale);
+    if (!state.dragTarget) {
+      tick(dt * speedScale);
+    }
     draw();
     rafId = requestAnimationFrame(loop);
   }
@@ -533,6 +633,9 @@ export function create(canvas, initParams = {}) {
     },
     destroy() {
       this.stop();
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
     },
     getData() {
       return getData(state, p);
