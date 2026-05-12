@@ -95,7 +95,7 @@ export function create(canvas, initParams = {}) {
   function render() {
     const W = canvas.width,
       H = canvas.height;
-    ctx.fillStyle = '#050810';
+    ctx.fillStyle = '#ffffff'; // Light theme background
     ctx.fillRect(0, 0, W, H);
 
     // Centers
@@ -113,7 +113,7 @@ export function create(canvas, initParams = {}) {
             ctx.save();
             ctx.translate(x, y);
             ctx.rotate(ang);
-            ctx.fillStyle = `rgba(255,100,100,${Math.min(0.4, mag)})`;
+            ctx.fillStyle = `rgba(59,130,246,${Math.min(0.3, mag)})`; // Professional blue arrows
             ctx.beginPath();
             ctx.moveTo(6, 0);
             ctx.lineTo(-6, 3);
@@ -125,68 +125,83 @@ export function create(canvas, initParams = {}) {
       }
     }
 
-    // --- FAUCET (3D metallic) ---
-    const fX = cx - 30,
+    // --- FAUCET (Clean flat vector style) ---
+    // Positioned on the right side so clockwise rotation makes physical sense
+    const fX = cx + 65,
       fY = cy - 220;
 
     // Main horizontal pipe
-    const pipeGrad = ctx.createLinearGradient(0, fY, 0, fY + 45);
-    pipeGrad.addColorStop(0, '#cbd5e1');
-    pipeGrad.addColorStop(0.5, '#f8fafc');
-    pipeGrad.addColorStop(1, '#94a3b8');
-    ctx.fillStyle = pipeGrad;
-    ctx.fillRect(fX - 250, fY, 300, 45);
+    ctx.fillStyle = '#e2e8f0'; // Light grey pipe
+    ctx.fillRect(fX - 350, fY, 400, 45); // Extend pipe further left to the edge
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(fX - 350, fY, 400, 45);
 
     // Spout (vertical)
-    const spoutGrad = ctx.createLinearGradient(fX, 0, fX + 40, 0);
-    spoutGrad.addColorStop(0, '#cbd5e1');
-    spoutGrad.addColorStop(0.5, '#f8fafc');
-    spoutGrad.addColorStop(1, '#94a3b8');
-    ctx.fillStyle = spoutGrad;
+    ctx.fillStyle = '#e2e8f0';
     ctx.fillRect(fX, fY, 40, 70);
+    ctx.strokeRect(fX, fY, 40, 70);
+
     // Spout lip
-    ctx.fillStyle = '#64748b';
+    ctx.fillStyle = '#cbd5e1';
     ctx.beginPath();
-    ctx.ellipse(fX + 20, fY + 70, 26, 8, 0, 0, Math.PI * 2);
+    ctx.ellipse(fX + 20, fY + 70, 20, 6, 0, 0, Math.PI * 2);
     ctx.fill();
+    ctx.stroke();
 
     // Faucet Handle
     const handleY = fY - 25;
     const handleW = 60;
-    // Map flow 0..1 to handle X position
     const hX = fX - 30 + p.waterFlow * 40;
 
-    const handleGrad = ctx.createLinearGradient(0, handleY, 0, handleY + 25);
-    handleGrad.addColorStop(0, isDraggingFaucet ? '#bfdbfe' : '#60a5fa');
-    handleGrad.addColorStop(1, isDraggingFaucet ? '#3b82f6' : '#2563eb');
+    ctx.fillStyle = '#94a3b8'; // Stem
+    ctx.fillRect(fX + 10, handleY + 10, 20, 20);
 
-    ctx.fillStyle = '#475569';
-    ctx.fillRect(fX + 10, handleY + 10, 20, 20); // base stem
-    ctx.fillStyle = handleGrad;
+    ctx.fillStyle = isDraggingFaucet ? '#3b82f6' : '#eff6ff';
+    ctx.strokeStyle = '#2563eb';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(hX, handleY, handleW, 25, 8);
+    ctx.roundRect(hX, handleY, handleW, 25, 4);
     ctx.fill();
+    ctx.stroke();
+
     // Grip ridges
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillStyle = isDraggingFaucet ? '#2563eb' : '#bfdbfe';
     for (let i = 0; i < 3; i++) ctx.fillRect(hX + 20 + i * 8, handleY + 5, 4, 15);
 
     // --- WATER STREAM ---
     if (p.waterFlow > 0.01) {
-      const wW = 8 + p.waterFlow * 20; // width based on flow
-      ctx.fillStyle = `rgba(56, 189, 248, ${p.waterFlow * 0.9})`;
+      const wW = 8 + p.waterFlow * 20;
+      const landY = cy - 85; // Land exactly on the wheel rim at x = +85 from center
+
+      ctx.fillStyle = `rgba(147, 197, 253, ${p.waterFlow * 0.8})`; // Light blue water
       ctx.beginPath();
       ctx.moveTo(fX + 20 - wW / 2, fY + 75);
       ctx.lineTo(fX + 20 + wW / 2, fY + 75);
-      // Splashing down onto the wheel
-      ctx.lineTo(fX + 20 + wW / 2 + 5, cy - 80);
-      ctx.lineTo(fX + 20 - wW / 2 - 10, cy - 80);
+      // Main water body
+      ctx.lineTo(fX + 20 + wW / 2 + 5, landY);
+      ctx.lineTo(fX + 20 - wW / 2 - 5, landY);
       ctx.fill();
 
-      // Animated droplets
-      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      // Animated droplets falling
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
       for (let i = 0; i < 5; i++) {
-        const dropY = fY + 75 + ((simTime * 400 + i * 40) % 150);
-        if (dropY < cy - 80) ctx.fillRect(fX + 20 + (Math.random() - 0.5) * wW, dropY, 3, 6);
+        const dropY = fY + 75 + ((simTime * 400 + i * 40) % (landY - (fY + 75)));
+        ctx.beginPath();
+        ctx.arc(fX + 20 + (Math.random() - 0.5) * wW, dropY, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Splash Effect on the wheel
+      const splashCount = Math.floor(p.waterFlow * 12);
+      ctx.fillStyle = 'rgba(147,197,253,0.7)';
+      for (let i = 0; i < splashCount; i++) {
+        const t = (simTime * 2.5 + i * 0.2) % 1; // 0 to 1 life cycle
+        const sX = fX + 20 + (Math.random() - 0.5) * 30 * t + 10 * t; // splash slightly outwards
+        const sY = landY - Math.sin(t * Math.PI) * 20 + t * 15; // arc up and fall
+        ctx.beginPath();
+        ctx.arc(sX, sY, 1.5 + Math.random() * 2, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
 
@@ -198,17 +213,14 @@ export function create(canvas, initParams = {}) {
     // Outer Rim
     ctx.beginPath();
     ctx.arc(0, 0, wR, 0, Math.PI * 2);
-    const rimGrad = ctx.createRadialGradient(0, 0, wR - 15, 0, 0, wR + 5);
-    rimGrad.addColorStop(0, '#92400e');
-    rimGrad.addColorStop(1, '#451a03');
-    ctx.strokeStyle = rimGrad;
-    ctx.lineWidth = 24;
+    ctx.strokeStyle = '#334155'; // Dark grey wheel for clean contrast
+    ctx.lineWidth = 16;
     ctx.stroke();
 
     // Spokes and Paddles
     ctx.rotate(angle);
-    ctx.strokeStyle = '#78350f';
-    ctx.lineWidth = 12;
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 8;
     for (let i = 0; i < 8; i++) {
       const a = (i * Math.PI) / 4;
       ctx.save();
@@ -218,7 +230,7 @@ export function create(canvas, initParams = {}) {
       ctx.lineTo(wR + 15, 0);
       ctx.stroke();
       // Paddle
-      ctx.fillStyle = '#451a03';
+      ctx.fillStyle = '#334155';
       ctx.fillRect(wR + 5, -15, 12, 30);
       ctx.restore();
     }
@@ -226,37 +238,28 @@ export function create(canvas, initParams = {}) {
     // --- MAGNET ---
     const magW = 160,
       magH = 50;
-    // Glow behind magnet
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = 'rgba(255,255,255,0.2)';
 
     // S pole (Blue)
-    const sGrad = ctx.createLinearGradient(-magW / 2, -magH / 2, 0, magH / 2);
-    sGrad.addColorStop(0, '#60a5fa');
-    sGrad.addColorStop(1, '#1e3a8a');
-    ctx.fillStyle = sGrad;
+    ctx.fillStyle = '#3b82f6';
     ctx.beginPath();
-    ctx.roundRect(-magW / 2, -magH / 2, magW / 2, magH, { tl: 10, bl: 10 });
+    ctx.roundRect(-magW / 2, -magH / 2, magW / 2, magH, { tl: 4, bl: 4 });
     ctx.fill();
 
     // N pole (Red)
-    const nGrad = ctx.createLinearGradient(0, -magH / 2, magW / 2, magH / 2);
-    nGrad.addColorStop(0, '#f87171');
-    nGrad.addColorStop(1, '#7f1d1d');
-    ctx.fillStyle = nGrad;
+    ctx.fillStyle = '#ef4444';
     ctx.beginPath();
-    ctx.roundRect(0, -magH / 2, magW / 2, magH, { tr: 10, br: 10 });
+    ctx.roundRect(0, -magH / 2, magW / 2, magH, { tr: 4, br: 4 });
     ctx.fill();
 
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    // Magnet Outline
+    ctx.strokeStyle = '#0f172a';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(-magW / 2, -magH / 2, magW, magH, 10);
+    ctx.roundRect(-magW / 2, -magH / 2, magW, magH, 4);
     ctx.stroke();
 
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 32px "JetBrains Mono", sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 24px "Inter", sans-serif'; // Professional font
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('S', -magW / 4, 2);
@@ -264,20 +267,49 @@ export function create(canvas, initParams = {}) {
     ctx.restore();
 
     // Center Hub & RPM
-    ctx.fillStyle = '#0f172a';
+    ctx.fillStyle = '#ffffff';
     ctx.beginPath();
     ctx.arc(cx, cy, 35, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = '#334155';
-    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 3;
     ctx.stroke();
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 18px "JetBrains Mono"';
+
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 18px "Inter", sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(rpm.toFixed(0), cx, cy - 4);
-    ctx.font = '10px "JetBrains Mono"';
-    ctx.fillStyle = '#94a3b8';
+    ctx.font = '10px "Inter", sans-serif';
+    ctx.fillStyle = '#475569';
     ctx.fillText('RPM', cx, cy + 12);
+
+    // --- CIRCUIT WIRES ---
+    const bY_wire = cy - 110;
+    ctx.strokeStyle = '#475569'; // Grey insulating wire
+    ctx.lineWidth = 5;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+
+    // Left wire
+    ctx.moveTo(cX - 100, cy);
+    ctx.lineTo(cX - 110, cy);
+    ctx.lineTo(cX - 110, bY_wire + 12);
+    ctx.lineTo(cX - 20, bY_wire + 12);
+
+    // Right wire
+    ctx.moveTo(cX + 88, cy);
+    ctx.lineTo(cX + 110, cy);
+    ctx.lineTo(cX + 110, bY_wire + 12);
+    ctx.lineTo(cX + 20, bY_wire + 12);
+
+    ctx.stroke();
+
+    // Draw little connection joints at the socket
+    ctx.fillStyle = '#cbd5e1';
+    ctx.beginPath();
+    ctx.arc(cX - 20, bY_wire + 12, 4, 0, Math.PI * 2);
+    ctx.arc(cX + 20, bY_wire + 12, 4, 0, Math.PI * 2);
+    ctx.fill();
 
     // --- COIL ---
     const coilR = 40;
@@ -285,8 +317,8 @@ export function create(canvas, initParams = {}) {
     const numLoops = 10;
 
     // Draw back of loops
-    ctx.strokeStyle = '#78350f';
-    ctx.lineWidth = 6;
+    ctx.strokeStyle = '#b45309'; // Darker copper
+    ctx.lineWidth = 4;
     for (let i = 0; i < numLoops; i++) {
       ctx.beginPath();
       ctx.ellipse(
@@ -301,15 +333,9 @@ export function create(canvas, initParams = {}) {
       ctx.stroke();
     }
 
-    // Copper Wire Gradients
-    const copGrad = ctx.createLinearGradient(cX - 60, 0, cX + 60, 0);
-    copGrad.addColorStop(0, '#b45309');
-    copGrad.addColorStop(0.5, '#f59e0b');
-    copGrad.addColorStop(1, '#b45309');
-
     // Draw front of loops
-    ctx.strokeStyle = copGrad;
-    ctx.lineWidth = 8;
+    ctx.strokeStyle = '#f59e0b'; // Bright copper
+    ctx.lineWidth = 6;
     for (let i = 0; i < numLoops; i++) {
       ctx.beginPath();
       ctx.ellipse(cX + (i - numLoops / 2) * 12, cy, coilR, coilH / 2, 0, -Math.PI / 2, Math.PI / 2);
@@ -320,9 +346,7 @@ export function create(canvas, initParams = {}) {
     if (Math.abs(current) > 0.05) {
       const speed = current * 2.5;
       const offset = (simTime * speed) % (Math.PI * 2);
-      ctx.fillStyle = '#60a5fa'; // Blue electrons
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = '#60a5fa';
+      ctx.fillStyle = '#2563eb'; // Clear blue electrons
       for (let i = 0; i < numLoops; i++) {
         const px = cX + (i - numLoops / 2) * 12 + coilR * Math.cos(offset + i);
         // Only draw electrons on the front half of the coil
@@ -333,66 +357,96 @@ export function create(canvas, initParams = {}) {
           ctx.fill();
         }
       }
-      ctx.shadowBlur = 0;
     }
 
     // --- LIGHTBULB ---
     const bX = cX,
       bY = cy - 110;
     const power = Math.abs(emf * current);
-    const bright = Math.min(1, power / 10000);
+
+    // Make the bulb much more sensitive to power changes so it lights up clearly
+    const bright = Math.min(1, Math.sqrt(power) / 80);
 
     // Base Socket
-    ctx.fillStyle = '#475569';
-    ctx.fillRect(bX - 30, bY, 60, 25);
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(bX - 25, bY + 25, 50, 10);
-    ctx.fillStyle = '#64748b';
-    for (let i = 0; i < 3; i++) ctx.fillRect(bX - 32, bY + 4 + i * 8, 64, 4); // screw threads
+    ctx.fillStyle = '#64748b'; // Darker base for strong contrast
+    ctx.fillRect(bX - 20, bY, 40, 25);
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(bX - 20, bY, 40, 25);
 
-    // Glow Effect
-    if (bright > 0.02) {
-      const glowR = 50 + bright * 100;
-      const g = ctx.createRadialGradient(bX, bY - 45, 10, bX, bY - 45, glowR);
-      g.addColorStop(0, `rgba(253, 224, 71, ${bright})`);
-      g.addColorStop(0.4, `rgba(234, 179, 8, ${bright * 0.4})`);
-      g.addColorStop(1, 'transparent');
-      ctx.fillStyle = g;
-      ctx.fillRect(bX - glowR, bY - 45 - glowR, glowR * 2, glowR * 2);
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(bX - 15, bY + 25, 30, 8);
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(bX - 20, bY + 5 + i * 7);
+      ctx.lineTo(bX + 20, bY + 5 + i * 7);
+      ctx.stroke();
+    }
+
+    // Light Rays (Drawn BEHIND the bulb so they radiate out)
+    if (bright > 0.05) {
+      ctx.strokeStyle = `rgba(217, 119, 6, ${bright})`; // Deep amber rays for contrast on white
+      ctx.lineWidth = 3 + bright * 3;
+      ctx.lineCap = 'round';
+      const numRays = 12;
+      for (let i = 0; i < numRays; i++) {
+        const rayAng = (i / numRays) * Math.PI * 2 + simTime * 0.2;
+        const rStart = 45;
+        const rEnd = 55 + bright * 40; // Expand far outwards
+        ctx.beginPath();
+        ctx.moveTo(bX + Math.cos(rayAng) * rStart, bY - 45 + Math.sin(rayAng) * rStart);
+        ctx.lineTo(bX + Math.cos(rayAng) * rEnd, bY - 45 + Math.sin(rayAng) * rEnd);
+        ctx.stroke();
+      }
+      ctx.lineCap = 'butt'; // Reset
     }
 
     // Glass Bulb
     ctx.beginPath();
-    ctx.arc(bX, bY - 45, 45, 0, Math.PI * 2);
-    const bulbGrad = ctx.createRadialGradient(bX - 15, bY - 60, 5, bX, bY - 45, 45);
-    bulbGrad.addColorStop(0, `rgba(255, 255, 255, ${0.4 + bright * 0.6})`);
-    bulbGrad.addColorStop(1, `rgba(253, 224, 71, ${0.1 + bright * 0.4})`);
-    ctx.fillStyle = bulbGrad;
+    ctx.arc(bX, bY - 45, 40, 0, Math.PI * 2);
+
+    // Interpolate from a cool off-white to a bright piercing yellow
+    const bgOff = { r: 241, g: 245, b: 249, a: 0.8 }; // Off state: faint slate
+    const bgOn = { r: 250, g: 204, b: 21, a: 0.95 }; // On state: yellow-400
+    const rC = Math.round(bgOff.r + (bgOn.r - bgOff.r) * bright);
+    const gC = Math.round(bgOff.g + (bgOn.g - bgOff.g) * bright);
+    const bC = Math.round(bgOff.b + (bgOn.b - bgOff.b) * bright);
+    const aC = bgOff.a + (bgOn.a - bgOff.a) * bright;
+
+    ctx.fillStyle = `rgba(${rC}, ${gC}, ${bC}, ${aC})`;
     ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-    ctx.lineWidth = 2;
+
+    ctx.strokeStyle = bright > 0.1 ? '#ca8a04' : '#94a3b8'; // Amber border when on
+    ctx.lineWidth = 3;
     ctx.stroke();
 
-    // Filament
-    ctx.strokeStyle = `rgba(253, 224, 71, ${0.3 + bright})`;
-    ctx.lineWidth = 3;
+    // Filament Structure
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(bX - 15, bY);
     ctx.lineTo(bX - 10, bY - 45);
     ctx.lineTo(bX + 10, bY - 45);
     ctx.lineTo(bX + 15, bY);
     ctx.stroke();
-    // Glowing wire
-    if (bright > 0.1) {
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = '#fef08a';
-      ctx.strokeStyle = '#fef08a';
-      ctx.lineWidth = 4;
+
+    // Glowing Tungsten Wire
+    if (bright > 0.05) {
+      ctx.strokeStyle = `rgba(255, 255, 255, ${0.5 + bright * 0.5})`; // White-hot center
+      ctx.lineWidth = 4 + bright * 3;
+      ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(bX - 10, bY - 45);
       ctx.lineTo(bX + 10, bY - 45);
       ctx.stroke();
-      ctx.shadowBlur = 0;
+      ctx.lineCap = 'butt';
+    } else {
+      ctx.strokeStyle = '#94a3b8'; // Cold wire
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(bX - 10, bY - 45);
+      ctx.lineTo(bX + 10, bY - 45);
+      ctx.stroke();
     }
 
     // --- LARGE COMPASS ---
@@ -400,69 +454,59 @@ export function create(canvas, initParams = {}) {
       compY = cy;
 
     // Casing
-    ctx.fillStyle = '#0f172a';
+    ctx.fillStyle = '#ffffff';
     ctx.beginPath();
     ctx.arc(compX, compY, 40, 0, Math.PI * 2);
     ctx.fill();
-    const caseGrad = ctx.createLinearGradient(compX - 40, compY - 40, compX + 40, compY + 40);
-    caseGrad.addColorStop(0, '#94a3b8');
-    caseGrad.addColorStop(1, '#334155');
-    ctx.strokeStyle = caseGrad;
-    ctx.lineWidth = 8;
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 4;
     ctx.stroke();
 
     // Needle
-    const { bx, by } = getB(compX - cx, compY - cy, angle);
-    const cAng = Math.atan2(by, bx);
+    const { bx: cxB, by: cyB } = getB(compX - cx, compY - cy, angle);
+    const cAng = Math.atan2(cyB, cxB);
     ctx.save();
     ctx.translate(compX, compY);
     ctx.rotate(cAng);
 
-    // Drop shadow
-    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-    ctx.shadowBlur = 6;
-    ctx.shadowOffsetY = 4;
     // N pole (Red)
     ctx.fillStyle = '#ef4444';
     ctx.beginPath();
-    ctx.moveTo(32, 0);
-    ctx.lineTo(0, 8);
-    ctx.lineTo(0, -8);
+    ctx.moveTo(30, 0);
+    ctx.lineTo(0, 6);
+    ctx.lineTo(0, -6);
     ctx.fill();
-    // S pole (White)
-    ctx.fillStyle = '#f8fafc';
+    // S pole (Blue for contrast)
+    ctx.fillStyle = '#3b82f6';
     ctx.beginPath();
-    ctx.moveTo(-32, 0);
-    ctx.lineTo(0, 8);
-    ctx.lineTo(0, -8);
+    ctx.moveTo(-30, 0);
+    ctx.lineTo(0, 6);
+    ctx.lineTo(0, -6);
     ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetY = 0;
 
     // Center pin
-    ctx.fillStyle = '#cbd5e1';
+    ctx.fillStyle = '#0f172a';
     ctx.beginPath();
     ctx.arc(0, 0, 4, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
-    // --- HUD Overlay ---
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+    // --- HUD Overlay (Clean Light Theme) ---
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
     ctx.beginPath();
     ctx.roundRect(W - 170, 20, 150, 80, 8);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.strokeStyle = '#cbd5e1';
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = '#0f172a';
     ctx.textAlign = 'left';
-    ctx.font = 'bold 11px "JetBrains Mono"';
+    ctx.font = 'bold 11px "Inter", sans-serif';
     ctx.fillText('GENERATOR STATS', W - 160, 40);
-    ctx.font = '11px "JetBrains Mono"';
-    ctx.fillStyle = '#93c5fd';
+    ctx.font = '11px "Inter", sans-serif';
+    ctx.fillStyle = '#334155';
     ctx.fillText(`Flow: ${(p.waterFlow * 100).toFixed(0)}%`, W - 160, 60);
-    ctx.fillStyle = '#fca5a5';
     ctx.fillText(`EMF:  ${emf.toFixed(1)} V`, W - 160, 80);
   }
 
@@ -476,7 +520,7 @@ export function create(canvas, initParams = {}) {
     // Faucet handle bounds check
     const cx = W * 0.35,
       cy = H * 0.55;
-    const fX = cx - 30,
+    const fX = cx + 65,
       fY = cy - 220;
     const handleY = fY - 25;
 
@@ -491,7 +535,7 @@ export function create(canvas, initParams = {}) {
     const hX = e.clientX - rect.left;
     const W = canvas.width;
     const cx = W * 0.35;
-    const fX = cx - 30;
+    const fX = cx + 65;
 
     // Map hX to flow 0..1 (range of 40px)
     p.waterFlow = Math.max(0, Math.min(1, (hX - (fX - 30)) / 40));

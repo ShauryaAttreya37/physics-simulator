@@ -584,6 +584,99 @@ const ICONS = {
       <path d="M 36 32 L 32 30 L 32 34 Z" fill="currentColor" opacity="0.6" />
     </svg>
   ),
+  'faraday-law': (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      {/* Coil Back */}
+      <path
+        d="M 24 34 C 24 30 40 30 40 34"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="none"
+        opacity="0.3"
+      />
+      <path
+        d="M 24 40 C 24 36 40 36 40 40"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="none"
+        opacity="0.3"
+      />
+      <path
+        d="M 24 46 C 24 42 40 42 40 46"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="none"
+        opacity="0.3"
+      />
+
+      {/* Magnet */}
+      <rect x="28" y="16" width="8" height="20" rx="1" fill="#ef4444" opacity="0.85" />
+      <rect x="28" y="26" width="8" height="10" rx="1" fill="#3b82f6" opacity="0.85" />
+      <rect
+        x="28"
+        y="16"
+        width="8"
+        height="20"
+        rx="1"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1"
+        opacity="0.5"
+      />
+      <path d="M 28 26 L 36 26" stroke="currentColor" strokeWidth="1" opacity="0.5" />
+
+      {/* Coil Front */}
+      <path
+        d="M 24 34 C 24 38 40 38 40 34"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="none"
+        opacity="0.8"
+      />
+      <path
+        d="M 24 40 C 24 44 40 44 40 40"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="none"
+        opacity="0.8"
+      />
+      <path
+        d="M 24 46 C 24 50 40 50 40 46"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="none"
+        opacity="0.8"
+      />
+
+      {/* Connecting Wires */}
+      <path
+        d="M 24 34 L 24 28 L 14 28 L 14 52 L 24 52 L 24 46"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="none"
+        opacity="0.5"
+      />
+
+      {/* Bulb Glow */}
+      <circle cx="14" cy="40" r="4" fill="#fde047" opacity="0.9" />
+      <path
+        d="M 14 34 L 14 32 M 8 40 L 6 40 M 20 40 L 22 40"
+        stroke="#fde047"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        opacity="0.9"
+      />
+
+      {/* Motion lines */}
+      <path
+        d="M 32 12 L 32 8 M 32 10 L 32 6"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        opacity="0.5"
+      />
+    </svg>
+  ),
   default: (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
       <circle

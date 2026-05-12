@@ -369,7 +369,7 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
     const scale = Math.min(w / refW, h / refH);
     const axisY = h * 0.54 + (p.panY || 0);
     const elementX = w * (isMobile() ? 0.5 : 0.48) + (p.panX || 0);
-    const pixelsPerCm = scale * 0.95;
+    const pixelsPerCm = scale * 1.15 * (p.viewScale || 1.0);
     const mobile = isMobile();
     return { w, h, axisY, elementX, pixelsPerCm, mobile };
   }
@@ -383,11 +383,11 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
   }
 
   function drawGrid(L) {
-    ctx.fillStyle = '#020617';
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, L.w, L.h);
 
     // Minor grid lines
-    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.strokeStyle = 'rgba(15, 23, 42, 0.04)';
     ctx.lineWidth = 1;
     const spacing = (L.mobile ? 20 : 10) * L.pixelsPerCm;
     if (spacing > 8) {
@@ -406,17 +406,19 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
     }
 
     // Optical Axis
-    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-    ctx.lineWidth = L.mobile ? 1 : 1.5;
+    ctx.strokeStyle = '#818cf8';
+    ctx.lineWidth = L.mobile ? 1.5 : 2;
+    ctx.setLineDash([8, 8]);
     ctx.beginPath();
     ctx.moveTo(0, L.axisY);
     ctx.lineTo(L.w, L.axisY);
     ctx.stroke();
+    ctx.setLineDash([]);
 
     // Ticks on Optical Axis (skip on very small screens)
     if (!L.mobile) {
-      ctx.fillStyle = 'rgba(255,255,255,0.4)';
-      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.5)';
+      ctx.font = '10px "Inter", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       for (let xCm = -500; xCm <= 500; xCm += 50) {
@@ -489,31 +491,24 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
 
     if (element.kind === 'slab') {
       const width = p.slabThickness * L.pixelsPerCm;
-      const grad = ctx.createLinearGradient(x - width / 2, 0, x + width / 2, 0);
-      grad.addColorStop(0, 'rgba(34,211,238,0.15)');
-      grad.addColorStop(0.5, 'rgba(186,230,253,0.3)');
-      grad.addColorStop(1, 'rgba(34,211,238,0.15)');
-      ctx.fillStyle = grad;
+      ctx.fillStyle = 'rgba(186, 230, 253, 0.4)'; // light blue glass
       ctx.fillRect(x - width / 2, top, width, aperturePx);
-      ctx.strokeStyle = 'rgba(125,211,252,0.8)';
-      ctx.lineWidth = L.mobile ? 1.5 : 2;
+      ctx.strokeStyle = '#0284c7'; // dark blue border
+      ctx.lineWidth = 2;
       ctx.strokeRect(x - width / 2, top, width, aperturePx);
       const fontSize = L.mobile ? 10 : 12;
-      ctx.font = `700 ${fontSize}px "JetBrains Mono", monospace`;
-      ctx.fillStyle = '#bae6fd';
+      ctx.font = `700 ${fontSize}px "Inter", sans-serif`;
+      ctx.fillStyle = '#0369a1';
       ctx.textAlign = 'center';
       ctx.fillText(`n = ${p.refractiveIndex.toFixed(2)}`, x, top - (L.mobile ? 8 : 15));
       return;
     }
 
     ctx.save();
-    ctx.strokeStyle = element.color;
-    ctx.fillStyle = `${element.color}22`;
-    ctx.lineWidth = L.mobile ? 2 : 3;
-    if (!L.mobile) {
-      ctx.shadowBlur = 15;
-      ctx.shadowColor = element.color;
-    }
+    ctx.strokeStyle = '#0f172a'; // Bold dark outlines
+    ctx.fillStyle = `${element.color}55`; // More opaque fill for contrast
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
 
     if (element.kind === 'lens') {
       if (element.focalSign > 0) {
@@ -581,9 +576,8 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
       ctx.moveTo(x, L.axisY - aperturePx / 2);
       ctx.quadraticCurveTo(x + curve * 2, L.axisY, x, L.axisY + aperturePx / 2);
       ctx.stroke();
-      ctx.shadowBlur = 0;
-      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#94a3b8'; // Grey hash lines
+      ctx.lineWidth = 1.5;
       const hashDir = element.focalSign > 0 ? 1 : -1;
       for (let y = -aperturePx / 2; y <= aperturePx / 2; y += 20) {
         ctx.beginPath();
@@ -599,13 +593,10 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
   function drawRay(x1, y1, x2, y2, color, alpha = 0.8, dashed = false) {
     ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = isMobile() ? 1.2 : 1.6;
+    ctx.strokeStyle = color; // We'll pass black
+    ctx.lineWidth = isMobile() ? 1.5 : 2;
     if (dashed) {
-      ctx.setLineDash([5, 4]);
-    } else if (!isMobile()) {
-      ctx.shadowBlur = 4;
-      ctx.shadowColor = color;
+      ctx.setLineDash([6, 6]);
     }
     ctx.beginPath();
     ctx.moveTo(x1, y1);
@@ -637,7 +628,7 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
 
     const count = Math.max(1, Math.round(p.rayCount));
     const apertureHalf = p.aperture / 2;
-    const rayColor = '#facc15';
+    const rayColor = '#0f172a'; // Black rays for light theme
 
     for (let i = 0; i < count; i++) {
       const t = count === 1 ? 0.5 : i / (count - 1);
@@ -687,8 +678,8 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
     }
 
     if (p.showConstruction && Number.isFinite(di)) {
-      const c1 = '#22d3ee'; // cyan
-      const c2 = '#f472b6'; // pink
+      const c1 = '#0f172a'; // black for all construction rays
+      const c2 = '#0f172a';
       const img = { x: imageX, y: imageY };
 
       if (isLens) {
@@ -749,13 +740,92 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
     }
 
     if (Number.isFinite(di)) {
-      ctx.globalAlpha = di < 0 ? 0.5 : 1;
-      drawArrow(ctx, imageX, L.axisY, imageX, imageY, {
-        color: di > 0 ? '#4ade80' : '#fb7185',
-        label: di > 0 ? 'real image' : 'virtual image',
-      });
-      ctx.globalAlpha = 1;
+      drawPencilPlane(ctx, imageX, L.axisY, imageY, true, di < 0 ? 0.4 : 0.9);
     }
+  }
+
+  function drawPencilPlane(ctx, baseX, baseY, tipY, isImage = false, alpha = 1) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    // Encompass the pencil fully (since plane is centered at baseY, half-height must exceed pencil height)
+    const padding = 25;
+    const skewY = 15;
+    const h = Math.max(100, Math.abs(tipY - baseY) * 2 + padding * 2 + skewY * 2);
+    const w = 40;
+
+    // Plane Background
+    ctx.fillStyle = isImage ? 'rgba(186, 230, 253, 0.4)' : '#bae6fd';
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 3;
+    ctx.lineJoin = 'round';
+
+    ctx.beginPath();
+    ctx.moveTo(baseX - w / 2, baseY - h / 2 - skewY);
+    ctx.lineTo(baseX - w / 2, baseY + h / 2 - skewY);
+    ctx.lineTo(baseX + w / 2, baseY + h / 2 + skewY);
+    ctx.lineTo(baseX + w / 2, baseY - h / 2 + skewY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Pencil
+    const pw = 8;
+    const ph = tipY - baseY;
+    const dir = ph < 0 ? -1 : 1;
+    const absPh = Math.abs(ph);
+
+    if (absPh > 2) {
+      const tipLen = Math.min(15, absPh * 0.3);
+      const bodyLen = absPh - tipLen;
+      const eraserLen = Math.min(10, absPh * 0.2);
+
+      ctx.translate(baseX, baseY);
+
+      // Body
+      ctx.fillStyle = '#fbbf24';
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.rect(-pw / 2, 0, pw, dir * bodyLen);
+      ctx.fill();
+      ctx.stroke();
+
+      // Inner Lines
+      ctx.beginPath();
+      ctx.moveTo(-pw / 6, 0);
+      ctx.lineTo(-pw / 6, dir * bodyLen);
+      ctx.moveTo(pw / 6, 0);
+      ctx.lineTo(pw / 6, dir * bodyLen);
+      ctx.stroke();
+
+      // Eraser
+      ctx.fillStyle = '#fbcfe8';
+      ctx.beginPath();
+      ctx.rect(-pw / 2, -dir * eraserLen, pw, dir * eraserLen);
+      ctx.fill();
+      ctx.stroke();
+
+      // Wood Tip
+      ctx.fillStyle = '#fde68a';
+      ctx.beginPath();
+      ctx.moveTo(-pw / 2, dir * bodyLen);
+      ctx.lineTo(pw / 2, dir * bodyLen);
+      ctx.lineTo(0, ph);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Lead
+      ctx.fillStyle = '#334155';
+      ctx.beginPath();
+      ctx.moveTo(-pw / 6, dir * (bodyLen + tipLen * 0.7));
+      ctx.lineTo(pw / 6, dir * (bodyLen + tipLen * 0.7));
+      ctx.lineTo(0, ph);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    ctx.restore();
   }
 
   function drawSlabRays(L, optics) {
@@ -767,7 +837,7 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
     const spacing = 18;
     const t1 = optics.theta1,
       t2 = optics.theta2;
-    const rayColor = '#facc15';
+    const rayColor = '#0f172a'; // Black rays
 
     for (let i = 0; i < count; i++) {
       const offset = (i - (count - 1) / 2) * spacing;
@@ -783,7 +853,7 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
       drawRay(right, y2, endX, endY, rayColor, 0.65);
 
       if (p.showNormals && i === Math.floor(count / 2)) {
-        ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+        ctx.strokeStyle = 'rgba(15,23,42,0.4)';
         ctx.setLineDash([5, 5]);
         [left, right].forEach((x) => {
           ctx.beginPath();
@@ -806,21 +876,28 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
     if (element.kind !== 'slab') {
       const fAbs = Math.abs(p.focalLength);
       [xWorldToScreen(-fAbs, L), xWorldToScreen(fAbs, L)].forEach((x, i) => {
-        ctx.strokeStyle = i === 0 ? '#fb7185' : '#4ade80';
-        ctx.lineWidth = 2;
+        // Draw focal point like in the image: yellow circle with dot
+        ctx.fillStyle = '#fde047';
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.moveTo(x, L.axisY - 12);
-        ctx.lineTo(x, L.axisY + 12);
+        ctx.arc(x, L.axisY, 6, 0, Math.PI * 2);
+        ctx.fill();
         ctx.stroke();
-        ctx.font = 'bold 11px monospace';
-        ctx.fillStyle = '#94a3b8';
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.arc(x, L.axisY, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = 'bold 12px "Inter", sans-serif';
+        ctx.fillStyle = '#475569';
         ctx.textAlign = 'center';
-        ctx.fillText(i === 0 ? 'F' : "F'", x, L.axisY + 28);
+        ctx.fillText(i === 0 ? 'F' : "F'", x, L.axisY + 22);
       });
 
       const ox = xWorldToScreen(-p.objectDistance, L);
       const oy = yWorldToScreen(p.objectHeight, L);
-      drawArrow(ctx, ox, L.axisY, ox, oy, { color: '#e2e8f0', label: 'object' });
+      drawPencilPlane(ctx, ox, L.axisY, oy, false, 1);
       drawLensOrMirrorRays(L, element, optics);
     } else {
       drawSlabRays(L, optics);
@@ -835,8 +912,8 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
       const hudY = mob ? 16 : 30;
 
       ctx.save();
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.strokeStyle = 'rgba(15, 23, 42, 0.1)';
       ctx.lineWidth = 1;
 
       const hud =
@@ -860,12 +937,12 @@ export function create(canvas, initParams = {}, { onParamChange } = {}) {
       ctx.stroke();
 
       ctx.font = `700 ${titleFont}px "Inter", sans-serif`;
-      ctx.fillStyle = element.color;
+      ctx.fillStyle = '#0f172a';
       ctx.textAlign = 'left';
       ctx.fillText(mob ? element.name : element.name.toUpperCase(), hudX, hudY);
 
       ctx.font = `500 ${bodyFont}px "JetBrains Mono", monospace`;
-      ctx.fillStyle = '#f8fafc';
+      ctx.fillStyle = '#334155';
       hud.forEach((text, i) => {
         ctx.fillText(text, hudX, hudY + (mob ? 16 : 24) + i * lineH);
       });
