@@ -433,6 +433,8 @@ export const TOPICS = {
         equations: torqueAngularAccelerationLab.equations,
         equationSections: torqueAngularAccelerationLab.equationSections,
         graphParams: torqueAngularAccelerationLab.graphParams,
+        scenarios: torqueAngularAccelerationLab.scenarios,
+        guidedExperiments: torqueAngularAccelerationLab.guidedExperiments,
       },
       {
         id: 'gyroscope-precession-3d',
