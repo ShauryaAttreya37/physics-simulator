@@ -15,6 +15,8 @@ const DEFAULTS = {
   numParticles: 0,
   particleRate: 5,
   trailMax: 400,
+  showWavefronts: true,
+  whichWayDetector: false,
 };
 
 export const defaultParams = { ...DEFAULTS };
@@ -103,6 +105,8 @@ export const controls = [
   { key: 'wavelength', label: 'λ — Wavelength [mm]', min: 0.0002, max: 0.001, step: 0.00001 },
   { key: 'screenDist', label: 'L — Screen Distance [mm]', min: 50, max: 500, step: 5 },
   { key: 'particleRate', label: 'Particle Rate', min: 1, max: 50, step: 1 },
+  { key: 'showWavefronts', label: 'Show Wavefronts', type: 'toggle' },
+  { key: 'whichWayDetector', label: 'Which-Way Detector', type: 'toggle' },
 ];
 
 export const method = 'analytical';
@@ -117,7 +121,28 @@ function intensity(y, p) {
   const sinTheta = y / Math.sqrt(y * y + p.screenDist * p.screenDist);
   const alpha = (Math.PI * p.slitWidth * sinTheta) / p.wavelength;
   const beta = (Math.PI * p.slitSeparation * sinTheta) / p.wavelength;
-  return sinc(alpha) * sinc(alpha) * Math.cos(beta) * Math.cos(beta);
+  const envelope = sinc(alpha) * sinc(alpha);
+  if (p.whichWayDetector) return envelope;
+  return envelope * Math.cos(beta) * Math.cos(beta);
+}
+
+function clamp(value, min, max) {
+  if (!Number.isFinite(value)) return min;
+  return Math.min(max, Math.max(min, value));
+}
+
+function sanitizeParams(nextParams) {
+  return {
+    ...DEFAULTS,
+    ...nextParams,
+    slitSeparation: clamp(nextParams.slitSeparation ?? DEFAULTS.slitSeparation, 0.1, 2),
+    slitWidth: clamp(nextParams.slitWidth ?? DEFAULTS.slitWidth, 0.01, 0.5),
+    wavelength: clamp(nextParams.wavelength ?? DEFAULTS.wavelength, 0.0002, 0.001),
+    screenDist: clamp(nextParams.screenDist ?? DEFAULTS.screenDist, 50, 500),
+    particleRate: Math.round(clamp(nextParams.particleRate ?? DEFAULTS.particleRate, 1, 50)),
+    showWavefronts: Boolean(nextParams.showWavefronts ?? DEFAULTS.showWavefronts),
+    whichWayDetector: Boolean(nextParams.whichWayDetector ?? DEFAULTS.whichWayDetector),
+  };
 }
 
 function wavelengthToRGB(lambda_mm) {
@@ -159,28 +184,35 @@ export const scenarios = [
   {
     name: 'Standard Interference',
     description: 'Default double-slit parameters showing clear interference fringes.',
-    params: { slitSep: 0.15, slitWidth: 0.03, wavelength: 0.02, particleRate: 15 },
+    params: { slitSeparation: 0.15, slitWidth: 0.03, wavelength: 0.0005, particleRate: 15 },
   },
   {
     name: 'Wide Slit Separation',
     description: 'Increase slit spacing — fringes become closer together.',
-    params: { slitSep: 0.35, slitWidth: 0.03, wavelength: 0.02, particleRate: 15 },
+    params: { slitSeparation: 0.35, slitWidth: 0.03, wavelength: 0.0005, particleRate: 15 },
   },
   {
-    name: 'Single Slit',
-    description: 'Close one slit — observe diffraction but no interference pattern.',
-    params: { slitSep: 0, slitWidth: 0.05, wavelength: 0.02, particleRate: 15 },
+    name: 'Which-Way Measurement',
+    description:
+      'Detect which slit each particle crosses - diffraction remains, interference fades.',
+    params: {
+      slitSeparation: 0.35,
+      slitWidth: 0.05,
+      wavelength: 0.0005,
+      particleRate: 15,
+      whichWayDetector: true,
+    },
   },
   {
     name: 'Long Wavelength',
     description: 'Increase wavelength — fringes spread out, diffraction dominates.',
-    params: { slitSep: 0.15, slitWidth: 0.03, wavelength: 0.06, particleRate: 15 },
+    params: { slitSeparation: 0.15, slitWidth: 0.03, wavelength: 0.0008, particleRate: 15 },
   },
   {
     name: 'Particle by Particle',
     description:
       'Very slow rate — watch individual "particle" detections build the pattern one by one.',
-    params: { slitSep: 0.15, slitWidth: 0.03, wavelength: 0.02, particleRate: 2 },
+    params: { slitSeparation: 0.15, slitWidth: 0.03, wavelength: 0.0005, particleRate: 2 },
   },
 ];
 
@@ -190,9 +222,15 @@ export const guidedExperiments = [
     steps: [
       {
         instruction:
-          'We start with a single slit. Press Play and observe where particles land on the detector screen.',
-        params: { slitSep: 0, slitWidth: 0.05, wavelength: 0.02, particleRate: 15 },
-        question: 'With a single slit, what pattern will the particles form?',
+          'We start with the which-way detector on. Press Play and observe where particles land on the detector screen.',
+        params: {
+          slitSeparation: 0.15,
+          slitWidth: 0.05,
+          wavelength: 0.0005,
+          particleRate: 15,
+          whichWayDetector: true,
+        },
+        question: 'With path information available, what pattern will the particles form?',
         choices: [
           'A sharp line directly behind the slit',
           'A smooth blob/bell curve (single-slit diffraction)',
@@ -204,8 +242,14 @@ export const guidedExperiments = [
       },
       {
         instruction:
-          'Now open the second slit (slitSep = 0.15). Reset and play. Watch carefully as particles accumulate.',
-        params: { slitSep: 0.15, slitWidth: 0.03, wavelength: 0.02, particleRate: 15 },
+          'Now turn the which-way detector off. Reset and play. Watch carefully as particles accumulate.',
+        params: {
+          slitSeparation: 0.15,
+          slitWidth: 0.03,
+          wavelength: 0.0005,
+          particleRate: 15,
+          whichWayDetector: false,
+        },
         question: 'With two slits open, what pattern will emerge?',
         choices: [
           'Two blobs (one behind each slit)',
@@ -222,7 +266,7 @@ export const guidedExperiments = [
       },
       {
         instruction: 'Increase the slit separation to 0.35. Reset and observe.',
-        params: { slitSep: 0.35, slitWidth: 0.03, wavelength: 0.02, particleRate: 15 },
+        params: { slitSeparation: 0.35, slitWidth: 0.03, wavelength: 0.0005, particleRate: 15 },
         question: 'As slit separation increases, what happens to the fringe spacing?',
         choices: ['Fringes get wider apart', 'Fringes get closer together', 'No change'],
         correctIndex: 1,
@@ -233,17 +277,96 @@ export const guidedExperiments = [
   },
 ];
 
-export function create(canvas, initParams = {}) {
+export function create(canvas, initParams = {}, options = {}) {
   const ctx = canvas.getContext('2d');
-  const p = { ...DEFAULTS, ...initParams };
+  const p = sanitizeParams(initParams);
 
   let simTime = 0;
   let particles = []; // Accumulated detection points
   let histogram = new Float64Array(200); // Binned detections
+  let dragMode = null;
+
+  function resetDetections() {
+    simTime = 0;
+    particles = [];
+    histogram = new Float64Array(200);
+    p.numParticles = 0;
+  }
+
+  function updateParams(next, shouldReset = true, notify = true) {
+    const sanitized = sanitizeParams({ ...p, ...next });
+    const changedPhysics =
+      sanitized.slitSeparation !== p.slitSeparation ||
+      sanitized.slitWidth !== p.slitWidth ||
+      sanitized.wavelength !== p.wavelength ||
+      sanitized.screenDist !== p.screenDist ||
+      sanitized.whichWayDetector !== p.whichWayDetector;
+
+    Object.assign(p, sanitized);
+    if (shouldReset && changedPhysics) resetDetections();
+    if (notify) {
+      options.onParamChange?.({
+        slitSeparation: p.slitSeparation,
+        slitWidth: p.slitWidth,
+        wavelength: p.wavelength,
+        screenDist: p.screenDist,
+        particleRate: p.particleRate,
+        showWavefronts: p.showWavefronts,
+        whichWayDetector: p.whichWayDetector,
+      });
+    }
+    render();
+  }
+
+  function getLayout() {
+    const W = canvas.width;
+    const H = canvas.height;
+    const margin = 20;
+    const leftW = W * 0.4;
+    const rightW = W - leftW - margin;
+    const appX = margin;
+    const appY = margin;
+    const appW = leftW - margin;
+    const appH = H - 2 * margin;
+    const srcX = appX + 30;
+    const srcY = appY + appH / 2;
+    const barrierX = appX + appW * 0.45;
+    const screenMinX = barrierX + 70;
+    const screenMaxX = appX + appW - 20;
+    const screenT = (p.screenDist - 50) / 450;
+    const screenX = screenMinX + clamp(screenT, 0, 1) * (screenMaxX - screenMinX);
+    const slitPixGap = 22 + ((p.slitSeparation - 0.1) / 1.9) * Math.min(appH * 0.34, 128);
+    const slitPixWidth = 4 + ((p.slitWidth - 0.01) / 0.49) * 22;
+    const slit1Y = srcY - slitPixGap / 2;
+    const slit2Y = srcY + slitPixGap / 2;
+
+    return {
+      W,
+      H,
+      margin,
+      leftW,
+      rightW,
+      appX,
+      appY,
+      appW,
+      appH,
+      srcX,
+      srcY,
+      barrierX,
+      screenX,
+      screenMinX,
+      screenMaxX,
+      slitPixGap,
+      slitPixWidth,
+      slit1Y,
+      slit2Y,
+    };
+  }
 
   function sampleParticleY() {
     // Rejection sampling from intensity distribution
-    const yMax = p.screenDist * Math.tan(Math.asin((3 * p.wavelength) / p.slitSeparation || 0.05));
+    const fringeAngle = clamp((3 * p.wavelength) / p.slitSeparation, 0.01, 0.95);
+    const yMax = p.screenDist * Math.tan(Math.asin(fringeAngle));
     const yRange = Math.max(yMax, 5);
     for (let attempt = 0; attempt < 100; attempt++) {
       const y = (Math.random() * 2 - 1) * yRange;
@@ -336,8 +459,26 @@ export function create(canvas, initParams = {}) {
 
   // ── Main render ──────────────────────────────────────────────────────
   function render() {
-    const W = canvas.width,
-      H = canvas.height;
+    const layout = getLayout();
+    const {
+      W,
+      H,
+      margin,
+      leftW,
+      rightW,
+      appX,
+      appY,
+      appW,
+      appH,
+      srcX,
+      srcY,
+      barrierX,
+      slitPixGap,
+      slitPixWidth,
+      slit1Y,
+      slit2Y,
+      screenX,
+    } = layout;
 
     const mainBg = ctx.createLinearGradient(0, 0, W, H);
     mainBg.addColorStop(0, '#04040e');
@@ -345,26 +486,18 @@ export function create(canvas, initParams = {}) {
     ctx.fillStyle = mainBg;
     ctx.fillRect(0, 0, W, H);
 
-    const margin = 20;
     const rgb = wavelengthToRGB(p.wavelength);
     const beamColor = `rgb(${rgb.r},${rgb.g},${rgb.b})`;
     const beamColorAlpha = (a) => `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`;
 
     // Layout: left = apparatus schematic, right top = intensity curve, right bottom = histogram
-    const leftW = W * 0.4;
-    const rightW = W - leftW - margin;
 
     // ── LEFT: Apparatus schematic ──────────────────────────────────
-    const appX = margin;
-    const appY = margin;
-    const appW = leftW - margin;
-    const appH = H - 2 * margin;
 
     drawMakieAxes(appX, appY, appW, appH, { title: 'Double Slit Apparatus' });
 
     // Source
-    const srcX = appX + 30;
-    const srcY = appY + appH / 2;
+
     ctx.beginPath();
     ctx.arc(srcX, srcY, 8, 0, Math.PI * 2);
     ctx.fillStyle = beamColorAlpha(0.8);
@@ -378,9 +511,6 @@ export function create(canvas, initParams = {}) {
     ctx.fillText('source', srcX, srcY + 20);
 
     // Barrier with slits
-    const barrierX = appX + appW * 0.45;
-    const slitPixGap = Math.min(appH * 0.3, 100);
-    const slitPixWidth = Math.max(4, slitPixGap * 0.2);
 
     ctx.fillStyle = 'rgba(255,255,255,0.15)';
     ctx.fillRect(barrierX - 3, appY + 10, 6, appH / 2 - slitPixGap / 2 - slitPixWidth / 2 - 10);
@@ -398,11 +528,13 @@ export function create(canvas, initParams = {}) {
     );
 
     // Slit glow
-    const slit1Y = srcY - slitPixGap / 2;
-    const slit2Y = srcY + slitPixGap / 2;
+
     [slit1Y, slit2Y].forEach((sy) => {
       ctx.fillStyle = beamColorAlpha(0.6);
       ctx.fillRect(barrierX - 2, sy - slitPixWidth / 2, 4, slitPixWidth);
+      ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(barrierX - 8, sy - slitPixWidth / 2 - 3, 16, slitPixWidth + 6);
     });
 
     // Beams from source to slits
@@ -418,22 +550,31 @@ export function create(canvas, initParams = {}) {
     ctx.stroke();
 
     // Spreading wavefronts after slits
-    for (let i = 1; i <= 6; i++) {
-      const r = i * 18;
-      ctx.strokeStyle = beamColorAlpha(0.06 + 0.02 * (6 - i));
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(barrierX, slit1Y, r, -Math.PI / 3, Math.PI / 3);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(barrierX, slit2Y, r, -Math.PI / 3, Math.PI / 3);
-      ctx.stroke();
+    if (p.showWavefronts) {
+      for (let i = 1; i <= 6; i++) {
+        const r = i * 18;
+        ctx.strokeStyle = beamColorAlpha(0.06 + 0.02 * (6 - i));
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(barrierX, slit1Y, r, -Math.PI / 3, Math.PI / 3);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(barrierX, slit2Y, r, -Math.PI / 3, Math.PI / 3);
+        ctx.stroke();
+      }
     }
 
     // Detection screen
-    const screenX = appX + appW - 20;
+
     ctx.fillStyle = '#2A3441';
     ctx.fillRect(screenX - 2, appY + 10, 4, appH - 20);
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(screenX, appY + 10);
+    ctx.lineTo(screenX, appY + appH - 10);
+    ctx.stroke();
+    ctx.setLineDash([]);
 
     // Particle hits on screen
     const yPixRange = (appH - 40) / 2;
@@ -451,6 +592,23 @@ export function create(canvas, initParams = {}) {
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
     ctx.textAlign = 'center';
     ctx.fillText('screen', screenX, appY + appH - 4);
+
+    ctx.font = '600 9px "JetBrains Mono", monospace';
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.textAlign = 'left';
+    ctx.fillText('Drag slits: separation', barrierX + 10, appY + 18);
+    ctx.fillText('Shift-drag slit: width', barrierX + 10, appY + 32);
+    ctx.fillText('Drag screen: distance', Math.max(appX + 8, screenX - 120), appY + appH - 18);
+
+    if (p.whichWayDetector) {
+      ctx.fillStyle = 'rgba(255, 209, 102, 0.12)';
+      ctx.fillRect(barrierX - 22, srcY - slitPixGap / 2 - 28, 44, slitPixGap + 56);
+      ctx.strokeStyle = 'rgba(255, 209, 102, 0.65)';
+      ctx.strokeRect(barrierX - 22, srcY - slitPixGap / 2 - 28, 44, slitPixGap + 56);
+      ctx.fillStyle = 'rgba(255, 209, 102, 0.8)';
+      ctx.textAlign = 'center';
+      ctx.fillText('which-way on', barrierX, srcY + slitPixGap / 2 + 44);
+    }
 
     // ── RIGHT TOP: Theoretical intensity curve ─────────────────────
     const curveX = leftW + margin;
@@ -560,6 +718,79 @@ export function create(canvas, initParams = {}) {
     ctx.fillText(`n = ${p.numParticles}`, W - 140, H - 24);
   }
 
+  function pointerPosition(event) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+      shiftKey: event.shiftKey,
+    };
+  }
+
+  function handlePointerDown(event) {
+    const { x, y, shiftKey } = pointerPosition(event);
+    const layout = getLayout();
+    const nearSlit =
+      Math.abs(x - layout.barrierX) < 24 &&
+      (Math.abs(y - layout.slit1Y) < 24 || Math.abs(y - layout.slit2Y) < 24);
+    const nearScreen =
+      Math.abs(x - layout.screenX) < 24 && y > layout.appY && y < layout.appY + layout.appH;
+
+    if (nearSlit) {
+      dragMode = shiftKey ? 'slitWidth' : 'slitSeparation';
+      canvas.setPointerCapture(event.pointerId);
+      event.preventDefault();
+    } else if (nearScreen) {
+      dragMode = 'screenDist';
+      canvas.setPointerCapture(event.pointerId);
+      event.preventDefault();
+    }
+  }
+
+  function handlePointerMove(event) {
+    const { x, y } = pointerPosition(event);
+    const layout = getLayout();
+
+    if (!dragMode) {
+      const nearSlit =
+        Math.abs(x - layout.barrierX) < 24 &&
+        (Math.abs(y - layout.slit1Y) < 24 || Math.abs(y - layout.slit2Y) < 24);
+      const nearScreen =
+        Math.abs(x - layout.screenX) < 24 && y > layout.appY && y < layout.appY + layout.appH;
+      canvas.style.cursor = nearSlit || nearScreen ? 'grab' : 'default';
+      return;
+    }
+
+    canvas.style.cursor = 'grabbing';
+
+    if (dragMode === 'slitSeparation') {
+      const gapPx = Math.abs(y - layout.srcY) * 2;
+      const maxGap = Math.min(layout.appH * 0.34, 128);
+      const nextSeparation = 0.1 + ((gapPx - 22) / maxGap) * 1.9;
+      updateParams({ slitSeparation: nextSeparation });
+      return;
+    }
+
+    if (dragMode === 'slitWidth') {
+      const distanceFromSlit = Math.min(Math.abs(y - layout.slit1Y), Math.abs(y - layout.slit2Y));
+      const nextWidth = 0.01 + ((distanceFromSlit * 2 - 4) / 22) * 0.49;
+      updateParams({ slitWidth: nextWidth });
+      return;
+    }
+
+    if (dragMode === 'screenDist') {
+      const t = (x - layout.screenMinX) / (layout.screenMaxX - layout.screenMinX);
+      updateParams({ screenDist: 50 + clamp(t, 0, 1) * 450 });
+    }
+  }
+
+  function handlePointerUp(event) {
+    if (!dragMode) return;
+    dragMode = null;
+    canvas.style.cursor = 'default';
+    if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+  }
+
   function tick(dt) {
     simTime += dt;
     addParticles(p.particleRate);
@@ -579,10 +810,11 @@ export function create(canvas, initParams = {}) {
   }
 
   // Init
-  simTime = 0;
-  particles = [];
-  histogram = new Float64Array(200);
-  p.numParticles = 0;
+  resetDetections();
+  canvas.addEventListener('pointerdown', handlePointerDown);
+  canvas.addEventListener('pointermove', handlePointerMove);
+  canvas.addEventListener('pointerup', handlePointerUp);
+  canvas.addEventListener('pointercancel', handlePointerUp);
   render();
 
   return {
@@ -598,19 +830,19 @@ export function create(canvas, initParams = {}) {
     },
     reset() {
       this.stop();
-      simTime = 0;
-      particles = [];
-      histogram = new Float64Array(200);
-      p.numParticles = 0;
+      resetDetections();
       render();
       this.start();
     },
     setParams(next) {
-      Object.assign(p, next);
-      render();
+      updateParams(next, true, false);
     },
     destroy() {
       this.stop();
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      canvas.removeEventListener('pointermove', handlePointerMove);
+      canvas.removeEventListener('pointerup', handlePointerUp);
+      canvas.removeEventListener('pointercancel', handlePointerUp);
     },
     getData() {
       const fringeSpacing = (p.wavelength * p.screenDist) / p.slitSeparation;
