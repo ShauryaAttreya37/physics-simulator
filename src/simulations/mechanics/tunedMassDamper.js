@@ -1,74 +1,82 @@
 const DEFAULTS = {
-  m1: 1.2,
-  m2: 0.25,
-  k1: 55,
-  k2: 22,
-  c1: 0.25,
-  c2: 0.9,
-  forcingAmp: 20,
-  forcingFreq: 1.4,
+  m1: 10,
+  m2: 1.0,
+  k1: 100,
+  k2: 10,
+  c1: 0.5,
+  c2: 2.0,
+  forcingAmp: 15,
+  forcingFreq: 0.5,
+  damperOn: true,
 };
 
-export const defaultParams = {
-  m1: 1.2,
-  m2: 0.25,
-  k1: 55,
-  k2: 22,
-  c1: 0.25,
-  c2: 0.9,
-  forcingAmp: 20,
-  forcingFreq: 1.4,
-};
+export const defaultParams = { ...DEFAULTS };
 
 export const equationSections = [
   {
-    title: 'Introduction',
+    title: 'Introduction to Tuned Mass Dampers',
     content:
-      "A tuned mass damper (TMD) is a secondary mass attached to a primary structure to reduce vibrations. Tall buildings, bridges, and machines use TMDs to dampen oscillations from wind, earthquakes, or mechanical forces. The key is tuning the secondary mass and spring to absorb the primary structure's vibrations.",
+      'A Tuned Mass Damper (TMD), also known as a harmonic absorber, is a device mounted in structures to reduce the amplitude of mechanical vibrations. From preventing skyscrapers like the Taipei 101 from swaying during typhoons, to stabilizing bridges against earthquakes, TMDs are a critical tool in structural engineering. They work not by magically making energy disappear, but by actively "stealing" the kinetic energy from the primary structure.',
   },
   {
-    title: 'System Equations',
+    title: 'The Physics of Resonance',
+    content:
+      'Every physical structure has a "natural frequency" (ωₙ) at which it naturally wants to oscillate. If an external driving force (like wind or footsteps) pushes the structure at this exact frequency, a phenomenon called **resonance** occurs. During resonance, the structure absorbs energy optimally, causing the amplitude of its sway to grow dangerously large, potentially leading to catastrophic failure.',
+  },
+  {
+    title: 'System Equations (Coupled Oscillators)',
+    content:
+      'We model this as a 2-Degree-of-Freedom (2-DOF) system. The primary structure (building) is m₁, and the damper is m₂.',
     equations: [
       {
         latex: String.raw`m_1 \ddot{x}_1 + c_1 \dot{x}_1 + k_1 x_1 = F_0 \sin(\omega t) + c_2(\dot{x}_2 - \dot{x}_1) + k_2(x_2 - x_1)`,
         description:
-          'Primary structure: external force, primary damping/spring, plus coupling forces from the secondary mass.',
+          'Primary Structure Equation: It experiences the external driving force F₀sin(ωt), but is ALSO pulled/pushed by the spring (k₂) and dashpot (c₂) connecting it to the damper mass.',
       },
       {
         latex: String.raw`m_2 \ddot{x}_2 + c_2(\dot{x}_2 - \dot{x}_1) + k_2(x_2 - x_1) = 0`,
-        description: 'Secondary damper: no external force, only coupling with primary structure.',
+        description:
+          'Damper Equation: The damper has no external force acting on it. It moves purely in response to the motion of the primary mass.',
       },
     ],
     variables: [
-      { symbol: 'm₁, m₂', description: 'Primary and secondary masses' },
-      { symbol: 'k₁, k₂', description: 'Primary and secondary spring stiffnesses' },
-      { symbol: 'c₁, c₂', description: 'Primary and secondary damping coefficients' },
-      { symbol: 'F₀ sin(ωt)', description: 'Forcing function on primary structure' },
+      { symbol: 'm₁, m₂', description: 'Mass of the primary structure and the damper' },
+      {
+        symbol: 'k₁, k₂',
+        description: 'Stiffness of the structural supports and the damper spring',
+      },
+      { symbol: 'c₁, c₂', description: 'Viscous damping (energy loss) coefficients' },
+      { symbol: 'F₀, ω', description: 'Amplitude and angular frequency of the external force' },
     ],
   },
   {
-    title: 'Tuning Condition',
+    title: 'The Tuning Condition',
+    content:
+      'For the damper to be highly effective, its natural frequency MUST exactly match the natural frequency of the primary structure. This is what it means to be "tuned".',
     equations: [
       {
-        latex: String.raw`\omega_{TMD} = \omega_{primary} = \sqrt{k_2/m_2} = \sqrt{k_1/m_1}`,
+        latex: String.raw`\omega_{TMD} = \omega_{primary} \implies \sqrt{\frac{k_2}{m_2}} = \sqrt{\frac{k_1}{m_1}}`,
         description:
-          'Optimal tuning: the TMD natural frequency matches the primary frequency for maximum energy transfer.',
-      },
-      {
-        latex: String.raw`m_2/m_1 = 0.01 \text{ to } 0.1`,
-        description: 'Typical mass ratio: secondary mass is 1-10% of primary mass.',
+          'When tuned correctly, the damper mass will oscillate exactly 90 degrees out of phase with the primary mass. When the primary mass tries to move right, the damper mass pulls it left. The damper absorbs the energy, swaying wildly, while the primary structure remains almost entirely stationary.',
       },
     ],
   },
   {
-    title: 'How to Use',
+    title: 'Mass Ratio (μ)',
     content:
-      '1. Set the primary mass m₁ and stiffness k₁ (determines natural frequency).\n2. Set secondary mass m₂ (usually smaller than m₁).\n3. Adjust secondary stiffness k₂ to tune the TMD frequency.\n4. Set damping c₂ for the damper - balances energy absorption vs stability.\n5. Apply forcing and watch x₁ and x₂ graphs.\n6. Try to minimize x₁ amplitude by tuning.',
+      'Engineers must decide how heavy to make the damper. This is defined by the mass ratio μ = m₂ / m₁.',
+    equations: [
+      {
+        latex: String.raw`\mu = \frac{m_2}{m_1}`,
+        description:
+          'Typical values range from 1% to 5% (0.01 to 0.05). A larger damper covers a wider range of frequencies and is more robust to tuning errors, but adds massive weight and cost to the building.',
+      },
+    ],
   },
   {
-    title: 'Beginner Tips',
+    title: 'Real World Applications',
     content:
-      'Start with "Optimal TMD" scenario to see full suppression. Then switch to "No Damper" to see resonance without TMD. Understand that the damper reduces primary amplitude by amplifying secondary displacement. Tuning is critical - slightly off-tune can reduce effectiveness. Many real-world structures use TMDs.',
+      "- **Taipei 101**: Features a massive 730-ton steel pendulum suspended between the 87th and 92nd floors to counteract typhoon winds.\n- **Bridges**: London's Millennium Bridge was famously retrofitted with TMDs after it began wobbling violently on opening day due to pedestrian footsteps.\n- **Power Lines**: If you look closely at high-voltage power lines, you will often see small dumbbell-shaped weights hanging from the wires. These are Stockbridge dampers, a type of TMD used to prevent wind-induced vibrations from snapping the cables.",
   },
 ];
 
@@ -80,28 +88,139 @@ export const equations = [
 export const graphParams = [
   { key: 'x1', label: 'Primary Displacement ($x_1$)' },
   { key: 'x2', label: 'Damper Displacement ($x_2$)' },
+  { key: 'force', label: 'Driving Force' },
 ];
 
 export const controls = [
-  { key: 'm1', label: 'Primary Mass', min: 0.4, max: 4, step: 0.05 },
-  { key: 'm2', label: 'Damper Mass', min: 0.05, max: 2, step: 0.01 },
-  { key: 'k1', label: 'Primary Stiffness', min: 5, max: 150, step: 1 },
-  { key: 'k2', label: 'Damper Stiffness', min: 2, max: 80, step: 1 },
-  { key: 'c1', label: 'Primary Damping', min: 0, max: 4, step: 0.01 },
-  { key: 'c2', label: 'Damper Damping', min: 0, max: 6, step: 0.01 },
-  { key: 'forcingAmp', label: 'Force Amplitude', min: 0, max: 100, step: 1 },
-  { key: 'forcingFreq', label: 'Force Frequency', min: 0.1, max: 5, step: 0.01 },
+  { type: 'toggle', key: 'damperOn', label: 'Enable Damper (TMD)' },
+  { key: 'm1', label: 'Primary Mass (m₁)', min: 1, max: 20, step: 0.5 },
+  { key: 'k1', label: 'Primary Stiffness (k₁)', min: 10, max: 200, step: 1 },
+  { key: 'c1', label: 'Primary Damping (c₁)', min: 0, max: 5, step: 0.1 },
+  { key: 'm2', label: 'Damper Mass (m₂)', min: 0.1, max: 5, step: 0.1 },
+  { key: 'k2', label: 'Damper Stiffness (k₂)', min: 1, max: 50, step: 0.5 },
+  { key: 'c2', label: 'Damper Damping (c₂)', min: 0, max: 10, step: 0.1 },
+  { key: 'forcingAmp', label: 'Force Amplitude (F₀)', min: 0, max: 50, step: 1 },
+  { key: 'forcingFreq', label: 'Force Frequency (f)', min: 0.1, max: 2, step: 0.01 },
 ];
 
+export const scenarios = [
+  {
+    name: 'Optimal TMD',
+    description:
+      'TMD tuned to match the primary natural frequency. Notice how m₂ moves wildly while m₁ stays nearly still.',
+    params: {
+      m1: 10,
+      k1: 100,
+      c1: 0.5,
+      m2: 1.0,
+      k2: 10,
+      c2: 2.0,
+      forcingAmp: 20,
+      forcingFreq: 0.503, // Resonance freq = sqrt(100/10)/(2PI) = ~0.503 Hz
+      damperOn: true,
+    },
+  },
+  {
+    name: 'No Damper (Resonance)',
+    description: 'Driving at natural frequency with no tuned mass — amplitude grows dangerously.',
+    params: {
+      m1: 10,
+      k1: 100,
+      c1: 0.5,
+      m2: 1.0,
+      k2: 10,
+      c2: 2.0,
+      forcingAmp: 20,
+      forcingFreq: 0.503,
+      damperOn: false,
+    },
+  },
+  {
+    name: 'Off-Tune TMD',
+    description:
+      'TMD frequency mismatched. The damper absorbs some energy but is highly inefficient.',
+    params: {
+      m1: 10,
+      k1: 100,
+      c1: 0.5,
+      m2: 1.0,
+      k2: 25,
+      c2: 1.5,
+      forcingAmp: 20,
+      forcingFreq: 0.503,
+      damperOn: true,
+    },
+  },
+];
+
+export const guidedExperiments = [
+  {
+    title: 'Taming Resonance',
+    steps: [
+      {
+        instruction:
+          'The system is driven near its natural frequency WITHOUT the damper. Press Play.',
+        params: {
+          m1: 10,
+          k1: 100,
+          c1: 0.2,
+          m2: 1.0,
+          k2: 10,
+          c2: 1.5,
+          forcingAmp: 10,
+          forcingFreq: 0.5,
+          damperOn: false,
+        },
+        question: 'What happens to the primary mass when driven at its natural frequency?',
+        choices: [
+          'Small steady oscillation',
+          'Amplitude grows continuously (resonance)',
+          'The system becomes still',
+        ],
+        correctIndex: 1,
+        explanation:
+          'At resonance, energy input exceeds dissipation. Amplitude grows continuously — this is why uncontrolled resonance destroys structures like bridges and buildings.',
+      },
+      {
+        instruction:
+          'Now enable the tuned mass damper (TMD). Notice k1/m1 equals k2/m2. Reset and play.',
+        params: {
+          m1: 10,
+          k1: 100,
+          c1: 0.2,
+          m2: 1.0,
+          k2: 10,
+          c2: 1.5,
+          forcingAmp: 10,
+          forcingFreq: 0.5,
+          damperOn: true,
+        },
+        question: 'With the optimal TMD active, what happens?',
+        choices: [
+          'No change',
+          'Primary mass barely moves, damper mass swings wildly',
+          'Both masses swing wildly',
+        ],
+        correctIndex: 1,
+        explanation:
+          'The TMD absorbs energy at the resonant frequency. The secondary mass oscillates out of phase with the driving force, canceling it out.',
+      },
+    ],
+  },
+];
+
+// Physics Integration
 function deriv(state, t, p) {
   const [x1, v1, x2, v2] = state;
   const force = p.forcingAmp * Math.sin(2 * Math.PI * p.forcingFreq * t);
 
-  const relX = x1 - x2;
-  const relV = v1 - v2;
+  const relX = p.damperOn ? x1 - x2 : 0;
+  const relV = p.damperOn ? v1 - v2 : 0;
 
-  const a1 = (force - p.c1 * v1 - p.k1 * x1 - p.c2 * relV - p.k2 * relX) / p.m1;
-  const a2 = (p.c2 * relV + p.k2 * relX) / p.m2;
+  const F_coupling = p.damperOn ? p.c2 * relV + p.k2 * relX : 0;
+
+  const a1 = (force - p.c1 * v1 - p.k1 * x1 - F_coupling) / p.m1;
+  const a2 = p.damperOn ? F_coupling / p.m2 : 0;
 
   return [v1, a1, v2, a2];
 }
@@ -117,214 +236,256 @@ function rk4(state, t, h, p) {
   return state.map((v, i) => v + (h / 6) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]));
 }
 
-export const scenarios = [
-  {
-    name: 'No Damper (Resonance)',
-    description: 'Driving at natural frequency with no tuned mass — amplitude grows dramatically.',
-    params: {
-      m1: 10,
-      k1: 100,
-      c1: 0.5,
-      m2: 0.5,
-      k2: 5,
-      c2: 0.1,
-      F0: 5,
-      driveFreq: 3.16,
-      damperOn: false,
-    },
-  },
-  {
-    name: 'Optimal TMD',
-    description: 'TMD tuned to match the primary natural frequency — vibration suppressed.',
-    params: {
-      m1: 10,
-      k1: 100,
-      c1: 0.5,
-      m2: 1.0,
-      k2: 10,
-      c2: 2.0,
-      F0: 5,
-      driveFreq: 3.16,
-      damperOn: true,
-    },
-  },
-  {
-    name: 'Off-Tune TMD',
-    description: 'TMD frequency mismatched — partial suppression with split-peak resonance.',
-    params: {
-      m1: 10,
-      k1: 100,
-      c1: 0.5,
-      m2: 1.0,
-      k2: 25,
-      c2: 1.5,
-      F0: 5,
-      driveFreq: 3.16,
-      damperOn: true,
-    },
-  },
-  {
-    name: 'Earthquake Excitation',
-    description: 'Low-frequency high-amplitude driving — simulating seismic ground motion.',
-    params: {
-      m1: 10,
-      k1: 100,
-      c1: 0.5,
-      m2: 1.5,
-      k2: 10,
-      c2: 3.0,
-      F0: 15,
-      driveFreq: 1.5,
-      damperOn: true,
-    },
-  },
-];
+// Rendering Helpers
+function drawSpring(ctx, x1, y1, x2, y2, coils = 12, radius = 8) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const dist = Math.hypot(dx, dy);
+  const ang = Math.atan2(dy, dx);
 
-export const guidedExperiments = [
-  {
-    title: 'Taming Resonance',
-    steps: [
-      {
-        instruction:
-          'The building is being driven at its natural frequency with no TMD. Press Play and watch the amplitude.',
-        params: {
-          m1: 10,
-          k1: 100,
-          c1: 0.5,
-          m2: 0.5,
-          k2: 5,
-          c2: 0.1,
-          F0: 5,
-          driveFreq: 3.16,
-          damperOn: false,
-        },
-        question: 'What happens when driving frequency equals natural frequency?',
-        choices: [
-          'Small steady oscillation',
-          'Amplitude grows continuously (resonance)',
-          'The system becomes still',
-        ],
-        correctIndex: 1,
-        explanation:
-          'At resonance (ω_drive = ωₙ), energy input exceeds dissipation. Without damping, amplitude grows without bound — in reality, structures fail. This is why the Tacoma Narrows Bridge collapsed.',
-      },
-      {
-        instruction: 'Now enable the tuned mass damper with optimal parameters. Reset and play.',
-        params: {
-          m1: 10,
-          k1: 100,
-          c1: 0.5,
-          m2: 1.0,
-          k2: 10,
-          c2: 2.0,
-          F0: 5,
-          driveFreq: 3.16,
-          damperOn: true,
-        },
-        question: 'With the TMD active, what happens to the primary mass amplitude?',
-        choices: ['No change', 'Dramatically reduced', 'It oscillates faster'],
-        correctIndex: 1,
-        explanation:
-          'The TMD absorbs energy at the resonant frequency. The secondary mass oscillates in anti-phase with the primary, canceling the driving force. Taipei 101 uses a 730-ton TMD for exactly this purpose.',
-        tryThis:
-          "Watch how the secondary mass swings wildly — it's absorbing all the energy so the building doesn't have to.",
-      },
-    ],
-  },
-];
+  ctx.save();
+  ctx.translate(x1, y1);
+  ctx.rotate(ang);
+
+  ctx.strokeStyle = '#94a3b8';
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  const straight = 20;
+  if (dist <= straight * 2) {
+    ctx.lineTo(dist, 0);
+  } else {
+    ctx.lineTo(straight, 0);
+    const coilW = (dist - straight * 2) / coils;
+    for (let i = 0; i < coils; i++) {
+      const cx = straight + i * coilW;
+      ctx.lineTo(cx + coilW * 0.25, -radius);
+      ctx.lineTo(cx + coilW * 0.75, radius);
+      ctx.lineTo(cx + coilW, 0);
+    }
+    ctx.lineTo(dist, 0);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawDashpot(ctx, x1, y1, x2, y2, width = 14) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const dist = Math.hypot(dx, dy);
+  const ang = Math.atan2(dy, dx);
+
+  ctx.save();
+  ctx.translate(x1, y1);
+  ctx.rotate(ang);
+
+  const cylLen = 35;
+
+  // Cylinder attached to x1
+  ctx.strokeStyle = '#64748b';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'square';
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(15, 0);
+  ctx.moveTo(15, -width);
+  ctx.lineTo(15 + cylLen, -width);
+  ctx.moveTo(15, width);
+  ctx.lineTo(15 + cylLen, width);
+  ctx.moveTo(15, -width);
+  ctx.lineTo(15, width);
+  ctx.stroke();
+
+  // Plunger attached to x2
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(dist, 0);
+  ctx.lineTo(15 + cylLen - 5, 0); // rod
+  ctx.stroke();
+
+  ctx.strokeStyle = '#334155';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(15 + cylLen - 5, -width + 3);
+  ctx.lineTo(15 + cylLen - 5, width - 3); // piston head
+  ctx.stroke();
+
+  ctx.restore();
+}
 
 export function create(canvas, initParams = {}) {
   const ctx = canvas.getContext('2d');
-  const p = { ...DEFAULTS, ...initParams };
+  let p = { ...DEFAULTS, ...initParams };
 
   let state;
   let time;
-  let trace = [];
+  let maxDisp = 2;
 
   function initState() {
     state = [0, 0, 0, 0];
     time = 0;
-    trace = [];
+    maxDisp = 2;
   }
 
   function tick(dt) {
-    const sub = 10;
+    const sub = 20;
     const h = dt / sub;
     for (let i = 0; i < sub; i++) {
       state = rk4(state, time, h, p);
       time += h;
     }
-
-    trace.push([time, state[0], state[2]]);
-    if (trace.length > 500) trace.shift();
+    // Track maximum displacement to dynamically scale the view and keep masses on screen
+    maxDisp = Math.max(maxDisp, Math.abs(state[0]), p.damperOn ? Math.abs(state[2]) : 0);
   }
 
   function render() {
     const W = canvas.width;
     const H = canvas.height;
-    ctx.fillStyle = '#090911';
+
+    // Light Theme Background
+    ctx.fillStyle = '#f8fafc';
     ctx.fillRect(0, 0, W, H);
 
-    const baseY = H * 0.72;
-    const centerX = W * 0.5;
-    const pxPerUnit = Math.min(120, H * 0.15);
+    const groundY = H * 0.7;
+    const wallX = Math.max(50, W * 0.1);
 
-    const x1 = centerX + state[0] * pxPerUnit;
-    const x2 = centerX + state[2] * pxPerUnit;
+    // Auto-scale pixels per unit so large amplitudes don't go off canvas
+    const m1Equil = wallX + (W - wallX) * 0.4;
+    const maxSafePx = (W - wallX) * 0.35;
+    const pxPerUnit = Math.min(100, maxSafePx / maxDisp);
 
-    ctx.fillStyle = 'rgba(79, 195, 247,0.2)';
-    ctx.fillRect(0, baseY + 40, W, 6);
-
-    ctx.strokeStyle = 'rgba(203,213,225,0.55)';
-    ctx.lineWidth = 2;
+    // Track/Ground
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(wallX, groundY, W, H - groundY);
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.moveTo(centerX - 190, baseY + 22);
-    ctx.lineTo(x1 - 35, baseY + 22);
-    ctx.moveTo(x1 + 35, baseY + 22);
-    ctx.lineTo(x2 - 24, baseY + 22);
+    ctx.moveTo(wallX, groundY);
+    ctx.lineTo(W, groundY);
     ctx.stroke();
 
+    // Track markings
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 2;
+    for (let i = wallX + 50; i < W; i += 50) {
+      ctx.beginPath();
+      ctx.moveTo(i, groundY);
+      ctx.lineTo(i, groundY + 10);
+      ctx.stroke();
+    }
+
+    // Rigid Wall
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillRect(0, groundY - 200, wallX, 200 + (H - groundY));
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(wallX - 10, groundY - 200, 10, 200);
+
+    // Mass 1 (Primary)
+    const m1X = m1Equil + state[0] * pxPerUnit;
+    const m1W = 140;
+    const m1H = 90;
+    const m1Y = groundY - m1H / 2 - 12; // 12 for wheels
+
+    // Mass 2 (TMD)
+    const m2W = 60;
+    const m2H = 40;
+    const m2X = m1Equil + state[2] * pxPerUnit;
+    const m2Y = m1Y - m1H / 2 - m2H / 2 - 10; // resting on top of m1
+
+    // M1 Wheels
+    const wheelR = 10;
     ctx.fillStyle = '#334155';
-    ctx.fillRect(centerX - 190, baseY - 50, 8, 72);
+    ctx.beginPath();
+    ctx.arc(m1X - m1W / 2 + 20, m1Y + m1H / 2 + 2, wheelR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(m1X + m1W / 2 - 20, m1Y + m1H / 2 + 2, wheelR, 0, Math.PI * 2);
+    ctx.fill();
 
-    ctx.shadowBlur = 18;
-    ctx.shadowColor = '#4FC3F7';
-    ctx.fillStyle = '#7c3aed';
-    ctx.fillRect(x1 - 35, baseY - 50, 70, 72);
+    // M1 to Wall Connectors
+    drawSpring(ctx, wallX, m1Y - 20, m1X - m1W / 2, m1Y - 20, 12, 10);
+    drawDashpot(ctx, wallX, m1Y + 20, m1X - m1W / 2, m1Y + 20);
 
-    ctx.shadowColor = '#22d3ee';
-    ctx.fillStyle = '#0891b2';
-    ctx.fillRect(x2 - 24, baseY - 86, 48, 36);
+    // Render M1 Body
+    ctx.fillStyle = '#3b82f6'; // Blue
+    ctx.shadowColor = 'rgba(0,0,0,0.2)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 4;
+    ctx.fillRect(m1X - m1W / 2, m1Y - m1H / 2, m1W, m1H);
     ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
 
-    if (trace.length > 2) {
-      const gx = 24;
-      const gy = 24;
-      const gw = Math.min(360, W * 0.44);
-      const gh = 120;
+    // M1 Label
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 18px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('m₁', m1X, m1Y + 6);
 
-      ctx.fillStyle = 'rgba(15,23,42,0.65)';
-      ctx.fillRect(gx, gy, gw, gh);
-      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-      ctx.strokeRect(gx, gy, gw, gh);
+    // Damper Bracket on M1
+    ctx.fillStyle = '#475569';
+    const bracketX = m1X - m1W / 2 + 10;
+    ctx.fillRect(bracketX, m2Y - 20, 10, 40 + m2H / 2);
 
-      const minT = trace[0][0];
-      const maxT = trace[trace.length - 1][0];
-      const scaleY = 24;
+    if (p.damperOn) {
+      // M2 Wheels
+      const m2WheelR = 6;
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.arc(m2X - m2W / 2 + 10, m2Y + m2H / 2 + 4, m2WheelR, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(m2X + m2W / 2 - 10, m2Y + m2H / 2 + 4, m2WheelR, 0, Math.PI * 2);
+      ctx.fill();
 
-      for (let k = 1; k <= 2; k++) {
-        ctx.beginPath();
-        for (let i = 0; i < trace.length; i++) {
-          const [tt, p1, p2] = trace[i];
-          const xx = gx + ((tt - minT) / Math.max(1e-6, maxT - minT)) * gw;
-          const yy = gy + gh / 2 - (k === 1 ? p1 : p2) * scaleY;
-          if (i === 0) ctx.moveTo(xx, yy);
-          else ctx.lineTo(xx, yy);
-        }
-        ctx.strokeStyle = k === 1 ? 'rgba(167,139,250,0.95)' : 'rgba(34,211,238,0.95)';
-        ctx.lineWidth = 1.8;
-        ctx.stroke();
-      }
+      // M2 to M1 Connectors
+      drawSpring(ctx, bracketX + 10, m2Y - 10, m2X - m2W / 2, m2Y - 10, 8, 6);
+      drawDashpot(ctx, bracketX + 10, m2Y + 10, m2X - m2W / 2, m2Y + 10, 8);
+
+      // Render M2 Body
+      ctx.fillStyle = '#f59e0b'; // Amber
+      ctx.shadowColor = 'rgba(0,0,0,0.2)';
+      ctx.shadowBlur = 6;
+      ctx.shadowOffsetY = 3;
+      ctx.fillRect(m2X - m2W / 2, m2Y - m2H / 2, m2W, m2H);
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+
+      // M2 Label
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 16px "Inter", sans-serif';
+      ctx.fillText('m₂', m2X, m2Y + 6);
+    }
+
+    // Driving Force Vector
+    const force = p.forcingAmp * Math.sin(2 * Math.PI * p.forcingFreq * time);
+    if (Math.abs(force) > 0.1) {
+      const fLen = force * 2; // px scale for force vector
+      const dir = Math.sign(force);
+      const fStartX = m1X + m1W / 2;
+      const fStartY = m1Y;
+
+      ctx.strokeStyle = '#ef4444'; // Red force
+      ctx.fillStyle = '#ef4444';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(fStartX, fStartY);
+      ctx.lineTo(fStartX + fLen, fStartY);
+      ctx.stroke();
+
+      // Arrow head
+      ctx.beginPath();
+      ctx.moveTo(fStartX + fLen, fStartY);
+      ctx.lineTo(fStartX + fLen - dir * 12, fStartY - 8);
+      ctx.lineTo(fStartX + fLen - dir * 12, fStartY + 8);
+      ctx.fill();
+
+      ctx.font = '600 16px "Inter", sans-serif';
+      ctx.textAlign = dir > 0 ? 'left' : 'right';
+      ctx.fillText('F(t)', fStartX + fLen + dir * 10, fStartY + 5);
     }
   }
 
@@ -359,7 +520,6 @@ export function create(canvas, initParams = {}) {
       this.stop();
       initState();
       render();
-      this.start();
     },
     setParams(next) {
       Object.assign(p, next);
@@ -372,7 +532,8 @@ export function create(canvas, initParams = {}) {
       return {
         time,
         x1: state[0],
-        x2: state[2],
+        x2: p.damperOn ? state[2] : state[0], // If no damper, it doesn't move relative to ground or just stays at 0? Return 0 for graph clarity.
+        force: p.forcingAmp * Math.sin(2 * Math.PI * p.forcingFreq * time),
       };
     },
   };

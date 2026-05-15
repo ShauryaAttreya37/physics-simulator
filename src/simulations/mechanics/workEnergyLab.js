@@ -262,7 +262,7 @@ export function create(canvas, initParams = {}) {
     // Rotate the track frame
     ctx.rotate(-p.angle);
 
-    // The Track itself (Sleek sci-fi platform)
+    // Track surface
     const trackLen = 18 * scale;
     const trackH = 15;
 

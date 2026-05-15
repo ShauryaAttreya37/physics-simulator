@@ -37,8 +37,8 @@ export default function TopicsPage({ onBack }) {
               <div className="topic-track-slider custom-scroll" id={`track-${key}`}>
                 {topic.sims.map((sim) => (
                   <button key={sim.id} className="sim-card" onClick={() => setSelectedSim(sim)}>
-                    <div className="sim-card-preview" style={{ background: sim.gradient }}>
-                      <div className="sim-card-preview-icon" style={{ color: sim.accentColor }}>
+                    <div className="sim-card-preview">
+                      <div className="sim-card-preview-icon">
                         {ICONS[sim.id] || ICONS['default']}
                       </div>
                     </div>
@@ -69,6 +69,57 @@ export default function TopicsPage({ onBack }) {
 
 // SVG preview icons per sim
 const ICONS = {
+  'total-internal-reflection': (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      <line x1="8" y1="32" x2="56" y2="32" stroke="currentColor" strokeWidth="2" opacity="0.4" />
+      <path d="M 12 10 L 32 32" stroke="#f87171" strokeWidth="2.5" />
+      <path d="M 32 32 L 52 10" stroke="#f87171" strokeWidth="2.5" opacity="0.8" />
+      <path
+        d="M 32 32 L 42 54"
+        stroke="#f87171"
+        strokeWidth="1"
+        strokeDasharray="3 3"
+        opacity="0.4"
+      />
+      <circle cx="32" cy="32" r="3" fill="currentColor" />
+    </svg>
+  ),
+  'collisions-lab': (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      <rect x="8" y="24" width="16" height="16" fill="#60a5fa" opacity="0.8" />
+      <rect x="40" y="24" width="16" height="16" fill="#f87171" opacity="0.8" />
+      <path d="M 24 32 L 32 32" stroke="#60a5fa" strokeWidth="2" />
+      <path d="M 40 32 L 32 32" stroke="#f87171" strokeWidth="2" />
+      <circle cx="32" cy="32" r="4" fill="currentColor" opacity="0.4" />
+    </svg>
+  ),
+  'ideal-gas': (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      <rect
+        x="8"
+        y="8"
+        width="48"
+        height="48"
+        stroke="currentColor"
+        strokeWidth="2"
+        fill="none"
+        opacity="0.4"
+      />
+      {[
+        [20, 20],
+        [44, 24],
+        [32, 40],
+        [16, 44],
+        [48, 48],
+        [24, 32],
+        [40, 16],
+      ].map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r="3" fill="#60a5fa" opacity="0.8" />
+      ))}
+      <path d="M 40 16 L 46 12" stroke="#60a5fa" strokeWidth="1" opacity="0.4" />
+      <path d="M 20 20 L 14 26" stroke="#60a5fa" strokeWidth="1" opacity="0.4" />
+    </svg>
+  ),
   'double-pendulum': (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
       <circle cx="32" cy="8" r="4" fill="currentColor" opacity="0.5" />

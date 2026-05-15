@@ -162,7 +162,7 @@ export const guidedExperiments = [
         ],
         correctIndex: 1,
         commonMisconception:
-          '"45° is the magic angle" is only true in a vacuum. Students often learn this rule and apply it universally — but drag breaks the symmetry of the parabola, favoring lower angles.',
+          'The 45 degree launch angle is only optimal in a vacuum. Drag breaks the symmetry of the parabola and often favors lower angles.',
         explanation:
           'Air drag decelerates the projectile proportional to v². At high angles, the projectile spends more time at high altitude moving slowly — drag has more time to act. A lower angle keeps the projectile fast and reduces total flight time, yielding better range.',
         tryThis: 'Try 35° and 40° with the same drag — which gives the longest range?',
@@ -297,11 +297,11 @@ export function create(canvas, initParams = {}) {
     const W = canvas.width,
       H = canvas.height;
 
-    // Clean background
-    ctx.fillStyle = '#f8fafc';
+    // Professional clean background
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, W, H);
 
-    // Coordinate mapping
+    // Coordinate mapping (8% margin)
     const ox = W * 0.08;
     const oy = H * 0.82;
 
@@ -321,404 +321,144 @@ export function create(canvas, initParams = {}) {
     const sy = (wy) => oy - wy * scale;
 
     // --- Ground ---
-    ctx.fillStyle = '#f1f5f9';
-    ctx.fillRect(0, oy, W, H - oy);
-
-    // Ground line
     ctx.beginPath();
     ctx.moveTo(0, oy);
     ctx.lineTo(W, oy);
-    ctx.strokeStyle = '#cbd5e1';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Grass tufts
-    ctx.strokeStyle = 'rgba(50, 120, 50, 0.3)';
-    ctx.lineWidth = 1;
-    for (let gx = 10; gx < W; gx += 18) {
-      const gh = 3 + Math.random() * 5;
-      ctx.beginPath();
-      ctx.moveTo(gx, oy);
-      ctx.lineTo(gx - 2, oy - gh);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(gx, oy);
-      ctx.lineTo(gx + 2, oy - gh * 0.7);
-      ctx.stroke();
-    }
-
-    // --- Grid lines with labels ---
-    ctx.font = '9px "Montserrat", sans-serif';
+    // --- Grid lines ---
+    ctx.font = '10px "Inter", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
 
-    // Vertical grid (range)
+    // Horizontal axis (Range)
     const xGridStep = niceStep(targetW, 6);
-    for (let gv = xGridStep; gv < targetW * 1.2; gv += xGridStep) {
+    for (let gv = 0; gv < targetW * 1.2; gv += xGridStep) {
       const gx = sx(gv);
       if (gx > W - 10) break;
       ctx.beginPath();
       ctx.moveTo(gx, oy);
-      ctx.lineTo(gx, oy - targetH * scale * 1.1);
-      ctx.strokeStyle = 'rgba(0,0,0,0.05)';
-      ctx.lineWidth = 0.5;
-      ctx.stroke();
-      // Tick
-      ctx.beginPath();
-      ctx.moveTo(gx, oy);
       ctx.lineTo(gx, oy + 5);
-      ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+      ctx.strokeStyle = '#94a3b8';
       ctx.lineWidth = 1;
       ctx.stroke();
-      ctx.fillStyle = '#64748b';
-      ctx.fillText(`${gv.toFixed(0)}`, gx, oy + 7);
+      ctx.fillStyle = '#475569';
+      ctx.fillText(`${gv.toFixed(0)}`, gx, oy + 8);
     }
 
-    // Horizontal grid (height)
+    // Vertical axis (Height)
     const yGridStep = niceStep(targetH, 5);
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
-    for (let gh = yGridStep; gh < targetH * 1.2; gh += yGridStep) {
+    for (let gh = 0; gh < targetH * 1.2; gh += yGridStep) {
       const gy = sy(gh);
       if (gy < 10) break;
       ctx.beginPath();
-      ctx.moveTo(ox, gy);
-      ctx.lineTo(ox + targetW * scale * 1.1, gy);
-      ctx.strokeStyle = 'rgba(0,0,0,0.05)';
-      ctx.lineWidth = 0.5;
-      ctx.stroke();
-      // Tick
-      ctx.beginPath();
       ctx.moveTo(ox - 5, gy);
       ctx.lineTo(ox, gy);
-      ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+      ctx.strokeStyle = '#94a3b8';
       ctx.lineWidth = 1;
       ctx.stroke();
-      ctx.fillStyle = '#64748b';
+      ctx.fillStyle = '#475569';
       ctx.fillText(`${gh.toFixed(0)}`, ox - 8, gy);
     }
 
-    // Axis labels
-    ctx.font = 'bold 10px "Montserrat", sans-serif';
-    ctx.fillStyle = '#94a3b8';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.fillText('Range [m]', ox + W * 0.4, oy + 22);
-    ctx.save();
-    ctx.translate(ox - 28, oy - H * 0.25);
-    ctx.rotate(-Math.PI / 2);
-    ctx.fillText('Height [m]', 0, 0);
-    ctx.restore();
+    // --- Ideal Trajectory (Reference) ---
+    const idealPts = getIdealTrajectory(rangeIdeal * 1.15 + 10);
+    if (idealPts.length > 1) {
+      ctx.beginPath();
+      ctx.moveTo(sx(idealPts[0].x), sy(idealPts[0].y));
+      for (const pt of idealPts) ctx.lineTo(sx(pt.x), sy(pt.y));
+      ctx.strokeStyle = 'rgba(71, 85, 105, 0.2)';
+      ctx.setLineDash([5, 5]);
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
 
-    // --- Launch origin marker ---
+    // --- Actual Trajectory ---
+    if (trail.length > 1) {
+      ctx.beginPath();
+      ctx.moveTo(sx(trail[0].x), sy(trail[0].y));
+      for (let i = 1; i < trail.length; i++) {
+        ctx.lineTo(sx(trail[i].x), sy(trail[i].y));
+      }
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+    }
+
+    // --- Interaction Handles ---
     const launchX = sx(0);
     const launchY = sy(0);
     currentLaunchX = launchX;
     currentLaunchY = launchY;
 
-    // Origin dot
-    ctx.beginPath();
-    ctx.arc(launchX, launchY, 5, 0, Math.PI * 2);
-    ctx.fillStyle = '#fb7185';
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = '#fb7185';
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    // Angle arc indicator
-    const arcR = 25;
-    ctx.beginPath();
-    ctx.arc(launchX, launchY, arcR, 0, -rad, true);
-    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    // Angle label
-    const labelAngleRad = rad / 2;
-    ctx.fillStyle = '#64748b';
-    ctx.font = '9px "Montserrat", sans-serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(
-      `${p.launchAngle}°`,
-      launchX + (arcR + 6) * Math.cos(-labelAngleRad),
-      launchY + (arcR + 6) * Math.sin(-labelAngleRad),
-    );
-
-    // Launch direction vector (Draggable)
     const dirLen = Math.max(20, p.launchSpeed * 1.5);
     const tipX = launchX + dirLen * Math.cos(rad);
     const tipY = launchY - dirLen * Math.sin(rad);
     currentTipX = tipX;
     currentTipY = tipY;
 
-    // Vector line
+    // Vector direction
     ctx.beginPath();
     ctx.moveTo(launchX, launchY);
     ctx.lineTo(tipX, tipY);
-    ctx.strokeStyle = isDraggingVector ? '#fbbf24' : 'rgba(251, 113, 133, 0.8)';
-    ctx.lineWidth = isDraggingVector ? 4 : 2;
-    ctx.setLineDash(isDraggingVector ? [] : [4, 4]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Draggable handle at the tip
-    ctx.beginPath();
-    ctx.arc(tipX, tipY, isDraggingVector ? 10 : 6, 0, Math.PI * 2);
-    ctx.fillStyle = isDraggingVector ? '#fbbf24' : '#e11d48';
-    ctx.fill();
-    ctx.strokeStyle = isDraggingVector ? '#fff' : '#be123c';
+    ctx.strokeStyle = isDraggingVector ? '#3b82f6' : '#94a3b8';
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // --- Ideal Parabola (dashed) ---
-    const idealPts = getIdealTrajectory(rangeIdeal * 1.15 + 10);
-    if (idealPts.length > 1) {
-      ctx.beginPath();
-      ctx.moveTo(sx(idealPts[0].x), sy(idealPts[0].y));
-      for (const pt of idealPts) {
-        ctx.lineTo(sx(pt.x), sy(pt.y));
-      }
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
-      ctx.setLineDash([6, 6]);
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // Label
-      const topIdx = Math.floor(idealPts.length * 0.4);
-      const topPt = idealPts[topIdx];
-      if (topPt) {
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = 'italic 9px "Montserrat", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Vacuum (analytical)', sx(topPt.x), sy(topPt.y) - 12);
-      }
-    }
-
-    // --- Numerical Trail (gradient) ---
-    if (trail.length > 1) {
-      for (let i = 1; i < trail.length; i++) {
-        const frac = i / trail.length;
-        const pt0 = trail[i - 1];
-        const pt1 = trail[i];
-
-        // Speed-based color (slow=cyan, fast=rose)
-        const speed = Math.sqrt(pt1.vx * pt1.vx + pt1.vy * pt1.vy);
-        const speedFrac = Math.min(speed / (p.launchSpeed * 1.1), 1);
-        const r = Math.round(60 + speedFrac * 191);
-        const g = Math.round(165 - speedFrac * 100);
-        const b = Math.round(250 - speedFrac * 115);
-
-        ctx.beginPath();
-        ctx.moveTo(sx(pt0.x), sy(pt0.y));
-        ctx.lineTo(sx(pt1.x), sy(pt1.y));
-        ctx.strokeStyle = `rgba(${r},${g},${b},${0.4 + frac * 0.6})`;
-        ctx.lineWidth = 1.5 + frac * 1.5;
-        ctx.stroke();
-      }
-
-      // Trail label
-      const labelIdx = Math.floor(trail.length * 0.6);
-      if (trail[labelIdx]) {
-        ctx.fillStyle = '#e11d48';
-        ctx.font = 'bold 9px "Montserrat", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Actual Path (with drag)', sx(trail[labelIdx].x), sy(trail[labelIdx].y) + 15);
-      }
-    }
-
-    // --- Force Vectors ---
-    const px = sx(x);
-    const py = sy(Math.max(0, y));
-
-    if (!landed && simTime > 0.01 && y > 0.1) {
-      const speed = Math.sqrt(vx * vx + vy * vy);
-      const vecScale = Math.min(scale * 0.35, 40);
-
-      // Velocity vector (blue)
-      drawArrow(ctx, px, py, px + vx * vecScale * 0.06, py - vy * vecScale * 0.06, {
-        color: '#60a5fa',
-        lineWidth: 2,
-        headLength: 8,
-      });
-
-      // Gravity vector (purple, always down)
-      const gVecLen = Math.min(p.gravity * vecScale * 0.15, 50);
-      drawArrow(ctx, px, py, px, py + gVecLen, { color: '#a78bfa', lineWidth: 2, headLength: 7 });
-
-      // Drag vector (yellow, opposes velocity)
-      if (p.dragCoeff > 0 && speed > 0.1) {
-        const dragAx = -p.dragCoeff * speed * vx;
-        const dragAy = -p.dragCoeff * speed * vy;
-        const dragScale = vecScale * 0.8;
-        const dragEndX = px + dragAx * dragScale * 0.06;
-        const dragEndY = py - dragAy * dragScale * 0.06;
-        drawArrow(ctx, px, py, dragEndX, dragEndY, {
-          color: '#fde047',
-          lineWidth: 2,
-          headLength: 7,
-        });
-      }
-    }
+    // Handle
+    ctx.beginPath();
+    ctx.arc(tipX, tipY, 6, 0, Math.PI * 2);
+    ctx.fillStyle = isDraggingVector ? '#3b82f6' : '#ffffff';
+    ctx.fill();
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
     // --- Projectile ---
     if (!landed) {
-      const projR = 6 + Math.sqrt(p.mass) * 2;
+      const px = sx(x);
+      const py = sy(y);
       ctx.beginPath();
-      ctx.arc(px, py, projR, 0, Math.PI * 2);
-
-      const projGrad = ctx.createRadialGradient(px - 2, py - 2, 1, px, py, projR);
-      projGrad.addColorStop(0, '#fecdd3');
-      projGrad.addColorStop(0.6, '#fb7185');
-      projGrad.addColorStop(1, '#e11d48');
-      ctx.fillStyle = projGrad;
+      ctx.arc(px, py, 6, 0, Math.PI * 2);
+      ctx.fillStyle = '#1e293b';
       ctx.fill();
-    }
-
-    // --- Impact effect ---
-    if (landed && impactFrame < 60) {
-      const landPx = sx(landX);
-      const landPy = sy(0);
-      const f = impactFrame / 60;
-
-      // Expanding rings
-      for (let ring = 0; ring < 3; ring++) {
-        const delay = ring * 0.15;
-        const rf = Math.max(0, Math.min(1, (f - delay) / (1 - delay)));
-        if (rf <= 0) continue;
-        const radius = 8 + rf * 40 * (1 + ring * 0.5);
-        ctx.beginPath();
-        ctx.arc(landPx, landPy, radius, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(251, 113, 133, ${(1 - rf) * 0.4})`;
-        ctx.lineWidth = 2 - rf * 1.5;
-        ctx.stroke();
-      }
-
-      // Impact dust particles
-      for (let pi = 0; pi < 8; pi++) {
-        const angle = (pi / 8) * Math.PI + (Math.random() - 0.5) * 0.2;
-        const dist = f * 30 * (1 + Math.random());
-        const dx = Math.cos(angle) * dist;
-        const dy = -Math.abs(Math.sin(angle)) * dist * 0.7;
-        ctx.beginPath();
-        ctx.arc(landPx + dx, landPy + dy, 2 * (1 - f), 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(180, 160, 130, ${(1 - f) * 0.6})`;
-        ctx.fill();
-      }
-
-      // Landing mark
-      ctx.beginPath();
-      ctx.arc(landPx, landPy, 4, 0, Math.PI * 2);
-      ctx.fillStyle = '#fb7185';
-      ctx.fill();
-
-      // Landing line indicator
-      ctx.setLineDash([3, 3]);
-      ctx.beginPath();
-      ctx.moveTo(landPx, landPy);
-      ctx.lineTo(landPx, landPy - 30);
-      ctx.strokeStyle = 'rgba(251, 113, 133, 0.4)';
+      ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 1;
       ctx.stroke();
-      ctx.setLineDash([]);
     }
 
-    // --- Max height indicator ---
-    if (maxHeight > 0 && trail.length > 5) {
-      const mhY = sy(maxHeight);
-      ctx.setLineDash([4, 6]);
-      ctx.beginPath();
-      ctx.moveTo(ox, mhY);
-      ctx.lineTo(ox + 20, mhY);
-      ctx.strokeStyle = 'rgba(96, 165, 250, 0.3)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = 'rgba(96, 165, 250, 0.35)';
-      ctx.font = 'bold 9px "Montserrat", sans-serif';
-      ctx.textAlign = 'left';
-      ctx.fillText(`H=${maxHeight.toFixed(1)}m`, ox + 2, mhY - 8);
-    }
-
-    // --- HUD Panel ---
-    const speed = Math.sqrt(vx * vx + vy * vy);
-    const hudX = W - 200;
-    const hudY = 16;
-    const hudW = 185;
-    const hudH = 155;
-
-    // HUD background
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.beginPath();
-    ctx.roundRect(hudX, hudY, hudW, hudH, 8);
-    ctx.fill();
-    ctx.strokeStyle = '#e2e8f0';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    ctx.font = 'bold 11px "Montserrat", sans-serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    const hudLines = [
-      { label: 'Time', value: `${simTime.toFixed(2)} s`, color: '#e4e4e7' },
-      { label: 'Speed', value: `${speed.toFixed(1)} m/s`, color: '#60a5fa' },
-      { label: 'Height', value: `${Math.max(0, y).toFixed(1)} m`, color: '#a78bfa' },
-      { label: 'Range', value: `${x.toFixed(1)} m`, color: '#fb7185' },
-      { label: 'Max H', value: `${maxHeight.toFixed(1)} m`, color: '#34d399' },
-      { label: 'Energy', value: `${energy().toFixed(1)} J`, color: '#FFD166' },
-    ];
-
-    ctx.fillStyle = '#64748b';
-    ctx.font = 'bold 10px "Montserrat", sans-serif';
-    ctx.fillText('FLIGHT DATA', hudX + 10, hudY + 8);
-
-    hudLines.forEach((line, i) => {
-      const ly = hudY + 24 + i * 20;
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '10px "Montserrat", sans-serif';
-      ctx.fillText(line.label, hudX + 10, ly);
-      ctx.fillStyle = line.color;
-      ctx.font = 'bold 11px "Montserrat", sans-serif';
-      ctx.textAlign = 'right';
-      ctx.fillText(line.value, hudX + hudW - 10, ly);
-      ctx.textAlign = 'left';
-    });
-
-    // --- Status indicator ---
+    // --- Landing Mark ---
     if (landed) {
-      ctx.fillStyle = 'rgba(251, 113, 133, 0.8)';
-      ctx.font = 'bold 10px "Montserrat", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('▎LANDED', hudX + hudW / 2, hudY + hudH + 8);
-    } else if (simTime > 0) {
-      ctx.fillStyle = 'rgba(52, 211, 153, 0.6)';
-      ctx.font = 'bold 10px "Montserrat", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('● IN FLIGHT', hudX + hudW / 2, hudY + hudH + 8);
+      const landPx = sx(landX);
+      ctx.beginPath();
+      ctx.arc(landPx, oy, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#ef4444';
+      ctx.fill();
     }
 
-    // --- Vector legend ---
-    const legX = 16;
-    const legY = 16;
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-    ctx.beginPath();
-    ctx.roundRect(legX, legY, 110, 70, 6);
-    ctx.fill();
+    // --- HUD ---
+    const hudX = W - 180;
+    const hudY = 20;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.fillRect(hudX, hudY, 160, 100);
     ctx.strokeStyle = '#e2e8f0';
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    ctx.strokeRect(hudX, hudY, 160, 100);
 
-    ctx.font = 'bold 9px "Montserrat", sans-serif';
+    ctx.fillStyle = '#475569';
+    ctx.font = 'bold 11px sans-serif';
     ctx.textAlign = 'left';
-    const legends = [
-      { color: '#60a5fa', label: '→ Velocity' },
-      { color: '#fde047', label: '→ Air Drag' },
-      { color: '#a78bfa', label: '↓ Gravity' },
-    ];
-    legends.forEach((leg, i) => {
-      const ly = legY + 12 + i * 20;
-      ctx.fillStyle = leg.color;
-      ctx.fillText(leg.label, legX + 10, ly);
-    });
+    ctx.fillText('FLIGHT DATA', hudX + 10, hudY + 20);
+
+    ctx.font = '11px sans-serif';
+    ctx.fillText(`Time: ${simTime.toFixed(2)}s`, hudX + 10, hudY + 40);
+    ctx.fillText(`Range: ${x.toFixed(1)}m`, hudX + 10, hudY + 55);
+    ctx.fillText(`Height: ${y.toFixed(1)}m`, hudX + 10, hudY + 70);
+    ctx.fillText(`Speed: ${Math.hypot(vx, vy).toFixed(1)}m/s`, hudX + 10, hudY + 85);
   }
 
   // --- Utility: draw arrow with arrowhead ---

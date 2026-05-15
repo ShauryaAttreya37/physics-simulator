@@ -12,12 +12,18 @@ import {
   Video,
   Square,
 } from 'lucide-react';
+import { ArrayBufferTarget, Muxer } from 'mp4-muxer';
 import MakieGraph, { drawMakieGraph } from './MakieGraph';
 import DataReadout from './DataReadout';
 import TheoryChalkboard, { legacyToSections } from './TheoryChalkboard';
 import { inferControlTooltip } from '../constants/physicsTooltips';
 import { usePhysicsEngine } from '../hooks/usePhysicsEngine';
 import { useSandboxStore } from '../store/sandboxStore';
+
+const EXPORT_VIDEO_WIDTH = 1920;
+const EXPORT_VIDEO_HEIGHT = 1080;
+const EXPORT_VIDEO_FPS = 60;
+const EXPORT_VIDEO_BITRATE = 12_000_000;
 
 function formatValue(value, step) {
   if (typeof value !== 'number') return String(value);
@@ -159,8 +165,8 @@ function drawExportOverlayFrame({
   const ctx = targetCanvas.getContext('2d');
 
   // High-definition export (1920x1080)
-  const width = 1920;
-  const height = 1080;
+  const width = EXPORT_VIDEO_WIDTH;
+  const height = EXPORT_VIDEO_HEIGHT;
   const panelWidth = 480;
   const simWidth = width - panelWidth;
 
@@ -263,9 +269,7 @@ export default function SimulationRunner({ sim, onBack }) {
   const canvasRef = useRef(null);
   const simRef = useRef(null);
   const runningRef = useRef(false);
-  const mediaRecorderRef = useRef(null);
-  const recordedChunksRef = useRef([]);
-  const recordingStartedAtRef = useRef(0);
+  const recordingSessionRef = useRef(null);
   const recordingFrameTimerRef = useRef(null);
   const recordingCanvasRef = useRef(null);
 
@@ -280,6 +284,7 @@ export default function SimulationRunner({ sim, onBack }) {
   const [runnerError, setRunnerError] = useState('');
   const [exportToast, setExportToast] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [isExportingVideo, setIsExportingVideo] = useState(false);
   const [globalPan, setGlobalPan] = useState({ x: 0, y: 0 });
 
   const isModern = !!(sim.init && sim.update);
@@ -543,55 +548,134 @@ export default function SimulationRunner({ sim, onBack }) {
     });
   }, [sim]);
 
+  const downloadBlob = useCallback((blob, filename) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  }, []);
+
   const startRecording = useCallback(() => {
-    if (runnerError) return;
+    if (runnerError || isExportingVideo) return;
     const recordingCanvas = recordingCanvasRef.current;
     if (!recordingCanvas) return;
-
-    drawRecordingFrame();
-    const stream = recordingCanvas.captureStream(60);
-    const options = { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 8000000 };
-
-    let recorder;
-    try {
-      recorder = new MediaRecorder(stream, options);
-    } catch {
-      recorder = new MediaRecorder(stream);
+    if (typeof VideoEncoder === 'undefined' || typeof VideoFrame === 'undefined') {
+      setExportToast('MP4 export requires a browser with WebCodecs support.');
+      return;
     }
 
-    recordedChunksRef.current = [];
-    recordingStartedAtRef.current = Date.now();
+    drawRecordingFrame();
 
-    recorder.ondataavailable = (event) => {
-      if (event.data.size > 0) recordedChunksRef.current.push(event.data);
+    let encoder;
+    let muxer;
+    let target;
+    try {
+      target = new ArrayBufferTarget();
+      muxer = new Muxer({
+        target,
+        video: {
+          codec: 'avc',
+          width: EXPORT_VIDEO_WIDTH,
+          height: EXPORT_VIDEO_HEIGHT,
+          frameRate: EXPORT_VIDEO_FPS,
+        },
+        fastStart: 'in-memory',
+        firstTimestampBehavior: 'offset',
+      });
+
+      encoder = new VideoEncoder({
+        output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+        error: (error) => {
+          console.error('Video export failed:', error);
+        },
+      });
+
+      encoder.configure({
+        codec: 'avc1.420028',
+        width: EXPORT_VIDEO_WIDTH,
+        height: EXPORT_VIDEO_HEIGHT,
+        bitrate: EXPORT_VIDEO_BITRATE,
+        framerate: EXPORT_VIDEO_FPS,
+        avc: { format: 'avc' },
+      });
+    } catch (error) {
+      console.error('Unable to start MP4 export:', error);
+      setExportToast('This browser could not start the MP4 encoder.');
+      try {
+        encoder?.close();
+      } catch {
+        // Ignore encoder shutdown errors after failed initialization.
+      }
+      return;
+    }
+
+    recordingSessionRef.current = {
+      encoder,
+      muxer,
+      target,
+      frameIndex: 0,
+      startedAt: Date.now(),
     };
 
-    recorder.onstop = () => {
-      clearRecordingFrameTimer();
-      const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${sim.id}_recording_${Date.now()}.webm`;
-      a.click();
-      URL.revokeObjectURL(url);
-    };
-
-    const [videoTrack] = stream.getVideoTracks();
     recordingFrameTimerRef.current = window.setInterval(() => {
       drawRecordingFrame();
-      videoTrack?.requestFrame?.();
-    }, 1000 / 60);
+      const session = recordingSessionRef.current;
+      if (!session) return;
+      const timestamp = Math.round((session.frameIndex * 1_000_000) / EXPORT_VIDEO_FPS);
+      const frame = new VideoFrame(recordingCanvas, { timestamp });
+      session.encoder.encode(frame, {
+        keyFrame: session.frameIndex % EXPORT_VIDEO_FPS === 0,
+      });
+      frame.close();
+      session.frameIndex += 1;
+    }, 1000 / EXPORT_VIDEO_FPS);
 
-    recorder.start();
-    mediaRecorderRef.current = recorder;
     setIsRecording(true);
-  }, [clearRecordingFrameTimer, drawRecordingFrame, sim.id, runnerError]);
+    setExportToast('Recording 1080p MP4...');
+  }, [drawRecordingFrame, isExportingVideo, runnerError]);
 
-  const stopRecording = useCallback(() => {
-    mediaRecorderRef.current?.stop();
+  const stopRecording = useCallback(async () => {
+    const session = recordingSessionRef.current;
+    if (!session) return;
+
+    clearRecordingFrameTimer();
     setIsRecording(false);
-  }, []);
+    setIsExportingVideo(true);
+    setExportToast('Encoding MP4...');
+
+    try {
+      await session.encoder.flush();
+      session.muxer.finalize();
+      const blob = new Blob([session.target.buffer], { type: 'video/mp4' });
+      downloadBlob(blob, `${sim.id}_recording_${session.startedAt}.mp4`);
+      setExportToast('MP4 export complete.');
+    } catch (error) {
+      console.error('Unable to finalize MP4 export:', error);
+      setExportToast('MP4 export failed.');
+    } finally {
+      session.encoder.close();
+      recordingSessionRef.current = null;
+      setIsExportingVideo(false);
+    }
+  }, [clearRecordingFrameTimer, downloadBlob, sim.id]);
+
+  useEffect(() => {
+    return () => {
+      clearRecordingFrameTimer();
+      const session = recordingSessionRef.current;
+      if (!session) return;
+      try {
+        session.encoder.close();
+      } catch {
+        // Ignore encoder shutdown errors during unmount.
+      }
+      recordingSessionRef.current = null;
+    };
+  }, [clearRecordingFrameTimer]);
 
   const eqSections = useMemo(() => {
     return sim.equationSections || legacyToSections(sim.equations, sim.title);
@@ -601,17 +685,17 @@ export default function SimulationRunner({ sim, onBack }) {
   const { showReadout, toggleReadout } = useSandboxStore();
 
   return (
-    <div className={`sim-runner-research ${showMobilePanel ? 'mobile-panel-open' : ''}`}>
+    <div className={`sim-runner ${showMobilePanel ? 'mobile-panel-open' : ''}`}>
       <div className="sim-main-area">
         <div className="sim-runner-top-bar">
-          <button className="icon-btn" onClick={onBack} title="Return to Laboratory">
+          <button className="icon-btn" onClick={onBack} title="Return to lab">
             <ArrowLeft size={16} />
           </button>
           <div className="sim-title-block">
             <div className="sim-title">{sim.title}</div>
             <div className="sim-meta">
               <span className="method-badge rk45">{String(sim.method || 'RK4').toUpperCase()}</span>
-              <span>Live solver</span>
+              <span>Running model</span>
             </div>
           </div>
 
@@ -635,9 +719,10 @@ export default function SimulationRunner({ sim, onBack }) {
             <button
               className={`btn-export ${isRecording ? 'active' : ''}`}
               onClick={isRecording ? stopRecording : startRecording}
+              disabled={isExportingVideo}
             >
               {isRecording ? <Square size={11} /> : <Video size={12} />}{' '}
-              {isRecording ? 'Stop' : 'Record'}
+              {isRecording ? 'Stop' : isExportingVideo ? 'Encoding...' : 'Record MP4'}
             </button>
           </div>
 

@@ -19,7 +19,7 @@
   border-radius: var(--r-lg);
 }
 
-.glass-nav {
+.home-nav {
   min-height: 68px;
   padding: 0 24px;
   display: grid;
@@ -109,8 +109,7 @@
   color: var(--text);
   font-size: clamp(32px, 8vw, 64px);
   line-height: 1.04;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-weight: 760;
   text-wrap: balance;
 }
 
@@ -141,7 +140,7 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
-  background: var(--surface-muted);
+  background: var(--surface);
   overflow: hidden;
 }
 
@@ -188,7 +187,7 @@
     border-radius: 0;
   }
 
-  .glass-nav {
+  .home-nav {
     padding: 0 14px;
     gap: 12px;
   }

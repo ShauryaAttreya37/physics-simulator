@@ -5,7 +5,7 @@
  */
 
 /**
- * Draws a high-fidelity arrow on a 2D canvas.
+ * Draws an arrow on a 2D canvas.
  * @param {CanvasRenderingContext2D} ctx
  * @param {number} x1 - Start X
  * @param {number} y1 - Start Y

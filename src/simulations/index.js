@@ -23,15 +23,14 @@ import * as coulombLaw from './electromagnetism/coulombLaw';
 import * as electrostaticFields from './electromagnetism/electrostaticFields';
 import * as maxwellWaves from './electromagnetism/maxwellWaves';
 import * as faradayLaw from './electromagnetism/faradayLaw';
-import * as lorentzForce from './electromagnetism/lorentzForce';
-import * as biotSavart from './electromagnetism/biotSavart';
-import * as capacitor from './electromagnetism/capacitor';
-import * as rlcCircuit from './electromagnetism/rlcCircuit';
 
 import * as harmonicOscillator from './quantum/harmonicOscillator';
 import * as doubleSlit from './quantum/doubleSlit';
 import * as hydrogenOrbitals from './quantum/hydrogenOrbitals';
 import * as rayOptics from './optics/rayOptics';
+import * as totalInternalReflection from './optics/totalInternalReflection';
+import * as collisions from './mechanics/collisions';
+import * as idealGas from './thermodynamics/idealGas';
 import { inferControlTooltip } from '../constants/physicsTooltips';
 
 const CONTROL_MARKERS = {
@@ -204,10 +203,8 @@ export const TOPICS = {
         id: 'double-pendulum',
         title: 'Double Pendulum',
         description:
-          'Two linked pendulums exhibiting deterministic chaos. Tiny changes in initial conditions lead to wildly different trajectories — a hallmark of nonlinear dynamics.',
+          'Two linked pendulums with sensitive dependence on starting conditions. Compare angle, velocity, and energy over time.',
         tags: ['Chaos Theory', 'RK45 Adaptive', 'Lagrangian'],
-        gradient: 'linear-gradient(135deg, #1a0533 0%, #0d1a4a 100%)',
-        accentColor: '#4FC3F7',
         method: 'rk45',
         create: doublePendulum.create,
         controls: doublePendulum.controls,
@@ -224,8 +221,7 @@ export const TOPICS = {
         description:
           'Pulley system with real-time force vectors, tension analysis, energy tracking, and displacement/velocity graphs. Includes optional friction and pulley inertia.',
         tags: ['Kinematics', 'Analytical', 'Force Vectors'],
-        gradient: 'linear-gradient(135deg, #0d0d1a 0%, #1a1a2e 100%)',
-        accentColor: '#fde047',
+
         method: 'analytical',
         create: atwoodsMachine.create,
         controls: atwoodsMachine.controls,
@@ -238,10 +234,9 @@ export const TOPICS = {
         id: 'projectile-motion',
         title: 'Projectile Motion',
         description:
-          'RK4-integrated ballistic trajectory with quadratic air drag, cannon launcher, terrain, velocity/drag/gravity vectors, impact effects, and analytical vacuum comparison.',
+          'Ballistic motion with optional air drag. Adjust launch speed, angle, mass, and gravity, then compare the path with the vacuum solution.',
         tags: ['Air Drag', 'Parabola', 'RK4', 'Ballistics'],
-        gradient: 'linear-gradient(135deg, #0a0e1a 0%, #1a2540 100%)',
-        accentColor: '#fb7185',
+
         method: 'rk4',
         create: projectileMotion.create,
         controls: projectileMotion.controls,
@@ -256,10 +251,9 @@ export const TOPICS = {
         id: 'lorenz-attractor',
         title: 'Lorenz Attractor',
         description:
-          'The iconic butterfly-shaped strange attractor — three coupled ODEs that produce deterministic chaos. The canonical Julia/Makie visualization.',
+          'Three coupled differential equations that produce a strange attractor. Adjust the parameters and watch the trajectory change.',
         tags: ['Strange Attractor', 'RK4', 'Chaos'],
-        gradient: 'linear-gradient(135deg, #0a0520 0%, #1a0a30 100%)',
-        accentColor: '#fde725',
+
         method: 'rk4',
         create: lorenzAttractor.create,
         controls: lorenzAttractor.controls,
@@ -272,10 +266,9 @@ export const TOPICS = {
         id: 'orbital-gravity',
         title: 'Orbital Gravity',
         description:
-          'The figure-8 three-body choreography — a rare stable solution to the N-body problem. Integrated with a 4th-order Yoshida symplectic method for superior energy conservation.',
+          'A three-body gravity model using a symplectic integrator. Track orbital paths, energy, and angular momentum.',
         tags: ['N-Body', 'Yoshida⁴ Symplectic', 'Celestial'],
-        gradient: 'linear-gradient(135deg, #02020d 0%, #0a0820 100%)',
-        accentColor: '#f97316',
+
         method: 'yoshida4',
         create: orbitalGravity.create,
         controls: orbitalGravity.controls,
@@ -290,10 +283,9 @@ export const TOPICS = {
         id: 'damped-oscillator',
         title: 'Damped Harmonic Oscillator',
         description:
-          'Mass-spring-damper system showing underdamped, critically damped, and overdamped regimes. Analytical vs numerical solution comparison with phase portrait.',
+          'Mass-spring-damper motion across underdamped, critically damped, and overdamped cases.',
         tags: ['Analytical vs Numerical', 'Phase Portrait', 'Damping'],
-        gradient: 'linear-gradient(135deg, #0a1628 0%, #061020 100%)',
-        accentColor: '#60a5fa',
+
         method: 'rk4',
         create: dampedOscillator.create,
         controls: dampedOscillator.controls,
@@ -305,13 +297,26 @@ export const TOPICS = {
         scenarios: dampedOscillator.scenarios,
       },
       {
+        id: 'collisions-lab',
+        title: 'Collisions Lab',
+        description:
+          'Explore 1D elastic and inelastic collisions. Adjust masses, velocities, and restitution to see momentum and energy conservation in action.',
+        tags: ['Momentum', 'Conservation', 'Elasticity'],
+        method: 'analytic',
+        create: collisions.create,
+        controls: collisions.controls,
+        defaultParams: collisions.defaultParams,
+        equations: collisions.equations,
+        equationSections: collisions.equationSections,
+        graphParams: collisions.graphParams,
+      },
+      {
         id: 'newtons-cradle',
         title: "Newton's Cradle",
         description:
-          'Five steel balls suspended on strings demonstrate conservation of momentum and kinetic energy through elastic collisions.',
+          'Five suspended balls showing momentum and energy transfer through elastic collisions.',
         tags: ['Conservation', 'Elastic Collision', 'Matter.js'],
-        gradient: 'linear-gradient(135deg, #150826 0%, #0e1232 100%)',
-        accentColor: '#81D4FA',
+
         method: 'rk4',
         create: newtonsCradle.create,
         controls: newtonsCradle.controls,
@@ -323,10 +328,9 @@ export const TOPICS = {
         id: 'coupled-pendulums',
         title: 'Coupled Pendulums',
         description:
-          'Two nonlinear pendulums connected by a coupling spring. Energy sloshes between modes and synchronization regimes emerge.',
+          'Two pendulums connected by a spring. Watch energy move between the two oscillators.',
         tags: ['Normal Modes', 'Synchronization', 'Coupled ODE'],
-        gradient: 'linear-gradient(135deg, #09142c 0%, #0b1f45 100%)',
-        accentColor: '#60a5fa',
+
         method: 'rk4',
         create: coupledPendulums.create,
         controls: coupledPendulums.controls,
@@ -340,8 +344,7 @@ export const TOPICS = {
         description:
           'A 2-DOF structural model under harmonic forcing. Tune secondary mass, stiffness, and damping to suppress primary oscillation.',
         tags: ['Vibration Control', '2DOF', 'Resonance'],
-        gradient: 'linear-gradient(135deg, #10200b 0%, #1f3f16 100%)',
-        accentColor: '#4ade80',
+
         method: 'rk4',
         create: tunedMassDamper.create,
         controls: tunedMassDamper.controls,
@@ -355,10 +358,9 @@ export const TOPICS = {
         id: 'spring-pendulum',
         title: 'Spring Pendulum',
         description:
-          'A pendulum where the rod is replaced by a spring. This system exhibits rich, often chaotic dynamics and complex energy exchange between radial and angular modes.',
+          'A pendulum with a spring instead of a rigid rod. Compare radial motion with angular motion.',
         tags: ['Chaotic Dynamics', 'Energy Exchange', 'RK4', 'Lagrangian'],
-        gradient: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-        accentColor: '#60a5fa',
+
         method: 'rk4',
         create: springPendulum.create,
         controls: springPendulum.controls,
@@ -372,10 +374,9 @@ export const TOPICS = {
         id: 'simple-pendulum',
         title: 'Simple Pendulum',
         description:
-          'A single mass on a rigid rod. Accurate for large angles where the small-angle approximation fails. Explore the relationship between length, gravity, and period.',
+          'A single mass on a rigid rod. Change length, gravity, and starting angle to compare period and motion.',
         tags: ['SHM', 'Large-Angle', 'Phase Space'],
-        gradient: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
-        accentColor: '#fb7185',
+
         method: 'rk4',
         create: simplePendulum.create,
         controls: simplePendulum.controls,
@@ -389,10 +390,9 @@ export const TOPICS = {
         id: 'coriolis-effect',
         title: 'Rotating Frames (Coriolis)',
         description:
-          'Observe the apparent deflection of particles on a rotating disk. Compare Inertial (Fixed) and Non-Inertial (Rotating) reference frames to see Coriolis and Centrifugal forces emerge.',
+          'Launch particles on a rotating disk and compare fixed and rotating reference frames.',
         tags: ['Reference Frames', 'Coriolis', 'Inertial'],
-        gradient: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
-        accentColor: '#60a5fa',
+
         method: 'analytical',
         create: coriolisEffect.create,
         controls: coriolisEffect.controls,
@@ -406,10 +406,9 @@ export const TOPICS = {
         id: 'work-energy-lab',
         title: 'Work & Energy Lab',
         description:
-          'Pull a block up an incline to explore the Work-Energy Theorem. Real-time tracking of Kinetic, Potential, and Thermal energy plus a Power gauge.',
+          'Pull a block up an incline and compare kinetic, potential, thermal energy, and power.',
         tags: ['Work-Energy', 'Conservation', 'Friction'],
-        gradient: 'linear-gradient(135deg, #064e3b 0%, #065f46 100%)',
-        accentColor: '#4ade80',
+
         method: 'euler',
         create: workEnergyLab.create,
         controls: workEnergyLab.controls,
@@ -422,10 +421,9 @@ export const TOPICS = {
         id: 'torque-angular-acceleration-lab',
         title: 'Torque vs Angular Acceleration Lab',
         description:
-          'A rotary dynamics bench where you vary tangential force, lever arm radius, and moment of inertia to directly test tau = I alpha.',
+          'Vary force, lever arm, and moment of inertia to compare torque with angular acceleration.',
         tags: ['Rotational Dynamics', 'Torque', 'Moment of Inertia'],
-        gradient: 'linear-gradient(135deg, #0a1f38 0%, #0f3b5f 100%)',
-        accentColor: '#38bdf8',
+
         method: 'euler',
         create: torqueAngularAccelerationLab.create,
         controls: torqueAngularAccelerationLab.controls,
@@ -439,16 +437,13 @@ export const TOPICS = {
       {
         id: 'gyroscope-precession-3d',
         title: 'Gyroscope & Precession (3D)',
-        description:
-          'Interactive 3D gyroscope with gravity-driven torque, spin angular momentum, steady precession, and speed-dependent stability.',
+        description: 'A 3D gyroscope model showing torque, spin angular momentum, and precession.',
         tags: ['Gyroscope', 'Precession', '3D Rigid Body'],
-        gradient: 'linear-gradient(135deg, #090b18 0%, #132449 100%)',
-        accentColor: '#60a5fa',
+
         method: 'euler',
         create: gyroscopePrecession3d.create,
         controls: gyroscopePrecession3d.controls,
         defaultParams: gyroscopePrecession3d.defaultParams,
-        equations: gyroscopePrecession3d.equations,
         equationSections: gyroscopePrecession3d.equationSections,
         graphParams: gyroscopePrecession3d.graphParams,
       },
@@ -461,10 +456,9 @@ export const TOPICS = {
         id: 'wave-pool',
         title: 'Wave Pool',
         description:
-          'A 2D wave equation solved on a discrete grid. Click anywhere to create ripples that propagate, reflect, and interfere.',
+          'Solve a two-dimensional wave equation on a grid. Click the surface to create ripples and interference.',
         tags: ['Wave Equation', 'FDM', 'Grid Simulation'],
-        gradient: 'linear-gradient(135deg, #020a18 0%, #051428 100%)',
-        accentColor: '#22d3ee',
+
         method: 'fdm',
         create: wavePool.create,
         controls: wavePool.controls,
@@ -476,15 +470,13 @@ export const TOPICS = {
         id: 'buoyancy-lab',
         title: 'Buoyancy Lab',
         description:
-          'Interact with blocks of varying densities in different fluids. Measure forces using the integrated Spring Scale and understand displacement.',
+          'Compare blocks with different densities in different fluids and inspect buoyancy, weight, and displacement.',
         tags: ['Archimedes', 'Buoyancy', 'Fluids'],
-        gradient: 'linear-gradient(135deg, #0f172a 0%, #172554 100%)',
-        accentColor: '#3b82f6',
+
         method: 'euler',
         create: buoyancyLab.create,
         controls: buoyancyLab.controls,
         defaultParams: buoyancyLab.defaultParams,
-        equations: buoyancyLab.equations,
         equationSections: buoyancyLab.equationSections,
         graphParams: buoyancyLab.graphParams,
       },
@@ -492,10 +484,9 @@ export const TOPICS = {
         id: 'wind-tunnel',
         title: 'Wind Tunnel',
         description:
-          'Simulates fluid flow around various profiles like Airfoils and Cylinders. Visualises streamlines, drag crisis, and Reynolds-dependent vortex shedding.',
+          'Compare flow around simple profiles and inspect streamlines, drag, and Reynolds number effects.',
         tags: ['Potential Flow', 'Aerodynamics', 'Drag'],
-        gradient: 'linear-gradient(135deg, #0f172a 0%, #064e3b 100%)',
-        accentColor: '#10b981',
+
         method: 'analytical',
         create: windTunnel.create,
         controls: windTunnel.controls,
@@ -513,10 +504,9 @@ export const TOPICS = {
         id: 'coulomb-law',
         title: "Coulomb's Law",
         description:
-          'Visualize the electrostatic force between two point charges. Drag charges with sliders, see force vectors scale with F = kq₁q₂/r² in real time.',
+          'Compare the electrostatic force between two point charges as charge and distance change.',
         tags: ['Coulomb', 'Force', 'Electrostatics'],
-        gradient: 'linear-gradient(135deg, #0a0410 0%, #050208 100%)',
-        accentColor: '#ef4444',
+
         method: 'static',
         create: coulombLaw.create,
         controls: coulombLaw.controls,
@@ -530,10 +520,9 @@ export const TOPICS = {
         id: 'electric-charges',
         title: 'Rutherford Scattering',
         description:
-          'Alpha particles scatter off a gold nucleus via Coulomb repulsion — the experiment that discovered the atomic nucleus. Watch inverse-square law physics in action.',
+          'Model alpha-particle scattering from a charged nucleus using Coulomb repulsion.',
         tags: ['Coulomb', 'Nuclear', 'Scattering'],
-        gradient: 'linear-gradient(135deg, #050a14 0%, #0a0604 100%)',
-        accentColor: '#ffa500',
+
         method: 'rk4',
         create: electricCharges.create,
         controls: electricCharges.controls,
@@ -547,10 +536,9 @@ export const TOPICS = {
         id: 'electrostatic-fields',
         title: 'Electrostatic Geometries',
         description:
-          'Explore the continuous vector fields and potentials of standard shapes (Rings, Plates, Dipoles) and complex geometries like the Reuleaux Triangle via discrete integral superposition.',
+          'Sample electric fields and potentials for rings, plates, dipoles, and other charge layouts.',
         tags: ['Maxwell', 'Gauss', 'Streamlines', 'Vector Field'],
-        gradient: 'linear-gradient(135deg, #0f0514 0%, #080312 100%)',
-        accentColor: '#3b82f6',
+
         method: 'discrete integration',
         create: electrostaticFields.create,
         controls: electrostaticFields.controls,
@@ -563,26 +551,24 @@ export const TOPICS = {
         id: 'maxwell-waves',
         title: 'Maxwell Wave Emergence',
         description:
-          'Visualize the birth of an electromagnetic wave. See how a time-varying electric field induces a magnetic field, creating a self-propagating wave based on Maxwell’s equations.',
+          'Show how changing electric and magnetic fields form a propagating electromagnetic wave.',
         tags: ['Maxwell', 'EM Waves', 'Induction'],
-        gradient: 'linear-gradient(135deg, #0f172a 0%, #030617 100%)',
-        accentColor: '#22d3ee',
+
         method: 'analytical',
         create: maxwellWaves.create,
         controls: maxwellWaves.controls,
         defaultParams: maxwellWaves.defaultParams,
         equations: maxwellWaves.equations,
         equationSections: maxwellWaves.equationSections,
-        graphParams: maxwellWaves.graphParams,
+        graphParams: [],
       },
       {
         id: 'faraday-law',
         title: "Faraday's Law of Induction",
         description:
-          'Drag a bar magnet through a coil and watch the galvanometer respond. The lightbulb glows brighter when you move faster — because EMF depends on the RATE of flux change, not the flux itself.',
+          'Move a magnet through a coil and compare magnetic flux, induced EMF, and current direction.',
         tags: ['Faraday', 'Induction', 'EMF', 'Lenz'],
-        gradient: 'linear-gradient(135deg, #0a0e1a 0%, #1a0a2e 100%)',
-        accentColor: '#f87171',
+
         method: 'analytical',
         create: faradayLaw.create,
         controls: faradayLaw.controls,
@@ -602,19 +588,28 @@ export const TOPICS = {
         id: 'ray-optics',
         title: 'Ray Optics Bench',
         description:
-          'Trace paraxial rays through lenses, mirrors, and a glass slab. Explore real and virtual images, magnification, focal points, and Snell-law lateral shift.',
+          'Trace rays through lenses, mirrors, and a glass slab. Compare focal length, image location, and magnification.',
         tags: ['Thin Lens', 'Snell', 'Virtual Images'],
-        gradient: 'linear-gradient(135deg, #03111f 0%, #082f49 100%)',
-        accentColor: '#38bdf8',
+
         method: 'analytical',
         create: rayOptics.create,
         controls: rayOptics.controls,
         defaultParams: rayOptics.defaultParams,
-        equations: rayOptics.equations,
         equationSections: rayOptics.equationSections,
         graphParams: rayOptics.graphParams,
-        guidedExperiments: rayOptics.guidedExperiments,
         scenarios: rayOptics.scenarios,
+      },
+      {
+        id: 'total-internal-reflection',
+        title: 'Total Internal Reflection',
+        description: 'Explore light behavior at interfaces and the critical angle for TIR.',
+        tags: ['Snell Law', 'Refraction', 'TIR'],
+        method: 'analytic',
+        create: totalInternalReflection.create,
+        controls: totalInternalReflection.controls,
+        defaultParams: totalInternalReflection.defaultParams,
+        equationSections: totalInternalReflection.equationSections,
+        graphParams: totalInternalReflection.graphParams,
       },
     ],
   },
@@ -625,10 +620,9 @@ export const TOPICS = {
         id: 'quantum-harmonic-oscillator',
         title: 'Quantum Harmonic Oscillator',
         description:
-          'Hermite-Gauss wavefunctions in a quadratic potential. Features Wigner quasi-probability phase-space distribution — quantum negativity visualised.',
+          'Compare harmonic oscillator wavefunctions, energy levels, probability density, and phase-space views.',
         tags: ['Hermite-Gauss', 'Wigner Function', 'QHO'],
-        gradient: 'linear-gradient(135deg, #06050f 0%, #120a28 100%)',
-        accentColor: '#81D4FA',
+
         method: 'exact',
         create: harmonicOscillator.create,
         controls: harmonicOscillator.controls,
@@ -641,10 +635,9 @@ export const TOPICS = {
         id: 'double-slit',
         title: 'Double Slit Experiment',
         description:
-          'The quintessential quantum experiment. Watch individual particle detections progressively build up the famous interference pattern — wave-particle duality in action.',
+          'Build an interference pattern from individual detections and compare slit spacing, wavelength, and screen distance.',
         tags: ['Interference', 'Wave-Particle', 'Huygens-Fresnel'],
-        gradient: 'linear-gradient(135deg, #04040e 0%, #0a0828 100%)',
-        accentColor: '#22d3ee',
+
         method: 'analytical',
         create: doubleSlit.create,
         controls: doubleSlit.controls,
@@ -658,11 +651,9 @@ export const TOPICS = {
       {
         id: 'hydrogen-orbitals',
         title: 'Hydrogen Orbitals',
-        description:
-          'Interactive 3D visualization of Hydrogen probability density clouds. Explore s, p, d, and f orbitals with real analytical solutions to the Schrödinger equation.',
+        description: 'Explore hydrogen orbital probability density for s, p, d, and f states.',
         tags: ['Schrödinger', '3D Atoms', 'Spherical Harmonics'],
-        gradient: 'linear-gradient(135deg, #04040a 0%, #150a28 100%)',
-        accentColor: '#f472b6',
+
         method: 'monte-carlo',
         create: hydrogenOrbitals.create,
         controls: hydrogenOrbitals.controls,
@@ -670,6 +661,26 @@ export const TOPICS = {
         equations: hydrogenOrbitals.equations,
         equationSections: hydrogenOrbitals.equationSections,
         graphParams: hydrogenOrbitals.graphParams,
+      },
+    ],
+  },
+  thermodynamics: {
+    label: 'Thermodynamics',
+    icon: 'Thermometer',
+    sims: [
+      {
+        id: 'ideal-gas',
+        title: 'Ideal Gas Law',
+        description: 'Explore the relationship between pressure, volume, and temperature of a gas.',
+        tags: ['P-V-T', 'Kinetic Theory', 'Entropy'],
+        method: 'euler',
+        create: idealGas.create,
+        controls: idealGas.controls,
+        defaultParams: idealGas.defaultParams,
+        equationSections: idealGas.equationSections,
+        graphParams: idealGas.graphParams,
+        scenarios: idealGas.scenarios,
+        guidedExperiments: idealGas.guidedExperiments,
       },
     ],
   },

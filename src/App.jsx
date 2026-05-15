@@ -54,7 +54,7 @@ export default function App() {
               className={`nav-item${page === 'topics' ? ' active' : ''}`}
               onClick={() => handleNavigate('topics')}
             >
-              Laboratory
+              Lab
             </button>
             <button
               className={`nav-item${page === 'integrators' ? ' active' : ''}`}

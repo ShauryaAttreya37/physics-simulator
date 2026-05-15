@@ -39,7 +39,7 @@ export const equationSections = [
   {
     title: 'Introduction',
     content:
-      "A double pendulum is two pendulums connected end to end. The second pendulum is attached to the first bob, creating complex, often chaotic motion. Even small changes in starting conditions can lead to very different behaviors. This simulation uses advanced math (Lagrangian mechanics) to accurately model the motion. You'll see beautiful patterns and learn about chaos theory.",
+      'A double pendulum is two pendulums connected end to end. The second pendulum is attached to the first bob, creating complex, often chaotic motion. Even small changes in starting conditions can lead to very different behavior. The model uses Lagrangian mechanics without a small-angle approximation.',
   },
   {
     title: 'Lagrangian',
@@ -399,7 +399,9 @@ export function update(state, dt, p) {
 export function render(ctx, state, p, canvas) {
   const W = canvas.width,
     H = canvas.height;
-  ctx.fillStyle = '#0B0F14';
+
+  // Professional clean background
+  ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, W, H);
 
   const cx = W / 2 + (p.panX || 0);
@@ -422,59 +424,52 @@ export function render(ctx, state, p, canvas) {
       if (i === 0) ctx.moveTo(tx, ty);
       else ctx.lineTo(tx, ty);
     }
-    ctx.strokeStyle = 'rgba(255, 209, 102, 0.4)';
+    ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)'; // Subtle red trail
     ctx.lineWidth = 1.5;
     ctx.stroke();
   }
 
-  // Pivot
-  ctx.beginPath();
-  ctx.arc(cx, cy, 5, 0, Math.PI * 2);
-  ctx.fillStyle = '#e4e4f0';
-  ctx.fill();
-
   // Arms
   ctx.lineCap = 'round';
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = '#475569';
+
   ctx.beginPath();
   ctx.moveTo(cx, cy);
   ctx.lineTo(x1, y1);
-  ctx.strokeStyle = 'rgba(192,168,255,0.85)';
-  ctx.lineWidth = 3;
   ctx.stroke();
+
   ctx.beginPath();
   ctx.moveTo(x1, y1);
   ctx.lineTo(x2, y2);
-  ctx.strokeStyle = 'rgba(160,210,255,0.85)';
   ctx.stroke();
+
+  // Pivot
+  ctx.beginPath();
+  ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+  ctx.fillStyle = '#1e293b';
+  ctx.fill();
 
   // Bobs
-  const r1 = 9 + Math.sqrt(p.m1) * 4;
-  const r2 = 9 + Math.sqrt(p.m2) * 4;
+  const r1 = 8 + Math.sqrt(p.m1) * 4;
+  const r2 = 8 + Math.sqrt(p.m2) * 4;
 
-  const grad1 = ctx.createRadialGradient(x1 - r1 * 0.3, y1 - r1 * 0.3, r1 * 0.1, x1, y1, r1);
-  grad1.addColorStop(0, '#bae6fd');
-  grad1.addColorStop(0.6, '#38bdf8');
-  grad1.addColorStop(1, '#0284c7');
-
+  // Bob 1
   ctx.beginPath();
   ctx.arc(x1, y1, r1, 0, Math.PI * 2);
-  ctx.fillStyle = grad1;
+  ctx.fillStyle = '#3b82f6';
   ctx.fill();
-  ctx.strokeStyle = state.dragTarget === 'bob1' ? '#fef08a' : '#0284c7';
-  ctx.lineWidth = state.dragTarget === 'bob1' ? 3 : 1.5;
+  ctx.strokeStyle = state.dragTarget === 'bob1' ? '#1e293b' : '#2563eb';
+  ctx.lineWidth = 2;
   ctx.stroke();
 
-  const grad2 = ctx.createRadialGradient(x2 - r2 * 0.3, y2 - r2 * 0.3, r2 * 0.1, x2, y2, r2);
-  grad2.addColorStop(0, '#bae6fd');
-  grad2.addColorStop(0.6, '#38bdf8');
-  grad2.addColorStop(1, '#0284c7');
-
+  // Bob 2
   ctx.beginPath();
   ctx.arc(x2, y2, r2, 0, Math.PI * 2);
-  ctx.fillStyle = grad2;
+  ctx.fillStyle = '#10b981';
   ctx.fill();
-  ctx.strokeStyle = state.dragTarget === 'bob2' ? '#fef08a' : '#0284c7';
-  ctx.lineWidth = state.dragTarget === 'bob2' ? 3 : 1.5;
+  ctx.strokeStyle = state.dragTarget === 'bob2' ? '#1e293b' : '#059669';
+  ctx.lineWidth = 2;
   ctx.stroke();
 }
 

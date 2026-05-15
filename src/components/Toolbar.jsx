@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useSandboxStore } from '../store/sandboxStore';
 import {
@@ -23,18 +24,18 @@ import {
 } from 'lucide-react';
 
 const tools = [
-  { id: 'select', label: 'Select', icon: <MousePointer2 size={18} /> },
-  { id: 'circle', label: 'Circle', icon: <Circle size={18} /> },
-  { id: 'box', label: 'Box', icon: <Square size={18} /> },
-  { id: 'wood', label: 'Wood', icon: <Package size={18} /> },
-  { id: 'beam', label: 'Beam', icon: <GripHorizontal size={18} /> },
-  { id: 'wedge', label: 'Wedge', icon: <Triangle size={18} /> },
-  { id: 'wall', label: 'Wall', icon: <RectangleHorizontal size={18} /> },
-  { id: 'spring', label: 'Spring', icon: <Activity size={18} /> },
-  { id: 'string', label: 'String', icon: <Minus size={18} /> },
-  { id: 'pivot', label: 'Pivot', icon: <Link size={18} /> },
-  { id: 'oscillator', label: 'Oscillator', icon: <Wifi size={18} /> },
-  { id: 'pulley', label: 'Pulley', icon: <CircleDot size={18} /> },
+  { id: 'select', label: 'Select (S)', icon: <MousePointer2 size={18} />, key: 's' },
+  { id: 'circle', label: 'Circle (1)', icon: <Circle size={18} />, key: '1' },
+  { id: 'box', label: 'Box (2)', icon: <Square size={18} />, key: '2' },
+  { id: 'wood', label: 'Wood (3)', icon: <Package size={18} />, key: '3' },
+  { id: 'beam', label: 'Beam (4)', icon: <GripHorizontal size={18} />, key: '4' },
+  { id: 'wedge', label: 'Wedge (5)', icon: <Triangle size={18} />, key: '5' },
+  { id: 'wall', label: 'Wall (6)', icon: <RectangleHorizontal size={18} />, key: '6' },
+  { id: 'spring', label: 'Spring (7)', icon: <Activity size={18} />, key: '7' },
+  { id: 'string', label: 'String (8)', icon: <Minus size={18} />, key: '8' },
+  { id: 'pivot', label: 'Pivot (9)', icon: <Link size={18} />, key: '9' },
+  { id: 'oscillator', label: 'Oscillator (O)', icon: <Wifi size={18} />, key: 'o' },
+  { id: 'pulley', label: 'Pulley (U)', icon: <CircleDot size={18} />, key: 'u' },
 ];
 
 const systems = [
@@ -45,6 +46,25 @@ const systems = [
 
 export default function Toolbar({ onReset, onHome }) {
   const { activeTool, setActiveTool, isRunning, setRunning } = useSandboxStore();
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      if (e.key.toLowerCase() === ' ') {
+        e.preventDefault();
+        setRunning(!isRunning);
+      } else if (e.key.toLowerCase() === 'r') {
+        onReset();
+      } else {
+        const tool = tools.find((t) => t.key === e.key.toLowerCase());
+        if (tool) setActiveTool(tool.id);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isRunning, setActiveTool, setRunning, onReset]);
 
   return (
     <aside className="left-sidebar">

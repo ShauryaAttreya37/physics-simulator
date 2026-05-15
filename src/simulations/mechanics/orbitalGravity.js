@@ -245,7 +245,7 @@ export const guidedExperiments = [
     steps: [
       {
         instruction:
-          'Start with the figure-8 choreography. Press Play and observe the beautiful periodic orbit.',
+          'Start with the figure-8 choreography. Press Play and observe the periodic orbit.',
         params: { preset: 'figure8' },
         question: "Is this figure-8 orbit stable if we perturb one body's position slightly?",
         choices: [

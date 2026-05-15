@@ -6,8 +6,8 @@ import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 
 /**
- * TheoryChalkboard — Interactive classic physics chalkboard view.
- * Displays formulas acting as if written in glowing chalk.
+ * TheoryChalkboard — A technical documentation component for physics equations.
+ * Displays mathematical formulas and their descriptions in a clear, professional layout.
  */
 export default function TheoryChalkboard({ sections = [], title = 'Governing Equations' }) {
   const renderedSections = useMemo(() => {
@@ -17,6 +17,12 @@ export default function TheoryChalkboard({ sections = [], title = 'Governing Equ
       return (
         <div key={sIdx} className="chalkboard-section">
           {s.title && <h3 className="chalkboard-section-title">{s.title}</h3>}
+
+          {s.content && (
+            <div className="chalkboard-note" style={{ marginBottom: 'var(--sp-4)', marginTop: 0 }}>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{s.content}</ReactMarkdown>
+            </div>
+          )}
 
           {s.equations &&
             s.equations.map((eq, eqIdx) => (

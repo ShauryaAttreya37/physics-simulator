@@ -17,7 +17,7 @@ export default function Home({ onNavigate }) {
       ref={containerRef}
     >
       <div className="home-container">
-        <nav className="glass-nav">
+        <nav className="home-nav">
           <div className="nav-brand">
             <img src="/favicon.svg" alt="Physics Simulator" className="logo-mark-img" />
             <span className="logo-text">Physics Simulator</span>
@@ -31,37 +31,37 @@ export default function Home({ onNavigate }) {
             </button>
           </div>
           <button className="nav-btn" onClick={() => handleNavigate('topics')}>
-            Launch Lab
+            Lab
           </button>
         </nav>
 
         <main className="hero-content">
-          <h1 className="hero-title">Physics simulations for focused classroom work.</h1>
+          <h1 className="hero-title">Interactive physics engine.</h1>
 
           <p className="hero-sub">
-            Run experiments, adjust parameters, inspect graphs, and export data from a clean lab
-            interface built around the simulation instead of decoration.
+            Choose a model, change the inputs, watch the motion, and compare the data in a simple
+            workspace.
           </p>
 
           <button className="primary-btn" onClick={() => handleNavigate('topics')}>
-            Enter Laboratory
+            Open Lab
           </button>
 
           <div className="home-workflow">
             <div>
               <span>01</span>
-              <strong>Pick a model</strong>
-              <p>Mechanics, fluids, fields, optics, and quantum demos live in one catalog.</p>
+              <strong>Choose a system</strong>
+              <p>Open a mechanics, fluid, field, optics, or quantum simulation.</p>
             </div>
             <div>
               <span>02</span>
               <strong>Adjust inputs</strong>
-              <p>Use stable controls for speed, mass, forces, solver settings, and environment.</p>
+              <p>Change mass, force, damping, gravity, and other model values.</p>
             </div>
             <div>
               <span>03</span>
               <strong>Inspect results</strong>
-              <p>Watch the canvas, read live values, graph variables, and export data.</p>
+              <p>Use the canvas, live readout, graph panel, and CSV export.</p>
             </div>
           </div>
         </main>

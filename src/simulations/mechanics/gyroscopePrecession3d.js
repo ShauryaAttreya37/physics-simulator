@@ -1,9 +1,9 @@
 /**
- * Gyroscope & Precession (3D) — Research-Grade Implementation
+ * Gyroscope & Precession (3D) — PhET-Inspired Interactive Lab
  *
- * Integrator:  Adaptive Dormand-Prince RK45 with error estimation
  * Physics:     Full Lagrangian mechanics of a symmetric heavy top
- * Diagnostics: Energy conservation error |ΔH/H₀|
+ * Integrator:  Adaptive Dormand-Prince RK45
+ * Aesthetic:   PhET-style (light background, bold vectors, interactive)
  */
 
 const DEFAULTS = {
@@ -16,11 +16,16 @@ const DEFAULTS = {
   tiltAngle: 1.0,
   startOmegaPsi: 150,
   startOmegaPhi: 0,
-  startOmegaTheta: 0,
   damping: 0.015,
   spinDecay: 0.002,
-  trail: 200,
+  trail: 300,
   tolerance: 1e-7,
+  // PhET-style toggles
+  showVectors: true,
+  showPath: true,
+  showGrid: true,
+  showLabels: true,
+  slowMotion: false,
 };
 
 export const defaultParams = { ...DEFAULTS };
@@ -29,23 +34,20 @@ export const equationSections = [
   {
     title: 'Introduction',
     content:
-      'A gyroscope is a spinning wheel that resists changes to its orientation. When tilted, instead of falling, it precesses (moves in a circle around the vertical). This counterintuitive behavior comes from angular momentum conservation. Gyroscopes are used in navigation, stabilization, and toys.',
+      'A gyroscope is a spinning wheel that resists changes to its orientation. When tilted, instead of falling, it precesses (moves in a circle around the vertical). This counterintuitive behavior comes from angular momentum conservation.',
   },
   {
-    title: 'Lagrangian',
+    title: 'Torque & Angular Momentum',
     equations: [
       {
-        latex: String.raw`\mathcal{L} = \frac{1}{2}I_1(\dot{\theta}^2 + \dot{\phi}^2\sin^2\theta) + \frac{1}{2}I_3(\dot{\psi} + \dot{\phi}\cos\theta)^2 - mgl\cos\theta`,
-        description:
-          "The Lagrangian combines kinetic energy (rotational) and potential energy (gravity). The kinetic energy depends on the three angles θ, ϕ, ψ that describe the gyroscope's orientation.",
+        latex: String.raw`\vec{\tau} = \frac{d\vec{L}}{dt}`,
+        description: 'Torque equals the rate of change of angular momentum.',
       },
-    ],
-    variables: [
-      { symbol: 'θ', description: 'Tilt angle from vertical (nutation)' },
-      { symbol: 'ϕ', description: 'Horizontal rotation angle (precession)' },
-      { symbol: 'ψ', description: 'Spin angle around its axis' },
-      { symbol: 'ℓ', description: 'Distance from pivot to center of mass' },
-      { symbol: 'I₁, I₃', description: 'Moments of inertia perpendicular and along spin axis' },
+      {
+        latex: String.raw`\Omega_p \approx \frac{mgr}{I_s \omega_s}`,
+        description:
+          'Precession rate (approximate). Faster spin rate (ω_s) leads to slower precession (Ω_p).',
+      },
     ],
   },
   {
@@ -53,82 +55,48 @@ export const equationSections = [
     equations: [
       {
         latex: String.raw`\ddot{\theta} = \dot{\phi}^2\sin\theta\cos\theta - \frac{I_3}{I_1}\omega_3\dot{\phi}\sin\theta + \frac{mgl}{I_1}\sin\theta - \gamma_\theta\dot{\theta}`,
-        description:
-          'How the tilt angle changes. Gravity tries to make it fall, but spin creates gyroscopic forces that cause precession instead.',
+        description: 'Equation for nutation (bobbing).',
       },
       {
-        latex: String.raw`\ddot{\phi} = \frac{I_3\omega_3\dot{\theta}\sin\theta + I_3 k_s\omega_3\cos\theta - 2I_1\dot{\phi}\dot{\theta}\sin\theta\cos\theta - \gamma_\phi\dot{\phi}}{I_1\sin^2\theta}`,
-        description:
-          'Precession rate. Fast spin makes it precess quickly. This is the key to gyroscope behavior.',
-      },
-      {
-        latex: String.raw`\dot{\omega}_3 = -k_s\omega_3`,
-        description:
-          'Spin slows down over time due to friction. Gyroscopes eventually stop precessing.',
+        latex: String.raw`\ddot{\phi} = \frac{I_3\omega_3\dot{\theta}\sin\theta - 2I_1\dot{\phi}\dot{\theta}\sin\theta\cos\theta}{I_1\sin^2\theta}`,
+        description: 'Equation for precession (circling).',
       },
     ],
   },
-  {
-    title: 'Conserved Quantity',
-    equations: [
-      {
-        latex: String.raw`H = \frac{1}{2}I_1(\dot{\theta}^2 + \dot{\phi}^2\sin^2\theta) + \frac{1}{2}I_3\omega_3^2 + mgl\cos\theta`,
-        description:
-          'Total energy. Should stay constant, but numerical errors cause small changes. This helps check simulation accuracy.',
-      },
-    ],
-  },
-  {
-    title: 'How to Use',
-    content:
-      '1. Set initial spin rate - higher spin gives stronger gyroscopic effects.\n2. Adjust tilt angle θ - see how it affects precession speed.\n3. Change moments of inertia - affects stability.\n4. Add damping to see realistic behavior.\n5. Watch the 3D visualization and angle graphs.',
-  },
-  {
-    title: 'Beginner Tips',
-    content:
-      "Start with high spin and small tilt. Notice it doesn't fall but circles around. Try tilting more - precession gets faster. Compare with no spin - it just falls. Look at energy conservation. Experiment with different shapes (change I₁/I₃ ratio).",
-  },
-];
-
-export const equations = [
-  String.raw`\ddot{\theta} = \dot{\phi}^2\sin\theta\cos\theta - \frac{I_3}{I_1}\omega_3\dot{\phi}\sin\theta + \frac{mgl}{I_1}\sin\theta`,
-  String.raw`\ddot{\phi} = \frac{I_3\omega_3\dot{\theta}\sin\theta - 2I_1\dot{\phi}\dot{\theta}\sin\theta\cos\theta}{I_1\sin^2\theta}`,
-  String.raw`\omega_3 = \dot{\psi} + \dot{\phi}\cos\theta`,
-];
-
-export const graphParams = [
-  { key: 'theta', label: 'Tilt θ [rad]' },
-  { key: 'phi_vel', label: 'Precession ω_p [rad/s]' },
-  { key: 'omega3', label: 'Spin ω_s [rad/s]' },
-  { key: 'energy', label: 'Energy E [J]' },
-  { key: 'energyError', label: '|ΔE/E₀|' },
 ];
 
 export const controls = [
-  { key: 'mass', label: 'Mass m [kg]', min: 0.1, max: 4, step: 0.1 },
-  { key: 'gravity', label: 'Gravity g [m/s²]', min: 0, max: 20, step: 0.1 },
-  { key: 'cmOffset', label: 'Pivot to COM ℓ [m]', min: 0.05, max: 0.8, step: 0.01 },
-  { key: 'inertiaSpin', label: 'Spin Inertia I₃ [kg m²]', min: 0.005, max: 0.2, step: 0.001 },
-  { key: 'startOmegaPsi', label: 'Initial Spin ω_s [rad/s]', min: 0, max: 320, step: 1 },
-  { key: 'tiltAngle', label: 'Initial Tilt θ [rad]', min: 0.05, max: 1.5, step: 0.01 },
-  { key: 'startOmegaPhi', label: 'Initial Precession [rad/s]', min: -10, max: 10, step: 0.1 },
-  { key: 'damping', label: 'Pivot Damping', min: 0, max: 0.2, step: 0.001 },
-  { key: 'spinDecay', label: 'Bearing Loss [1/s]', min: 0, max: 0.08, step: 0.001 },
-  { key: 'trail', label: 'Trail Length', min: 0, max: 800, step: 10 },
+  { key: 'spinRate', label: 'Initial Spin ω_s [rad/s]', min: 0, max: 300, step: 1 },
+  { key: 'tiltAngle', label: 'Initial Tilt θ [rad]', min: 0.01, max: 3.1, step: 0.01 },
+  { key: 'mass', label: 'Wheel Mass [kg]', min: 0.1, max: 5, step: 0.1 },
+  { key: 'cmOffset', label: 'Pivot Distance ℓ [m]', min: 0.05, max: 0.8, step: 0.01 },
+  { key: 'gravity', label: 'Gravity [m/s²]', min: 0, max: 20, step: 0.1 },
+  { key: 'damping', label: 'Friction', min: 0, max: 0.1, step: 0.001 },
+  { type: 'toggle', key: 'showVectors', label: 'Show Force Vectors' },
+  { type: 'toggle', key: 'showPath', label: 'Show Precession Path' },
+  { type: 'toggle', key: 'showGrid', label: 'Show Reference Grid' },
+  { type: 'toggle', key: 'slowMotion', label: 'Slow Motion' },
+];
+
+export const graphParams = [
+  { key: 'theta', label: 'Tilt Angle θ' },
+  { key: 'phi_vel', label: 'Precession Rate ω_p' },
+  { key: 'omega3', label: 'Spin Rate ω_s' },
+  { key: 'energy', label: 'Total Energy' },
 ];
 
 export const method = 'rk45';
 
-// ── Equations of motion ─────────────────────────────────────────────────────
-function derivs(th, ph, ps, th_v, ph_v, ps_v, p) {
+// ── Physics ─────────────────────────────────────────────────────────────────
+
+function derivs(state, p) {
+  const [th, ph, ps, th_v, ph_v, ps_v] = state;
   const I3 = p.inertiaSpin;
   const I1 = I3 / 2 + p.mass * p.cmOffset * p.cmOffset;
 
   const sin_th = Math.sin(th);
   const cos_th = Math.cos(th);
-
-  // Safe clamping to avoid singularity at perfectly upright/downward states
-  const s_th_clamped = Math.abs(sin_th) < 1e-6 ? Math.sign(sin_th) * 1e-6 || 1e-6 : sin_th;
+  const s_th_clamped = Math.abs(sin_th) < 1e-4 ? Math.sign(sin_th) * 1e-4 || 1e-4 : sin_th;
 
   const omega3 = ps_v + ph_v * cos_th;
 
@@ -147,8 +115,8 @@ function derivs(th, ph, ps, th_v, ph_v, ps_v, p) {
   return [th_v, ph_v, ps_v, dth_v, dph_v, dps_v];
 }
 
-// ── Hamiltonian (total energy) ──────────────────────────────────────────────
-function hamiltonian(th, ph, ps, th_v, ph_v, ps_v, p) {
+function hamiltonian(state, p) {
+  const [th, ph, ps, th_v, ph_v, ps_v] = state;
   const I3 = p.inertiaSpin;
   const I1 = I3 / 2 + p.mass * p.cmOffset * p.cmOffset;
   const sin_th = Math.sin(th);
@@ -160,7 +128,8 @@ function hamiltonian(th, ph, ps, th_v, ph_v, ps_v, p) {
   return T + V;
 }
 
-// ── Dormand-Prince RK45 adaptive step ───────────────────────────────────────
+// ── RK45 Solver ─────────────────────────────────────────────────────────────
+
 const A = [
   [],
   [1 / 5],
@@ -173,37 +142,30 @@ const A = [
 const B5 = [35 / 384, 0, 500 / 1113, 125 / 192, -2187 / 6784, 11 / 84, 0];
 const B4 = [5179 / 57600, 0, 7571 / 16695, 393 / 640, -92097 / 339200, 187 / 2100, 1 / 40];
 
-function rk45Step(th, ph, ps, th_v, ph_v, ps_v, h, p, tol) {
-  const state = [th, ph, ps, th_v, ph_v, ps_v];
+function rk45Step(state, h, p, tol) {
   const k = [];
-
   for (let i = 0; i < 7; i++) {
     const s = [0, 0, 0, 0, 0, 0];
     for (let j = 0; j < i; j++) {
       for (let d = 0; d < 6; d++) s[d] += A[i][j] * k[j][d];
     }
     k[i] = derivs(
-      state[0] + h * s[0],
-      state[1] + h * s[1],
-      state[2] + h * s[2],
-      state[3] + h * s[3],
-      state[4] + h * s[4],
-      state[5] + h * s[5],
+      state.map((v, d) => v + h * s[d]),
       p,
     );
   }
 
-  const y5 = [0, 0, 0, 0, 0, 0];
-  for (let d = 0; d < 6; d++) {
-    y5[d] = state[d];
-    for (let i = 0; i < 7; i++) y5[d] += h * B5[i] * k[i][d];
-  }
+  const y5 = state.map((v, d) => {
+    let sum = v;
+    for (let i = 0; i < 7; i++) sum += h * B5[i] * k[i][d];
+    return sum;
+  });
 
-  const y4 = [0, 0, 0, 0, 0, 0];
-  for (let d = 0; d < 6; d++) {
-    y4[d] = state[d];
-    for (let i = 0; i < 7; i++) y4[d] += h * B4[i] * k[i][d];
-  }
+  const y4 = state.map((v, d) => {
+    let sum = v;
+    for (let i = 0; i < 7; i++) sum += h * B4[i] * k[i][d];
+    return sum;
+  });
 
   let errMax = 0;
   for (let d = 0; d < 6; d++) {
@@ -223,103 +185,82 @@ function rk45Step(th, ph, ps, th_v, ph_v, ps_v, h, p, tol) {
   }
 }
 
-function clamp(v, min, max) {
-  return Math.max(min, Math.min(max, v));
-}
-
-function rotateY(v, angle) {
-  const c = Math.cos(angle);
-  const s = Math.sin(angle);
-  return { x: v.x * c - v.z * s, y: v.y, z: v.z * c + v.x * s };
-}
-
-function rotateX(v, angle) {
-  const c = Math.cos(angle);
-  const s = Math.sin(angle);
-  return { x: v.x, y: v.y * c - v.z * s, z: v.z * c + v.y * s };
-}
+// ── Rendering Helpers ───────────────────────────────────────────────────────
 
 function project(world, camera, centerX, centerY, focal) {
-  const v1 = rotateY(world, camera.yaw);
-  const v2 = rotateX(v1, camera.pitch);
-  const zCam = v2.z + camera.distance;
-  const scale = focal / Math.max(1, zCam);
+  // Rotate Z (Yaw)
+  const cy = Math.cos(camera.yaw),
+    sy = Math.sin(camera.yaw);
+  let x1 = world.x * cy - world.y * sy;
+  let y1 = world.y * cy + world.x * sy;
+  let z1 = world.z;
+
+  // Rotate X (Pitch)
+  const cp = Math.cos(camera.pitch),
+    sp = Math.sin(camera.pitch);
+  const z2 = z1 * cp - y1 * sp;
+  const y2 = y1 * cp + z1 * sp;
+
+  const depth = y2 + camera.distance;
+  const scale = focal / Math.max(0.1, depth);
   return {
-    x: centerX + v2.x * scale,
-    y: centerY - v2.y * scale,
-    z: zCam,
+    x: centerX + x1 * scale,
+    y: centerY - z2 * scale,
+    z: depth,
     scale,
   };
 }
 
+// ── Factory ─────────────────────────────────────────────────────────────────
+
 export const scenarios = [
   {
-    name: 'Fast Spin (Steady Precession)',
+    name: 'Classic Bicycle Wheel',
     description:
-      'High initial spin avoids nutation wobble, causing a smooth slow precession, identical to the classic bicycle wheel demo.',
-    params: { startOmegaPsi: 150, startOmegaPhi: 0, tiltAngle: 1.2 },
+      'High spin rate creates stable, steady precession. This is the classic classroom demonstration.',
+    params: { spinRate: 180, tiltAngle: 1.2, showPath: true, showVectors: true },
   },
   {
-    name: 'Slow Spin (Nutation Petals)',
+    name: 'Nutation (The Wobble)',
     description:
-      'When released from rest with low spin, the top falls due to gravity, creating a visible bobbing motion called nutation.',
-    params: { startOmegaPsi: 20, startOmegaPhi: 0, tiltAngle: 1.0, damping: 0.002, spinDecay: 0 },
+      'Slow spin rate causes the gyroscope to bob up and down while precessing. This is called nutation.',
+    params: { spinRate: 40, tiltAngle: 1.0, showPath: true, damping: 0.005 },
   },
   {
     name: 'Sleeping Top',
     description:
-      'Spinning perfectly upright. Stability is maintained as long as the spin rate is high enough. Small perturbations recover.',
-    params: { startOmegaPsi: 200, startOmegaPhi: 0, tiltAngle: 0.01 },
+      'Spinning nearly upright. If spin is fast enough, it stays stable. If too slow, it starts to precess and fall.',
+    params: { spinRate: 200, tiltAngle: 0.05, showGrid: true },
   },
   {
-    name: 'Precession from Push',
+    name: 'Zero Gravity',
     description:
-      'Give the gyroscope an initial push in the precession direction to eliminate initial dropping and attain steady precession immediately.',
-    params: { startOmegaPsi: 120, startOmegaPhi: 3.5, tiltAngle: 1.0 },
+      'In zero-g, there is no gravitational torque, so the gyroscope stays perfectly fixed in space regardless of tilt.',
+    params: { gravity: 0, spinRate: 100, tiltAngle: 1.0 },
   },
 ];
 
 export const guidedExperiments = [
   {
-    title: 'The Walter Lewin Bicycle Wheel',
+    title: 'The Secret of Stability',
     steps: [
       {
-        instruction:
-          'The wheel starts spinning at 150 rad/s. A strong gravity torque is pulling it down. What does the wheel do?',
-        params: { startOmegaPsi: 150, startOmegaPhi: 0, tiltAngle: 1.1, damping: 0 },
-        question: 'Instead of falling downwards entirely, which way does the wheel move?',
-        choices: [
-          'It falls straight down',
-          'It orbits horizontally (Precesses)',
-          'It spins backwards',
-        ],
+        instruction: 'Set the Spin Rate to 0 and observe the wheel.',
+        params: { spinRate: 0, tiltAngle: 1.0 },
+        question: 'What happens to the wheel when it is not spinning?',
+        choices: ['It stays upright', 'It falls down immediately', 'It starts precessing'],
         correctIndex: 1,
-        commonMisconception:
-          'Many expect the wheel to just fall. However, the cross product of the gravitational torque with the angular momentum causes a perpendicular precession.',
         explanation:
-          'The wheel precesses horizontally! To conserve angular momentum in the face of downward torque, the resulting motion is 90 degrees to the applied force.',
+          'Without angular momentum, gravity simply pulls the mass down, causing it to fall.',
       },
       {
-        instruction: 'Now lets try a very low spin rate. We reduce spin from 150 to 20 rad/s.',
-        params: {
-          startOmegaPsi: 20,
-          startOmegaPhi: 0,
-          tiltAngle: 1.1,
-          damping: 0,
-          spinDecay: 0,
-          trail: 600,
-        },
-        question: 'How does the motion change?',
-        choices: [
-          'It falls instantly',
-          'It precesses faster with a deep wobble',
-          'It precesses slower',
-        ],
-        correctIndex: 1,
-        commonMisconception:
-          "Most people don't notice nutation because fast tops do it imperceptibly small. A slow gyroscope exhibits huge, petal-like bobs called nutation as it struggles to precess.",
+        instruction: 'Now set the Spin Rate to 200 rad/s.',
+        params: { spinRate: 200, tiltAngle: 1.0 },
+        question: 'What changed?',
+        choices: ['It falls even faster', 'It stays fixed', 'It moves sideways (precesses)'],
+        correctIndex: 2,
         explanation:
-          'At slow speeds, the wheel drops significantly before building up enough precession speed to "catch" itself, resulting in a cycloid or petal-like bouncing trace (Nutation).',
+          'The spinning creates angular momentum. The torque from gravity now causes the angular momentum vector to rotate horizontally, resulting in precession!',
       },
     ],
   },
@@ -329,48 +270,82 @@ export function create(canvas, initParams = {}) {
   const ctx = canvas.getContext('2d', { alpha: false });
   let p = { ...DEFAULTS, ...initParams };
 
+  let state = [p.tiltAngle, 0, 0, 0, 0, p.spinRate];
   let simTime = 0;
-  let th, ph, ps, th_v, ph_v, ps_v;
-  let currentDt = 1 / 60 / 10;
-  let H0;
+  let currentDt = 1 / 600;
+  let H0 = 0;
 
-  let trailCap, trail, trailHead, trailLen;
+  let trail = [];
+  let trailCap = 500;
 
-  const camera = {
-    yaw: -0.7,
-    pitch: -0.35,
-    distance: 3.2,
-  };
-
+  const camera = { yaw: -0.6, pitch: -0.4, distance: 3.5 };
   let isDragging = false,
-    lastX = 0,
-    lastY = 0;
+    lastX,
+    lastY;
+
+  // Interaction: Dragging the camera vs dragging the top
+  let interactionMode = 'camera'; // 'camera' or 'manipulate'
 
   function onDown(e) {
-    const x = e.clientX ?? e.touches?.[0]?.clientX;
-    const y = e.clientY ?? e.touches?.[0]?.clientY;
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX ?? e.touches?.[0]?.clientX) - rect.left;
+    const y = (e.clientY ?? e.touches?.[0]?.clientY) - rect.top;
     if (x === undefined) return;
+
     isDragging = true;
     lastX = x;
     lastY = y;
+
+    // Check if clicking near the top of the gyroscope
+    const { axis } = getAxisAndCenter();
+    const tip = { x: axis.x * 0.6, y: axis.y * 0.6, z: axis.z * 0.6 };
+    const pTip = project(
+      tip,
+      camera,
+      canvas.width * 0.5,
+      canvas.height * 0.6,
+      Math.min(canvas.width, canvas.height),
+    );
+    const dist = Math.hypot(pTip.x - x, pTip.y - y);
+
+    if (dist < 40) {
+      interactionMode = 'manipulate';
+      canvas.style.cursor = 'grabbing';
+    } else {
+      interactionMode = 'camera';
+    }
   }
+
   function onMove(e) {
     if (!isDragging) return;
-    const x = e.clientX ?? e.touches?.[0]?.clientX;
-    const y = e.clientY ?? e.touches?.[0]?.clientY;
-    if (x === undefined) return;
-    camera.yaw += (x - lastX) * 0.008;
-    camera.pitch = clamp(camera.pitch + (y - lastY) * 0.006, -1.3, 0.4);
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX ?? e.touches?.[0]?.clientX) - rect.left;
+    const y = (e.clientY ?? e.touches?.[0]?.clientY) - rect.top;
+
+    if (interactionMode === 'camera') {
+      camera.yaw += (x - lastX) * 0.01;
+      camera.pitch = Math.max(-1.5, Math.min(0.5, camera.pitch + (y - lastY) * 0.01));
+    } else {
+      // Manipulate tilt angle θ
+      const dTh = (y - lastY) * 0.01;
+      state[0] = Math.max(0.01, Math.min(Math.PI - 0.01, state[0] + dTh));
+      state[3] = 0; // Reset velocities while dragging for "holding" feel
+      state[4] = 0;
+      trail = []; // Clear trail when manually moved
+    }
+
     lastX = x;
     lastY = y;
   }
+
   function onUp() {
     isDragging = false;
+    canvas.style.cursor = 'default';
   }
 
   function onWheel(e) {
     e.preventDefault();
-    camera.distance = clamp(camera.distance + e.deltaY * 0.005, 1.0, 15.0);
+    camera.distance = Math.max(1.5, Math.min(10, camera.distance + e.deltaY * 0.005));
   }
 
   canvas.addEventListener('mousedown', onDown);
@@ -381,397 +356,380 @@ export function create(canvas, initParams = {}) {
   window.addEventListener('touchend', onUp);
   canvas.addEventListener('wheel', onWheel, { passive: false });
 
-  function allocTrail() {
-    trailCap = Math.max(10, Math.floor(p.trail));
-    trail = new Float32Array(trailCap * 3);
-    trailHead = 0;
-    trailLen = 0;
-  }
-
-  function initState() {
-    simTime = 0;
-    th = p.tiltAngle;
-    ph = 0;
-    ps = 0;
-    th_v = p.startOmegaTheta;
-    ph_v = p.startOmegaPhi;
-    ps_v = p.startOmegaPsi;
-
-    // Convert target spin rate to initial ps_v (which is omega3 at t=0 assuming ph_v is small initially, or exactly ps_v + ph_v*cos = startOmegaPsi)
-    // Actually startOmegaPsi represents omega_s (spin rate omega_3)
-    // omega_3 = ps_v + ph_v*cos(th). So ps_v = omega_3 - ph_v*cos(th)
-    ps_v = p.startOmegaPsi - ph_v * Math.cos(th);
-
-    currentDt = 1 / 60 / 20;
-    H0 = hamiltonian(th, ph, ps, th_v, ph_v, ps_v, p);
-    allocTrail();
-  }
-
   function getAxisAndCenter() {
-    const sTh = Math.sin(th);
-    const cTh = Math.cos(th);
-    const sPh = Math.sin(ph);
-    const cPh = Math.cos(ph);
-
-    // Tip of axle vector (assuming Z is UP in spherical polar coordinates)
+    const th = state[0],
+      ph = state[1];
     const axis = {
-      x: sTh * cPh,
-      y: sTh * sPh,
-      z: cTh,
+      x: Math.sin(th) * Math.cos(ph),
+      y: Math.sin(th) * Math.sin(ph),
+      z: Math.cos(th),
     };
-
-    // Center of mass
-    const center = {
-      x: axis.x * p.cmOffset,
-      y: axis.y * p.cmOffset,
-      z: axis.z * p.cmOffset,
-    };
-
+    const center = { x: axis.x * p.cmOffset, y: axis.y * p.cmOffset, z: axis.z * p.cmOffset };
     return { axis, center };
   }
 
   function tick(dt) {
-    const tol = p.tolerance || 1e-6;
     let remaining = dt;
-    let h = currentDt;
-    const maxSteps = 200;
+    const tol = p.tolerance || 1e-7;
     let steps = 0;
-
-    while (remaining > 1e-12 && steps < maxSteps) {
-      h = Math.min(h, remaining);
-      const result = rk45Step(th, ph, ps, th_v, ph_v, ps_v, h, p, tol);
-
-      if (result.accepted) {
-        [th, ph, ps, th_v, ph_v, ps_v] = result.state;
+    while (remaining > 1e-12 && steps < 100) {
+      const h = Math.min(currentDt, remaining);
+      const res = rk45Step(state, h, p, tol);
+      if (res.accepted) {
+        state = res.state;
         remaining -= h;
         simTime += h;
       }
-      h = Math.max(1e-6, Math.min(result.hNew, 0.05));
-      currentDt = h;
+      currentDt = Math.max(1e-6, Math.min(res.hNew, 0.01));
       steps++;
     }
 
-    // Add to trail
-    const { center } = getAxisAndCenter();
-    trail[trailHead * 3] = center.x;
-    trail[trailHead * 3 + 1] = center.y;
-    trail[trailHead * 3 + 2] = center.z;
-    trailHead = (trailHead + 1) % trailCap;
-    if (trailLen < trailCap) trailLen++;
-  }
-
-  function drawLine3(a, b, color, width, centerX, centerY, focal) {
-    const pa = project(a, camera, centerX, centerY, focal);
-    const pb = project(b, camera, centerX, centerY, focal);
-    if (pa.z < 0.1 || pb.z < 0.1) return; // Behind camera
-    ctx.strokeStyle = color;
-    ctx.lineWidth = width;
-    ctx.beginPath();
-    ctx.moveTo(pa.x, pa.y);
-    ctx.lineTo(pb.x, pb.y);
-    ctx.stroke();
-  }
-
-  function drawVector(start, end, color, width, label, centerX, centerY, focal) {
-    const pa = project(start, camera, centerX, centerY, focal);
-    const pb = project(end, camera, centerX, centerY, focal);
-    if (pa.z < 0.1 || pb.z < 0.1) return;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = width;
-    ctx.beginPath();
-    ctx.moveTo(pa.x, pa.y);
-    ctx.lineTo(pb.x, pb.y);
-
-    const dx = pb.x - pa.x;
-    const dy = pb.y - pa.y;
-    const len = Math.hypot(dx, dy) || 1;
-    const nx = dx / len;
-    const ny = dy / len;
-
-    ctx.lineTo(pb.x - nx * 8 + ny * 4, pb.y - ny * 8 - nx * 4);
-    ctx.moveTo(pb.x, pb.y);
-    ctx.lineTo(pb.x - nx * 8 - ny * 4, pb.y - ny * 8 + nx * 4);
-    ctx.stroke();
-
-    if (label) {
-      ctx.font = '700 13px "JetBrains Mono", monospace';
-      ctx.fillStyle = color;
-      ctx.fillText(label, pb.x + nx * 12 - 6, pb.y + ny * 12 + 4);
+    // Trail update
+    if (p.showPath) {
+      const { center } = getAxisAndCenter();
+      trail.push({ ...center });
+      if (trail.length > p.trail) trail.shift();
+    } else {
+      trail = [];
     }
   }
 
   function render() {
-    const W = canvas.width;
-    const H = canvas.height;
-    const cx = W * 0.52;
-    const cy = H * 0.58;
+    const W = canvas.width,
+      H = canvas.height;
+    const cx = W * 0.5,
+      cy = H * 0.6;
     const focal = Math.min(W, H) * 1.0;
 
-    const bg = ctx.createLinearGradient(0, 0, 0, H);
-    bg.addColorStop(0, '#020617');
-    bg.addColorStop(1, '#0f172a');
-    ctx.fillStyle = bg;
+    // PhET light background - slightly warmer
+    ctx.fillStyle = '#fdfdfd';
     ctx.fillRect(0, 0, W, H);
+
+    // Grid / Floor (Classroom Tiles)
+    if (p.showGrid) {
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
+      ctx.lineWidth = 1.5;
+      const gridSize = 10,
+        step = 0.5;
+      for (let i = -gridSize; i <= gridSize; i++) {
+        const p1 = project({ x: i * step, y: -gridSize * step, z: -1.0 }, camera, cx, cy, focal);
+        const p2 = project({ x: i * step, y: gridSize * step, z: -1.0 }, camera, cx, cy, focal);
+        if (p1.z > 0 && p2.z > 0) {
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+        }
+        const p3 = project({ x: -gridSize * step, y: i * step, z: -1.0 }, camera, cx, cy, focal);
+        const p4 = project({ x: gridSize * step, y: i * step, z: -1.0 }, camera, cx, cy, focal);
+        if (p3.z > 0 && p4.z > 0) {
+          ctx.beginPath();
+          ctx.moveTo(p3.x, p3.y);
+          ctx.lineTo(p4.x, p4.y);
+          ctx.stroke();
+        }
+      }
+    }
 
     const { axis, center } = getAxisAndCenter();
 
-    // Environment grids
-    drawLine3(
-      { x: -2.0, y: 0, z: 0 },
-      { x: 2.0, y: 0, z: 0 },
-      'rgba(96,165,250,0.3)',
-      1,
-      cx,
-      cy,
-      focal,
-    );
-    drawLine3(
-      { x: 0, y: -2.0, z: 0 },
-      { x: 0, y: 2.0, z: 0 },
-      'rgba(16,185,129,0.3)',
-      1,
-      cx,
-      cy,
-      focal,
-    );
-    drawLine3(
-      { x: 0, y: 0, z: 0 },
-      { x: 0, y: 0, z: 2.0 },
-      'rgba(248,113,113,0.3)',
-      1,
+    // ── Shadow ──
+    if (p.showGrid) {
+      const sPos = project({ x: center.x, y: center.y, z: -1.0 }, camera, cx, cy, focal);
+      if (sPos.z > 0.1) {
+        const shadowR = p.rotorRadius * sPos.scale;
+        const shadowGrad = ctx.createRadialGradient(sPos.x, sPos.y, 0, sPos.x, sPos.y, shadowR);
+        shadowGrad.addColorStop(0, 'rgba(0,0,0,0.15)');
+        shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = shadowGrad;
+        ctx.beginPath();
+        ctx.ellipse(sPos.x, sPos.y, shadowR, shadowR * 0.4, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Draw Trail
+    if (p.showPath && trail.length > 1) {
+      ctx.beginPath();
+      ctx.strokeStyle = '#f97316';
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([8, 4]);
+      let first = true;
+      for (const pt of trail) {
+        const pr = project(pt, camera, cx, cy, focal);
+        if (pr.z < 0.1) continue;
+        if (first) ctx.moveTo(pr.x, pr.y);
+        else ctx.lineTo(pr.x, pr.y);
+        first = false;
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // ── Suspension Rope (Classroom Demo Style) ──
+    const pCeiling = project({ x: 0, y: 0, z: 2.0 }, camera, cx, cy, focal);
+    const pBase = project({ x: 0, y: 0, z: 0 }, camera, cx, cy, focal);
+
+    // Draw rope from ceiling to pivot
+    ctx.strokeStyle = '#fcd34d'; // hemp rope color
+    ctx.lineWidth = 0.012 * pBase.scale;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(pCeiling.x, pCeiling.y);
+    ctx.lineTo(pBase.x, pBase.y);
+    ctx.stroke();
+
+    // Rope twisted texture
+    ctx.strokeStyle = '#b45309';
+    ctx.lineWidth = 0.005 * pBase.scale;
+    ctx.setLineDash([0.015 * pBase.scale, 0.015 * pBase.scale]);
+    ctx.beginPath();
+    ctx.moveTo(pCeiling.x, pCeiling.y);
+    ctx.lineTo(pBase.x, pBase.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw a knot at the pivot point
+    const knotR = 0.02 * pBase.scale;
+    ctx.fillStyle = '#fcd34d';
+    ctx.beginPath();
+    ctx.arc(pBase.x, pBase.y, knotR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#b45309';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // ── Axle (Cylindrical Lighting) ──
+    const pCenter = project(center, camera, cx, cy, focal);
+    const pTip = project(
+      { x: axis.x * 0.6, y: axis.y * 0.6, z: axis.z * 0.6 },
+      camera,
       cx,
       cy,
       focal,
     );
 
-    // Trail
-    if (trailLen > 1) {
-      const start = (trailHead - trailLen + trailCap) % trailCap;
-      let first = true;
+    // Draw Axle Shadow
+    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+    ctx.lineWidth = 0.03 * pCenter.scale;
+    ctx.beginPath();
+    ctx.moveTo(pBase.x + 2, pBase.y + 2);
+    ctx.lineTo(pTip.x + 2, pTip.y + 2);
+    ctx.stroke();
+
+    const axleGrad = ctx.createLinearGradient(pBase.x, pBase.y, pTip.x, pTip.y);
+    axleGrad.addColorStop(0, '#6b7280');
+    axleGrad.addColorStop(0.5, '#f3f4f6');
+    axleGrad.addColorStop(1, '#374151');
+    ctx.strokeStyle = axleGrad;
+    ctx.lineWidth = 0.025 * pCenter.scale;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(pBase.x, pBase.y);
+    ctx.lineTo(pTip.x, pTip.y);
+    ctx.stroke();
+
+    // ── Wheel (Styled High-Quality) ──
+    const r = p.rotorRadius;
+    const wheelSegments = 64;
+    const spokeCount = 24;
+
+    let up = { x: 0, y: 0, z: 1 };
+    if (Math.abs(axis.z) > 0.9) up = { x: 0, y: 1, z: 0 };
+    const v1 = normalize({
+      x: up.y * axis.z - up.z * axis.y,
+      y: up.z * axis.x - up.x * axis.z,
+      z: up.x * axis.y - up.y * axis.x,
+    });
+    const v2 = normalize({
+      x: axis.y * v1.z - axis.z * v1.y,
+      y: axis.z * v1.x - axis.x * v1.z,
+      z: axis.x * v1.y - axis.y * v1.x,
+    });
+
+    // Draw Spokes
+    ctx.strokeStyle = '#e5e7eb'; // silver wires
+    ctx.lineWidth = 0.005 * pCenter.scale;
+    for (let i = 0; i < spokeCount; i++) {
+      const ang = (i / spokeCount) * Math.PI * 2 + state[2];
+      const sp = {
+        x: center.x + (v1.x * Math.cos(ang) + v2.x * Math.sin(ang)) * r,
+        y: center.y + (v1.y * Math.cos(ang) + v2.y * Math.sin(ang)) * r,
+        z: center.z + (v1.z * Math.cos(ang) + v2.z * Math.sin(ang)) * r,
+      };
+      const pSpoke = project(sp, camera, cx, cy, focal);
       ctx.beginPath();
-      for (let i = 0; i < trailLen; i++) {
-        const idx = (start + i) % trailCap;
-        const pt = { x: trail[idx * 3], y: trail[idx * 3 + 1], z: trail[idx * 3 + 2] };
-        const pr = project(pt, camera, cx, cy, focal);
-        if (pr.z < 0.1) continue;
-        if (first) {
-          ctx.moveTo(pr.x, pr.y);
-          first = false;
-        } else ctx.lineTo(pr.x, pr.y);
-      }
-      ctx.strokeStyle = '#f59e0b';
-      ctx.lineWidth = 1.5;
+      ctx.moveTo(pCenter.x, pCenter.y);
+      ctx.lineTo(pSpoke.x, pSpoke.y);
       ctx.stroke();
     }
 
-    // Pivot
-    const pivot2d = project({ x: 0, y: 0, z: 0 }, camera, cx, cy, focal);
-    ctx.fillStyle = '#e2e8f0';
-    ctx.beginPath();
-    ctx.arc(pivot2d.x, pivot2d.y, 4, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Sub-axle (Pivot to Center)
-    drawLine3({ x: 0, y: 0, z: 0 }, center, '#9ca3af', 5, cx, cy, focal);
-
-    // Extend axle past center
-    const tip = {
-      x: center.x + axis.x * 0.25,
-      y: center.y + axis.y * 0.25,
-      z: center.z + axis.z * 0.25,
-    };
-    drawLine3(center, tip, '#9ca3af', 5, cx, cy, focal);
-
-    // Draw wheel (Rim and Spokes)
-    // Get two orthogonal vectors in the plane of the wheel
-    let ref = { x: 0, y: 0, z: 1 };
-    if (Math.abs(axis.z) > 0.95) ref = { x: 0, y: 1, z: 0 };
-
-    let ux = axis.y * ref.z - axis.z * ref.y;
-    let uy = axis.z * ref.x - axis.x * ref.z;
-    let uz = axis.x * ref.y - axis.y * ref.x;
-    const uLen = Math.hypot(ux, uy, uz) || 1;
-    ux /= uLen;
-    uy /= uLen;
-    uz /= uLen;
-
-    const vx = axis.y * uz - axis.z * uy;
-    const vy = axis.z * ux - axis.x * uz;
-    const vz = axis.x * uy - axis.y * ux;
-
-    // Incorporate the actual spin psi to rotate the spokes
-    const spinCos = Math.cos(ps);
-    const spinSin = Math.sin(ps);
-
-    const uSpin = {
-      x: ux * spinCos + vx * spinSin,
-      y: uy * spinCos + vy * spinSin,
-      z: uz * spinCos + vz * spinSin,
-    };
-    const vSpin = {
-      x: -ux * spinSin + vx * spinCos,
-      y: -uy * spinSin + vy * spinCos,
-      z: -uz * spinSin + vz * spinCos,
-    };
-
-    const r = p.rotorRadius;
-
-    // Render wheel using line segments to easily handle z-projection without complex polys sorting
-    // Render spokes
-    const spokeCount = 12;
-    for (let i = 0; i < spokeCount; i++) {
-      const a = (i / spokeCount) * Math.PI * 2;
-      const cA = Math.cos(a),
-        sA = Math.sin(a);
-      const rx = uSpin.x * cA + vSpin.x * sA;
-      const ry = uSpin.y * cA + vSpin.y * sA;
-      const rz = uSpin.z * cA + vSpin.z * sA;
-
-      const spokeEnd = {
-        x: center.x + rx * r * 0.95,
-        y: center.y + ry * r * 0.95,
-        z: center.z + rz * r * 0.95,
-      };
-      drawLine3(center, spokeEnd, i % 3 === 0 ? '#fbbf24' : '#94a3b8', 2.5, cx, cy, focal);
-    }
-
-    // Render thick rim
-    const rimSegments = 64;
-    for (let j = -1; j <= 1; j += 2) {
-      const zOffset = j * 0.02; // Thickness
+    // Draw Rim (Double loop for thickness)
+    for (let j = -1; j <= 1; j += 1) {
+      const offset = j * 0.015;
       ctx.beginPath();
-      for (let i = 0; i <= rimSegments; i++) {
-        const a = (i / rimSegments) * Math.PI * 2;
-        const cA = Math.cos(a),
-          sA = Math.sin(a);
-        // The rim itself is continuous, no need to use psi (uSpin), just ux, vx
-        const rx = ux * cA + vx * sA;
-        const ry = uy * cA + vy * sA;
-        const rz = uz * cA + vz * sA;
-
+      for (let i = 0; i <= wheelSegments; i++) {
+        const ang = (i / wheelSegments) * Math.PI * 2;
         const pt = {
-          x: center.x + rx * r + axis.x * zOffset,
-          y: center.y + ry * r + axis.y * zOffset,
-          z: center.z + rz * r + axis.z * zOffset,
+          x: center.x + (v1.x * Math.cos(ang) + v2.x * Math.sin(ang)) * r + axis.x * offset,
+          y: center.y + (v1.y * Math.cos(ang) + v2.y * Math.sin(ang)) * r + axis.y * offset,
+          z: center.z + (v1.z * Math.cos(ang) + v2.z * Math.sin(ang)) * r + axis.z * offset,
         };
         const pr = project(pt, camera, cx, cy, focal);
-        if (pr.z < 0.1) continue;
-        if (i === 0) {
-          ctx.moveTo(pr.x, pr.y);
-        } else ctx.lineTo(pr.x, pr.y);
+        if (i === 0) ctx.moveTo(pr.x, pr.y);
+        else ctx.lineTo(pr.x, pr.y);
       }
-      ctx.strokeStyle = '#334155';
-      ctx.lineWidth = 4.5;
+      ctx.strokeStyle = j === 0 ? '#1f2937' : '#d1d5db'; // Black tire, silver rims
+      ctx.lineWidth = (j === 0 ? 0.035 : 0.015) * pCenter.scale;
       ctx.stroke();
     }
 
-    // Draw physics vectors with labels
-    // 1. Gravity (from COM)
-    const forceTip = { x: center.x, y: center.y, z: center.z - 0.25 };
-    drawVector(center, forceTip, '#fb923c', 2.5, 'F_g', cx, cy, focal);
-
-    // 2. Normal Force (from Pivot)
-    const fnTip = { x: 0, y: 0, z: 0.25 };
-    drawVector({ x: 0, y: 0, z: 0 }, fnTip, '#4ade80', 2.5, 'F_N', cx, cy, focal);
-
-    // 3. Spin Angular Momentum (extending out of axle past the wheel)
-    const angMomTip = {
-      x: center.x + axis.x * 0.35,
-      y: center.y + axis.y * 0.35,
-      z: center.z + axis.z * 0.35,
-    };
-    drawVector(center, angMomTip, '#38bdf8', 2.5, 'L_s', cx, cy, focal);
-
-    // 4. Gravity Torque (horizontal from pivot)
-    const tauDir = { x: -center.y, y: center.x, z: 0 };
-    const tauLen = Math.hypot(tauDir.x, tauDir.y, tauDir.z);
-    if (tauLen > 1e-4) {
-      const tauTip = { x: (tauDir.x / tauLen) * 0.3, y: (tauDir.y / tauLen) * 0.3, z: 0 };
-      drawVector({ x: 0, y: 0, z: 0 }, tauTip, '#fde047', 2.5, 'τ', cx, cy, focal);
+    // Interactive Tip Highlight
+    if (interactionMode === 'manipulate' || isHoveringTip(lastX, lastY)) {
+      ctx.fillStyle = 'rgba(59, 130, 246, 0.3)';
+      ctx.beginPath();
+      ctx.arc(pTip.x, pTip.y, 15, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 2;
+      ctx.stroke();
     }
 
-    // Data HUD
-    ctx.fillStyle = 'rgba(8,14,30,0.82)';
-    ctx.fillRect(20, 20, 200, 110);
-    ctx.strokeStyle = 'rgba(148,163,184,0.35)';
-    ctx.strokeRect(20, 20, 200, 110);
+    // ── Vectors (Professional Style) ──
+    if (p.showVectors) {
+      drawVector(center, { x: center.x, y: center.y, z: center.z - 0.5 }, '#22c55e', 'F_g');
+      drawVector(
+        center,
+        { x: center.x + axis.x * 0.6, y: center.y + axis.y * 0.6, z: center.z + axis.z * 0.6 },
+        '#3b82f6',
+        'L',
+      );
 
-    ctx.font = '700 13px "JetBrains Mono", monospace';
-    ctx.fillStyle = '#93c5fd';
-    ctx.fillText('Bicycle Wheel Demo', 34, 44);
+      const tDir = { x: -center.y, y: center.x, z: 0 };
+      const tLen = Math.hypot(tDir.x, tDir.y, tDir.z);
+      if (tLen > 0.01) {
+        drawVector(
+          { x: 0, y: 0, z: 0 },
+          { x: (tDir.x / tLen) * 0.5, y: (tDir.y / tLen) * 0.5, z: 0 },
+          '#ef4444',
+          'τ',
+        );
+      }
+    }
 
-    ctx.font = '11px "JetBrains Mono", monospace';
-    ctx.fillStyle = '#e5e7eb';
-    ctx.fillText(`θ = ${th.toFixed(3)} rad`, 34, 70);
-    ctx.fillText(`ω_p = ${ph_v.toFixed(3)} rad/s`, 34, 88);
-    const omega_s = ps_v + ph_v * Math.cos(th);
-    ctx.fillText(`ω_s = ${omega_s.toFixed(2)} rad/s`, 34, 106);
+    function drawVector(start, end, color, label) {
+      const ps = project(start, camera, cx, cy, focal);
+      const pe = project(end, camera, cx, cy, focal);
+      if (ps.z < 0.1 || pe.z < 0.1) return;
 
-    ctx.font = '11px "JetBrains Mono", monospace';
-    ctx.fillStyle = 'rgba(203,213,225,0.65)';
-    ctx.fillText('Scroll to zoom, Drag to orbit', W - 200, H - 24);
+      // Arrow Body with Shadow
+      ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(ps.x + 2, ps.y + 2);
+      ctx.lineTo(pe.x + 2, pe.y + 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(ps.x, ps.y);
+      ctx.lineTo(pe.x, pe.y);
+      ctx.stroke();
+
+      const angle = Math.atan2(pe.y - ps.y, pe.x - ps.x);
+      ctx.beginPath();
+      ctx.moveTo(pe.x, pe.y);
+      ctx.lineTo(pe.x - 12 * Math.cos(angle - 0.4), pe.y - 12 * Math.sin(angle - 0.4));
+      ctx.lineTo(pe.x - 12 * Math.cos(angle + 0.4), pe.y - 12 * Math.sin(angle + 0.4));
+      ctx.fill();
+
+      if (label && p.showLabels) {
+        ctx.font = '800 16px "Inter", sans-serif';
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = 'rgba(255,255,255,0.8)';
+        ctx.fillText(label, pe.x + 12, pe.y + 5);
+        ctx.shadowBlur = 0;
+      }
+    }
   }
 
-  let rafId,
-    running = false,
-    lastTs,
-    speedScale = 1;
+  function normalize(v) {
+    const l = Math.hypot(v.x, v.y, v.z) || 1;
+    return { x: v.x / l, y: v.y / l, z: v.z / l };
+  }
 
+  function isHoveringTip(mx, my) {
+    if (!mx || !my) return false;
+    const { axis } = getAxisAndCenter();
+    const tip = { x: axis.x * 0.6, y: axis.y * 0.6, z: axis.z * 0.6 };
+    const pTip = project(
+      tip,
+      camera,
+      canvas.width * 0.5,
+      canvas.height * 0.6,
+      Math.min(canvas.width, canvas.height),
+    );
+    return Math.hypot(pTip.x - mx, pTip.y - my) < 30;
+  }
+
+  let raf,
+    lastTs,
+    running = false;
   function loop(ts) {
     if (!running) return;
-    const dt = lastTs === undefined ? 1 / 60 : Math.min((ts - lastTs) / 1000, 1 / 20);
+    const dt = lastTs ? Math.min((ts - lastTs) / 1000, 0.05) : 1 / 60;
     lastTs = ts;
+
+    const speedScale = (p.slowMotion ? 0.2 : 1.0) * (p.speed || 1.0);
     tick(dt * speedScale);
     render();
-    rafId = requestAnimationFrame(loop);
+    raf = requestAnimationFrame(loop);
   }
 
-  initState();
-  render();
+  // Initial State
+  H0 = hamiltonian(state, p);
 
   return {
-    start() {
-      if (running) return;
+    start: () => {
       running = true;
-      lastTs = undefined;
-      rafId = requestAnimationFrame(loop);
+      lastTs = 0;
+      raf = requestAnimationFrame(loop);
     },
-    stop() {
+    stop: () => {
       running = false;
-      cancelAnimationFrame(rafId);
+      cancelAnimationFrame(raf);
     },
-    reset() {
-      this.stop();
-      initState();
+    reset: () => {
+      state = [p.tiltAngle, 0, 0, 0, 0, p.spinRate];
+      trail = [];
       render();
-      this.start();
     },
-    setParams(next) {
-      if (next.trail !== undefined && next.trail !== trailCap) {
-        p.trail = next.trail;
-        allocTrail();
-      }
-      const prevTilt = p.tiltAngle;
-      const prevStartPsi = p.startOmegaPsi;
-      p = { ...p, ...next };
-
-      // Live reload of initial values if changed
-      if (
-        Math.abs(p.tiltAngle - prevTilt) > 1e-6 ||
-        Math.abs(p.startOmegaPsi - prevStartPsi) > 1e-6
-      ) {
-        th = p.tiltAngle;
-        const omega3 = p.startOmegaPsi;
-        ps_v = omega3 - ph_v * Math.cos(th);
-        th_v = 0; // Reset momentum
+    setParams: (newParams) => {
+      const oldTilt = p.tiltAngle;
+      const oldSpin = p.spinRate;
+      p = { ...p, ...newParams };
+      if (Math.abs(p.tiltAngle - oldTilt) > 1e-4 || Math.abs(p.spinRate - oldSpin) > 1e-4) {
+        state[0] = p.tiltAngle;
+        state[5] = p.spinRate;
       }
       render();
     },
-    setSpeed(s) {
-      speedScale = Number.isFinite(s) ? s : 1;
+    setSpeed: (s) => {
+      p.speed = s;
     },
-    destroy() {
-      this.stop();
+    getData: () => ({
+      time: simTime,
+      theta: state[0],
+      phi_vel: state[4],
+      omega3: state[5] + state[4] * Math.cos(state[0]),
+      energy: hamiltonian(state, p),
+    }),
+    destroy: () => {
+      running = false;
+      cancelAnimationFrame(raf);
       canvas.removeEventListener('mousedown', onDown);
       canvas.removeEventListener('touchstart', onDown);
       window.removeEventListener('mousemove', onMove);
@@ -779,20 +737,6 @@ export function create(canvas, initParams = {}) {
       window.removeEventListener('mouseup', onUp);
       window.removeEventListener('touchend', onUp);
       canvas.removeEventListener('wheel', onWheel);
-    },
-    getData() {
-      const H = hamiltonian(th, ph, ps, th_v, ph_v, ps_v, p);
-      const omega_s = ps_v + ph_v * Math.cos(th);
-      return {
-        time: simTime,
-        theta: th,
-        phi_vel: ph_v,
-        omega3: omega_s,
-        angularMomentum: p.inertiaSpin * omega_s,
-        energy: H,
-        totalEnergy: H,
-        energyError: H0 && Math.abs(H0) > 1e-6 ? (H - H0) / Math.abs(H0) : 0,
-      };
     },
   };
 }
