@@ -1,25 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Physics Simulator">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Physics Lab">
   <defs>
-    <radialGradient id="bg" cx="36%" cy="28%" r="78%">
-      <stop offset="0%" stop-color="#1f3a4d"/>
-      <stop offset="58%" stop-color="#0b1118"/>
-      <stop offset="100%" stop-color="#05070a"/>
-    </radialGradient>
-    <linearGradient id="orbit" x1="10" x2="54" y1="12" y2="52">
-      <stop offset="0%" stop-color="#8be9fd"/>
-      <stop offset="52%" stop-color="#2dd4bf"/>
-      <stop offset="100%" stop-color="#fb7185"/>
+    <linearGradient id="bg" x1="10" x2="54" y1="6" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0d1f3a"/>
+      <stop offset="1" stop-color="#06142a"/>
+    </linearGradient>
+    <linearGradient id="wave" x1="10" x2="54" y1="48" y2="14" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1e6dff"/>
+      <stop offset="1" stop-color="#4f92ff"/>
     </linearGradient>
   </defs>
   <rect width="64" height="64" rx="14" fill="url(#bg)"/>
-  <circle cx="32" cy="32" r="4.8" fill="#f8fafc"/>
-  <circle cx="32" cy="32" r="8.4" fill="none" stroke="#f8fafc" stroke-opacity="0.16" stroke-width="1.6"/>
-  <g fill="none" stroke="url(#orbit)" stroke-linecap="round" stroke-width="3.4">
-    <ellipse cx="32" cy="32" rx="23" ry="8.2"/>
-    <ellipse cx="32" cy="32" rx="23" ry="8.2" transform="rotate(60 32 32)"/>
-    <ellipse cx="32" cy="32" rx="23" ry="8.2" transform="rotate(120 32 32)"/>
-  </g>
-  <circle cx="52.5" cy="32" r="3.1" fill="#2dd4bf"/>
-  <circle cx="21.4" cy="13.7" r="2.8" fill="#8be9fd"/>
-  <circle cx="21.3" cy="50.4" r="2.8" fill="#fb7185"/>
+  <path d="M18 42h28" stroke="#e6eef7" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 4" opacity=".72"/>
+  <path d="M32 20v23" stroke="#e6eef7" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 4" opacity=".72"/>
+  <path d="M18 42c8-15 17-20 28-3" fill="none" stroke="#e6eef7" stroke-width="4" stroke-linecap="round"/>
+  <path d="M12 42c13-20 23-25 38-6" fill="none" stroke="url(#wave)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M12 48c13 3 30-7 42-28" fill="none" stroke="url(#wave)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M47 13A22 22 0 0 0 12 36" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+  <path d="M51 18a22 22 0 0 1-2 28" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+  <path d="M13 47a22 22 0 0 0 33 5" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="50" cy="18" r="5" fill="#1e6dff"/>
+  <circle cx="13" cy="42" r="3.5" fill="#16c2a3"/>
+  <circle cx="52" cy="42" r="3.5" fill="#ff8a00"/>
 </svg>

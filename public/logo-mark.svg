@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Physics Lab">
+  <path d="M17 42h29" stroke="#b7c7da" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 4"/>
+  <path d="M32 20v23" stroke="#b7c7da" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 4"/>
+  <path d="M18 42c8-15 17-20 28-3" fill="none" stroke="#1e6dff" stroke-width="4.8" stroke-linecap="round"/>
+  <path d="M12 48c13 3 30-7 42-28" fill="none" stroke="#1e6dff" stroke-width="5" stroke-linecap="round"/>
+  <path d="M47 13A22 22 0 0 0 12 36" fill="none" stroke="#0d1f3a" stroke-width="4" stroke-linecap="round"/>
+  <path d="M51 18a22 22 0 0 1-2 28" fill="none" stroke="#0d1f3a" stroke-width="4" stroke-linecap="round"/>
+  <path d="M13 47a22 22 0 0 0 33 5" fill="none" stroke="#0d1f3a" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="50" cy="18" r="5" fill="#1e6dff"/>
+  <circle cx="13" cy="42" r="3.5" fill="#0d1f3a"/>
+  <circle cx="52" cy="42" r="3.5" fill="#ff8a00"/>
+</svg>

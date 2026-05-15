@@ -1,11 +1,40 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Search } from 'lucide-react';
 import { TOPICS } from '../simulations/index';
 import SimulationRunner from '../components/SimulationRunner';
 
 export default function TopicsPage({ onBack }) {
   const [selectedSim, setSelectedSim] = useState(null);
+  const [query, setQuery] = useState('');
+  const [activeTopic, setActiveTopic] = useState('all');
+  const allSims = useMemo(
+    () =>
+      Object.entries(TOPICS).flatMap(([key, topic]) =>
+        topic.sims.map((sim) => ({ ...sim, topicKey: key, topicLabel: topic.label })),
+      ),
+    [],
+  );
+
+  const filteredTopics = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    return Object.entries(TOPICS)
+      .filter(([key]) => activeTopic === 'all' || activeTopic === key)
+      .map(([key, topic]) => {
+        const sims = topic.sims.filter((sim) => {
+          if (!normalizedQuery) return true;
+
+          const searchable = [topic.label, sim.title, sim.description, sim.method, ...sim.tags]
+            .join(' ')
+            .toLowerCase();
+          return searchable.includes(normalizedQuery);
+        });
+
+        return { key, ...topic, sims };
+      })
+      .filter((topic) => topic.sims.length > 0);
+  }, [activeTopic, query]);
 
   if (selectedSim) {
     return (
@@ -25,16 +54,60 @@ export default function TopicsPage({ onBack }) {
             <ArrowLeft size={16} />
           </button>
           <div className="topics-header-text">
-            <h1 className="topics-page-title">Laboratories</h1>
-            <p className="topics-page-subtitle">Interactive physics simulations and experiments</p>
+            <span className="topics-eyebrow">Interactive simulation library</span>
+            <h1 className="topics-page-title">Physics Lab</h1>
+            <p className="topics-page-subtitle">
+              Choose a concept, change the variables, and compare the motion with live data.
+            </p>
           </div>
         </div>
 
-        {Object.entries(TOPICS).map(([key, topic]) => (
-          <div key={key} className="topic-track">
-            <h2 className="topic-track-title">{topic.label}</h2>
+        <div className="topics-tools">
+          <label className="topics-search">
+            <Search size={18} />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search by title, method, tag, or concept"
+            />
+          </label>
+
+          <div className="topic-filter" aria-label="Filter by topic">
+            <button
+              className={`topic-filter-btn${activeTopic === 'all' ? ' active' : ''}`}
+              onClick={() => setActiveTopic('all')}
+            >
+              All
+              <span>{allSims.length}</span>
+            </button>
+            {Object.entries(TOPICS).map(([key, topic]) => (
+              <button
+                key={key}
+                className={`topic-filter-btn${activeTopic === key ? ' active' : ''}`}
+                onClick={() => setActiveTopic(key)}
+              >
+                {topic.label}
+                <span>{topic.sims.length}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {filteredTopics.length === 0 && (
+          <div className="empty-results">
+            <strong>No simulations found</strong>
+            <p>Try a broader topic, solver name, or classroom concept.</p>
+          </div>
+        )}
+
+        {filteredTopics.map((topic) => (
+          <div key={topic.key} className="topic-track">
+            <div className="topic-track-heading">
+              <h2 className="topic-track-title">{topic.label}</h2>
+              <span>{topic.sims.length} simulations</span>
+            </div>
             <div className="topic-track-wrapper">
-              <div className="topic-track-slider custom-scroll" id={`track-${key}`}>
+              <div className="topic-track-slider custom-scroll" id={`track-${topic.key}`}>
                 {topic.sims.map((sim) => (
                   <button key={sim.id} className="sim-card" onClick={() => setSelectedSim(sim)}>
                     <div className="sim-card-preview">
@@ -44,6 +117,7 @@ export default function TopicsPage({ onBack }) {
                     </div>
 
                     <div className="sim-card-body">
+                      <div className="sim-card-topic">{topic.label}</div>
                       <div className="sim-card-title">{sim.title}</div>
                       <p className="sim-card-desc">{sim.description}</p>
                       <div className="sim-card-footer">
@@ -54,6 +128,7 @@ export default function TopicsPage({ onBack }) {
                             </span>
                           ))}
                         </div>
+                        <span className="sim-method">{sim.method}</span>
                       </div>
                     </div>
                   </button>

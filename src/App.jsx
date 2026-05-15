@@ -1,37 +1,14 @@
-import { useRef, useState } from 'react';
-import Toolbar from './components/Toolbar';
-import SandboxCanvas from './components/SandboxCanvas';
-import PropertiesPanel from './components/PropertiesPanel';
+import { lazy, Suspense, useState } from 'react';
 import Home from './pages/Home';
-import TopicsPage from './pages/TopicsPage';
-import DocsPage from './pages/DocsPage';
-import IntegratorsPage from './pages/IntegratorsPage';
-import { useSandboxStore } from './store/sandboxStore';
-import { resetEngine } from './physics/engine';
-import Matter from 'matter-js';
-import { ChevronUp, Home as HomeIcon } from 'lucide-react';
 import './App.css';
+
+const TopicsPage = lazy(() => import('./pages/TopicsPage'));
+const DocsPage = lazy(() => import('./pages/DocsPage'));
+const IntegratorsPage = lazy(() => import('./pages/IntegratorsPage'));
+const SandboxPage = lazy(() => import('./pages/SandboxPage'));
 
 export default function App() {
   const [page, setPage] = useState('home');
-  const engineRef = useRef(null);
-  const { setRunning, showPropertiesPanel, togglePropertiesPanel } = useSandboxStore();
-
-  function handleReset() {
-    setRunning(false);
-    useSandboxStore.setState({ bodies: {}, constraints: {}, selectedId: null });
-    const eng = resetEngine();
-    engineRef.current = eng;
-    const isMob = window.innerWidth <= 768;
-    const floorY = isMob ? 400 : 500;
-    const floor = Matter.Bodies.rectangle(0, floorY, window.innerWidth * 2, 40, {
-      isStatic: true,
-      friction: 0.5,
-      restitution: 0.3,
-    });
-    floor._isFloor = true;
-    Matter.Composite.add(eng.world, floor);
-  }
 
   const handleNavigate = (targetPage) => {
     setPage(targetPage);
@@ -47,7 +24,7 @@ export default function App() {
             onClick={() => handleNavigate('home')}
             title="Home"
           >
-            <HomeIcon size={18} />
+            <img src="/logo-mark.svg" alt="Physics Lab" className="header-logo-mark" />
           </button>
           <div className="header-nav">
             <button
@@ -81,25 +58,12 @@ export default function App() {
   return (
     <div className="page-wrapper">
       {renderHeader()}
-      {page === 'topics' && <TopicsPage onBack={() => handleNavigate('home')} />}
-      {page === 'docs' && <DocsPage onBack={() => handleNavigate('home')} />}
-      {page === 'integrators' && <IntegratorsPage onBack={() => handleNavigate('home')} />}
-      {page === 'sandbox' && (
-        <div className="app-container">
-          <Toolbar onReset={handleReset} onHome={() => handleNavigate('home')} />
-          <div className="canvas-container">
-            <SandboxCanvas engineRef={engineRef} />
-          </div>
-          <button
-            className={`mobile-bottom-toggle${showPropertiesPanel ? ' active' : ''}`}
-            onClick={togglePropertiesPanel}
-            title="Toggle Properties"
-          >
-            <ChevronUp size={24} />
-          </button>
-          <PropertiesPanel />
-        </div>
-      )}
+      <Suspense fallback={<div className="page-loading">Loading Physics Lab...</div>}>
+        {page === 'topics' && <TopicsPage onBack={() => handleNavigate('home')} />}
+        {page === 'docs' && <DocsPage onBack={() => handleNavigate('home')} />}
+        {page === 'integrators' && <IntegratorsPage onBack={() => handleNavigate('home')} />}
+        {page === 'sandbox' && <SandboxPage onHome={() => handleNavigate('home')} />}
+      </Suspense>
     </div>
   );
 }
