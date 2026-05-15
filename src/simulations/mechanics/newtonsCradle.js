@@ -18,6 +18,18 @@ const DEFAULTS = {
   gravity: 980,
 };
 
+const LIMITS = {
+  count: [3, 8],
+  radius: [15, 30],
+  stringLength: [120, 360],
+  pullCount: [1, 4],
+  pullAngle: [-1.2, 1.2],
+  restitution: [0.9, 1],
+  mass: [0.1, 10],
+  airFriction: [0, 0.002],
+  gravity: [100, 2000],
+};
+
 export const defaultParams = { ...DEFAULTS };
 
 export const equationSections = [
@@ -33,6 +45,8 @@ export const equationSections = [
     ],
   },
 ];
+
+export const equations = equationSections;
 
 export const controls = [
   { key: 'count', label: 'Ball Count', min: 3, max: 8, step: 1 },
@@ -66,9 +80,30 @@ function rk4Pendulum(theta, omega, dt, g, L, c) {
   };
 }
 
+function clamp(value, min, max) {
+  if (!Number.isFinite(value)) return min;
+  return Math.min(max, Math.max(min, value));
+}
+
+function sanitizeParams(nextParams) {
+  const next = { ...DEFAULTS, ...nextParams };
+  next.count = Math.round(clamp(next.count, ...LIMITS.count));
+  next.radius = clamp(next.radius, ...LIMITS.radius);
+  next.stringLength = clamp(next.stringLength, ...LIMITS.stringLength);
+  next.pullCount = Math.round(
+    clamp(next.pullCount, LIMITS.pullCount[0], Math.min(next.count, LIMITS.pullCount[1])),
+  );
+  next.pullAngle = clamp(next.pullAngle, ...LIMITS.pullAngle);
+  next.restitution = clamp(next.restitution, ...LIMITS.restitution);
+  next.mass = clamp(next.mass, ...LIMITS.mass);
+  next.airFriction = clamp(next.airFriction, ...LIMITS.airFriction);
+  next.gravity = clamp(next.gravity, ...LIMITS.gravity);
+  return next;
+}
+
 export function create(canvas, initParams = {}) {
   const ctx = canvas.getContext('2d');
-  let p = { ...DEFAULTS, ...initParams };
+  let p = sanitizeParams(initParams);
 
   let thetas = [];
   let omegas = [];
@@ -172,10 +207,10 @@ export function create(canvas, initParams = {}) {
       ctx.stroke();
     }
 
-    renderHUD(W, H);
+    renderHUD();
   }
 
-  function renderHUD(W, H) {
+  function renderHUD() {
     const x = 20,
       y = 20,
       w = 180,
@@ -242,7 +277,7 @@ export function create(canvas, initParams = {}) {
       cy = canvas.height * 0.22;
     const ancX = cx - offset + draggingIdx * spacing;
 
-    thetas[draggingIdx] = Math.atan2(mx - ancX, my - cy);
+    thetas[draggingIdx] = clamp(Math.atan2(mx - ancX, my - cy), ...LIMITS.pullAngle);
     omegas[draggingIdx] = 0;
     if (!running) render();
   }
@@ -298,7 +333,13 @@ export function create(canvas, initParams = {}) {
       render();
     },
     setParams: (next) => {
-      p = { ...p, ...next };
+      const previousCount = p.count;
+      p = sanitizeParams({ ...p, ...next });
+      if (p.count !== previousCount || thetas.length !== p.count) {
+        init();
+        render();
+        return;
+      }
       render();
     },
     destroy: () => {

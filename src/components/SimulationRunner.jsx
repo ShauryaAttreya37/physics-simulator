@@ -11,6 +11,7 @@ import {
   Gauge,
   Video,
   Square,
+  X,
 } from 'lucide-react';
 import { ArrayBufferTarget, Muxer } from 'mp4-muxer';
 import MakieGraph, { drawMakieGraph } from './MakieGraph';
@@ -32,6 +33,18 @@ function formatValue(value, step) {
   if (step >= 0.1) return value.toFixed(2);
   if (step >= 0.01) return value.toFixed(3);
   return value.toFixed(4);
+}
+
+function clampControlValue(control, nextValue) {
+  if (control.type === 'toggle' || control.type === 'tiles') return nextValue;
+  const next = Number.parseFloat(nextValue);
+  if (!Number.isFinite(next)) return null;
+  const min = Number(control.min);
+  const max = Number(control.max);
+  let clamped = next;
+  if (Number.isFinite(min)) clamped = Math.max(min, clamped);
+  if (Number.isFinite(max)) clamped = Math.min(max, clamped);
+  return control.step && control.step >= 1 ? Math.round(clamped) : clamped;
 }
 
 function ParamControl({ control, value, onChange }) {
@@ -81,14 +94,6 @@ function ParamControl({ control, value, onChange }) {
 
   const step = control.step ?? 0.01;
   const tooltip = control.tooltip ?? inferControlTooltip(control);
-  const markers = control.markers ?? [];
-  const markerPosition = (markerValue) => {
-    const min = Number(control.min);
-    const max = Number(control.max);
-    if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min) return 0;
-    const pct = ((markerValue - min) / (max - min)) * 100;
-    return Math.max(0, Math.min(100, pct));
-  };
 
   return (
     <div className="form-group">
@@ -97,7 +102,7 @@ function ParamControl({ control, value, onChange }) {
         <span className="value-pill">{formatValue(value, step)}</span>
       </label>
       <div className="input-row">
-        <div className={`slider-stack${markers.length > 0 ? ' has-markers' : ''}`}>
+        <div className="slider-stack">
           <input
             type="range"
             min={control.min}
@@ -105,23 +110,11 @@ function ParamControl({ control, value, onChange }) {
             step={step}
             value={value}
             className="slider-input"
-            onChange={(e) => onChange(Number.parseFloat(e.target.value))}
+            onChange={(e) => {
+              const next = clampControlValue(control, e.target.value);
+              if (next !== null) onChange(next);
+            }}
           />
-          {markers.length > 0 && (
-            <div className="slider-markers">
-              {markers.map((marker) => (
-                <div
-                  key={`${control.key}-${marker.value}-${marker.label}`}
-                  className="slider-marker"
-                  style={{ left: `${markerPosition(marker.value)}%` }}
-                  title={`${marker.label}: ${marker.value}`}
-                >
-                  <span className="slider-marker-tick" />
-                  <span className="slider-marker-label">{marker.label}</span>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
         <input
           type="number"
@@ -131,8 +124,8 @@ function ParamControl({ control, value, onChange }) {
           value={value}
           className="form-input number-input"
           onChange={(e) => {
-            const next = Number.parseFloat(e.target.value);
-            if (Number.isFinite(next)) onChange(next);
+            const next = clampControlValue(control, e.target.value);
+            if (next !== null) onChange(next);
           }}
         />
       </div>
@@ -286,6 +279,7 @@ export default function SimulationRunner({ sim, onBack }) {
   const [isRecording, setIsRecording] = useState(false);
   const [isExportingVideo, setIsExportingVideo] = useState(false);
   const [globalPan, setGlobalPan] = useState({ x: 0, y: 0 });
+  const [sidePanelOpen, setSidePanelOpen] = useState(false);
 
   const isModern = !!(sim.init && sim.update);
   const engine = usePhysicsEngine(
@@ -684,8 +678,18 @@ export default function SimulationRunner({ sim, onBack }) {
   const [showMobilePanel, setShowMobilePanel] = useState(false);
   const { showReadout, toggleReadout } = useSandboxStore();
 
+  const openSidePanel = useCallback((tab) => {
+    setSideTab(tab);
+    setSidePanelOpen(true);
+    setShowMobilePanel(true);
+  }, []);
+
   return (
-    <div className={`sim-runner ${showMobilePanel ? 'mobile-panel-open' : ''}`}>
+    <div
+      className={`sim-runner ${sidePanelOpen ? 'side-panel-open' : ''} ${
+        showMobilePanel ? 'mobile-panel-open' : ''
+      }`}
+    >
       <div className="sim-main-area">
         <div className="sim-runner-top-bar">
           <button className="icon-btn" onClick={onBack} title="Return to lab">
@@ -709,6 +713,27 @@ export default function SimulationRunner({ sim, onBack }) {
             </button>
             <button className="icon-btn" onClick={reset} title="Reset">
               <RotateCcw size={14} />
+            </button>
+          </div>
+
+          <div className="sim-panel-actions" aria-label="Simulation panels">
+            <button
+              className={`btn panel-action-btn ${sidePanelOpen && sideTab === 'controls' ? 'active' : ''}`}
+              onClick={() => openSidePanel('controls')}
+            >
+              <Sliders size={14} /> Params
+            </button>
+            <button
+              className={`btn panel-action-btn ${sidePanelOpen && sideTab === 'graph' ? 'active' : ''}`}
+              onClick={() => openSidePanel('graph')}
+            >
+              <LineChartIcon size={14} /> Data
+            </button>
+            <button
+              className={`btn panel-action-btn ${sidePanelOpen && sideTab === 'equations' ? 'active' : ''}`}
+              onClick={() => openSidePanel('equations')}
+            >
+              <BookOpen size={14} /> Theory
             </button>
           </div>
 
@@ -740,14 +765,7 @@ export default function SimulationRunner({ sim, onBack }) {
             </select>
           </div>
 
-          <div
-            className="sim-toolbar-group hide-mobile"
-            style={{
-              marginLeft: 'var(--sp-2)',
-              paddingLeft: 'var(--sp-4)',
-              borderLeft: '1px solid var(--border)',
-            }}
-          >
+          <div className="sim-toolbar-group sim-display-toggle hide-mobile">
             <span
               style={{
                 fontSize: '11px',
@@ -770,7 +788,14 @@ export default function SimulationRunner({ sim, onBack }) {
 
           <button
             className={`icon-btn mobile-only-btn ${showMobilePanel ? 'active' : ''}`}
-            onClick={() => setShowMobilePanel(!showMobilePanel)}
+            onClick={() => {
+              if (sidePanelOpen) {
+                setSidePanelOpen(false);
+                setShowMobilePanel(false);
+              } else {
+                openSidePanel('controls');
+              }
+            }}
             title="Toggle Parameters"
           >
             <Sliders size={16} />
@@ -798,7 +823,22 @@ export default function SimulationRunner({ sim, onBack }) {
         {exportToast && <div className="sim-toast">{exportToast}</div>}
       </div>
 
-      <div className="sim-side-panel">
+      <div className="sim-side-panel" aria-hidden={!sidePanelOpen}>
+        <div className="sim-side-panel-header">
+          <span className="sim-side-panel-title">
+            {sideTab === 'controls' ? 'Parameters' : sideTab === 'graph' ? 'Data' : 'Theory'}
+          </span>
+          <button
+            className="icon-btn"
+            onClick={() => {
+              setSidePanelOpen(false);
+              setShowMobilePanel(false);
+            }}
+            title="Close panel"
+          >
+            <X size={16} />
+          </button>
+        </div>
         <div className="sim-side-tabs">
           <button
             className={`sim-side-tab ${sideTab === 'controls' ? 'active' : ''}`}
