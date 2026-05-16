@@ -1151,63 +1151,77 @@ canvas {
 .topic-track-slider {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: var(--sp-4);
+  gap: var(--sp-5);
   overflow: visible;
   padding-bottom: 0;
 }
 
 .sim-card {
-  min-height: 356px;
+  min-height: 360px;
   height: 100%;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--border);
+  border: 1px solid #d7e2eb;
   border-radius: 8px;
   background: var(--surface);
   color: inherit;
   text-align: left;
   transition: all 140ms ease;
   text-decoration: none;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 
 .sim-card:hover {
-  border-color: #99c5df;
-  box-shadow: 0 14px 34px rgba(31, 86, 124, 0.12);
+  border-color: #a9c9dd;
+  box-shadow: 0 12px 28px rgba(31, 86, 124, 0.12);
   transform: translateY(-2px);
 }
 
 .sim-card-preview {
-  height: 118px;
+  height: auto;
+  aspect-ratio: 16 / 7;
   flex-shrink: 0;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(11, 119, 189, 0.12), rgba(245, 130, 32, 0.14)), #f8fcff;
+  margin: var(--sp-2) var(--sp-2) 0;
+  overflow: hidden;
+  border: 1px solid #dbe6ee;
+  border-radius: 6px;
+  background:
+    radial-gradient(circle at 50% 36%, rgba(255, 255, 255, 0.72), transparent 34%),
+    linear-gradient(135deg, rgba(11, 119, 189, 0.14), rgba(245, 130, 32, 0.13)), #f6fbff;
   border-bottom: 1px solid var(--border);
 }
 
 .sim-card-preview-icon {
   color: var(--accent);
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
 }
 
 .sim-card-preview-icon svg {
-  width: 72px;
-  height: 72px;
+  width: min(92px, 42%);
+  height: min(92px, 72%);
   display: block;
+  overflow: visible;
 }
 
 .sim-card-body {
   flex: 1;
-  padding: var(--sp-4);
+  padding: var(--sp-4) var(--sp-4) var(--sp-3);
   display: flex;
   flex-direction: column;
+  gap: var(--sp-2);
   min-height: 0;
 }
 
 .sim-card-topic {
-  margin-bottom: 7px;
+  margin-bottom: 0;
   color: var(--accent-orange);
   font-size: 11px;
   font-weight: 900;
@@ -1217,17 +1231,17 @@ canvas {
 
 .sim-card-title {
   color: var(--text);
-  font-size: 17px;
+  font-size: 18px;
   line-height: 1.2;
   font-weight: 850;
-  min-height: 42px;
+  min-height: 44px;
   display: flex;
   align-items: flex-start;
 }
 
 .sim-card-desc {
   flex: 1;
-  margin: var(--sp-2) 0 var(--sp-4);
+  margin: 0 0 var(--sp-2);
   color: var(--text-sub);
   font-size: 13px;
   line-height: 1.5;
@@ -1239,10 +1253,11 @@ canvas {
 
 .sim-card-footer {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--sp-3);
-  min-height: 30px;
+  min-height: 32px;
+  padding-top: var(--sp-1);
 }
 
 .sim-card-tags {
@@ -1253,10 +1268,10 @@ canvas {
 }
 
 .sim-tag {
-  padding: 4px 7px;
-  border: 1px solid #d5e5f3;
+  padding: 5px 8px;
+  border: 1px solid #d7e3ed;
   border-radius: 999px;
-  background: #f8fbff;
+  background: #f7fbff;
   color: #4d6a80;
   font-size: 11px;
   font-weight: 800;
@@ -1268,7 +1283,7 @@ canvas {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding: 4px 7px;
+  padding: 5px 8px;
   border-radius: var(--r-sm);
   background: #fff3e4;
   color: #9a4a05;
