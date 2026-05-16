@@ -2,7 +2,7 @@ import { yoshida4Step } from '../../physics/solvers';
 import { drawTrail, hexToRgb } from '../../utils/canvas';
 
 /**
- * Orbital Gravity — Research-Grade N-Body Simulation
+ * Orbital Gravity
  *
  * Integrator:  Yoshida 4th-order symplectic (time-reversible, energy-preserving)
  * Physics:     Newtonian gravity with softening parameter

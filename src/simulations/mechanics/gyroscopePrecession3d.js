@@ -90,7 +90,7 @@ export const method = 'rk45';
 // ── Physics ─────────────────────────────────────────────────────────────────
 
 function derivs(state, p) {
-  const [th, ph, ps, th_v, ph_v, ps_v] = state;
+  const [th, , , th_v, ph_v, ps_v] = state;
   const I3 = p.inertiaSpin;
   const I1 = I3 / 2 + p.mass * p.cmOffset * p.cmOffset;
 
@@ -116,7 +116,7 @@ function derivs(state, p) {
 }
 
 function hamiltonian(state, p) {
-  const [th, ph, ps, th_v, ph_v, ps_v] = state;
+  const [th, , , th_v, ph_v, ps_v] = state;
   const I3 = p.inertiaSpin;
   const I1 = I3 / 2 + p.mass * p.cmOffset * p.cmOffset;
   const sin_th = Math.sin(th);
@@ -276,7 +276,6 @@ export function create(canvas, initParams = {}) {
   let H0 = 0;
 
   let trail = [];
-  let trailCap = 500;
 
   const camera = { yaw: -0.6, pitch: -0.4, distance: 3.5 };
   let isDragging = false,
@@ -595,7 +594,7 @@ export function create(canvas, initParams = {}) {
       ctx.stroke();
     }
 
-    // ── Vectors (Professional Style) ──
+    // Vectors
     if (p.showVectors) {
       drawVector(center, { x: center.x, y: center.y, z: center.z - 0.5 }, '#22c55e', 'F_g');
       drawVector(

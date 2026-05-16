@@ -19,9 +19,10 @@
   --shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
   --font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
-  --r-sm: 2px;
-  --r-md: 4px;
-  --r-lg: 6px;
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+  --r-pill: 999px;
   --left-w: 64px;
   --right-w: clamp(320px, 24vw, 380px);
 
@@ -85,7 +86,7 @@ canvas {
 
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
 }
 
 .custom-scroll {
@@ -178,10 +179,6 @@ canvas {
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
-  transition:
-    background 140ms ease,
-    border-color 140ms ease,
-    color 140ms ease;
   border: 1px solid transparent;
   background: none;
 }
@@ -272,10 +269,6 @@ canvas {
   color: var(--text-sub);
   font-size: 13px;
   font-weight: 600;
-  transition:
-    background 140ms ease,
-    border-color 140ms ease,
-    color 140ms ease;
 }
 
 .tool-btn,
@@ -399,7 +392,7 @@ canvas {
   min-width: 52px;
   max-width: 116px;
   padding: 3px 7px;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   background: var(--surface-muted);
   color: var(--text);
   font-family: var(--font-mono);
@@ -462,17 +455,16 @@ canvas {
   height: 20px;
   padding: 2px;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: #d8dee6;
 }
 
 .toggle-handle {
   width: 14px;
   height: 14px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: #ffffff;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.2);
-  transition: transform 140ms ease;
 }
 
 /* Tile Grid & Buttons */
@@ -489,14 +481,10 @@ canvas {
   align-items: center;
   justify-content: center;
   padding: 10px 6px;
-  border-radius: 10px;
+  border-radius: var(--r-lg);
   border: 1px solid var(--border);
   background: var(--surface-muted);
   cursor: pointer;
-  transition:
-    border-color 140ms ease,
-    background-color 140ms ease,
-    color 140ms ease;
   min-height: 60px;
   text-align: center;
   position: relative;
@@ -678,9 +666,6 @@ canvas {
   border-left: 1px solid var(--border);
   box-shadow: -16px 0 36px rgba(13, 31, 58, 0.14);
   transform: translateX(100%);
-  transition:
-    transform 180ms ease,
-    visibility 180ms ease;
   visibility: hidden;
 }
 
@@ -728,7 +713,6 @@ canvas {
   color: var(--text-muted);
   font-size: 12px;
   font-weight: 700;
-  transition: all 140ms ease;
 }
 
 .sim-side-tab:hover {
@@ -1022,11 +1006,10 @@ canvas {
   width: 48px;
   height: 48px;
   min-height: 48px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.94);
+  border-radius: var(--r-md);
+  background: #ffffff;
   flex-shrink: 0;
   box-shadow: 0 12px 26px rgba(13, 31, 58, 0.14);
-  backdrop-filter: blur(10px);
 }
 
 .topics-track-container {
@@ -1084,7 +1067,7 @@ canvas {
   gap: var(--sp-2);
   padding: 0 var(--sp-2) 0 var(--sp-4);
   border: 1px solid #cbddea;
-  border-radius: 999px;
+  border-radius: var(--r-md);
   background: #ffffff;
   color: #244c69;
   font-size: 13px;
@@ -1108,7 +1091,7 @@ canvas {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
+  border-radius: var(--r-sm);
   background: #eef7ff;
   color: var(--accent);
   font-size: 12px;
@@ -1163,11 +1146,10 @@ canvas {
   display: flex;
   flex-direction: column;
   border: 1px solid #d7e2eb;
-  border-radius: 8px;
+  border-radius: var(--r-lg);
   background: var(--surface);
   color: inherit;
   text-align: left;
-  transition: all 140ms ease;
   text-decoration: none;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
@@ -1175,7 +1157,6 @@ canvas {
 .sim-card:hover {
   border-color: #a9c9dd;
   box-shadow: 0 12px 28px rgba(31, 86, 124, 0.12);
-  transform: translateY(-2px);
 }
 
 .sim-card-preview {
@@ -1189,7 +1170,7 @@ canvas {
   margin: var(--sp-2) var(--sp-2) 0;
   overflow: hidden;
   border: 1px solid #dbe6ee;
-  border-radius: 6px;
+  border-radius: var(--r-md);
   background:
     radial-gradient(circle at 50% 36%, rgba(255, 255, 255, 0.72), transparent 34%),
     linear-gradient(135deg, rgba(11, 119, 189, 0.14), rgba(245, 130, 32, 0.13)), #f6fbff;
@@ -1270,7 +1251,7 @@ canvas {
 .sim-tag {
   padding: 5px 8px;
   border: 1px solid #d7e3ed;
-  border-radius: 999px;
+  border-radius: var(--r-sm);
   background: #f7fbff;
   color: #4d6a80;
   font-size: 11px;
@@ -1295,7 +1276,7 @@ canvas {
 .empty-results {
   padding: var(--sp-8);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--r-lg);
   background: #ffffff;
 }
 
@@ -1355,20 +1336,6 @@ canvas {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: var(--sp-3);
   margin-top: var(--sp-4);
-}
-
-/* Animations */
-.page-fade-in {
-  animation: fade-in 180ms ease;
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
 }
 
 .mobile-only-btn {
@@ -1552,7 +1519,7 @@ canvas {
     height: 48px;
     align-items: center;
     justify-content: center;
-    border-radius: 999px;
+    border-radius: var(--r-lg);
     background: var(--accent);
     color: #fff;
     box-shadow: var(--shadow);

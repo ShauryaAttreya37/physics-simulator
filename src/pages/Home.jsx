@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import { useRef, useState } from 'react';
 import {
   ArrowRight,
   BookOpen,
@@ -24,19 +23,12 @@ const simulationCount = HOME_TOPICS.reduce((sum, topic) => sum + topic.count, 0)
 const topicCount = HOME_TOPICS.length;
 
 export default function Home({ onNavigate }) {
-  const containerRef = useRef(null);
-  const [isExiting, setIsExiting] = useState(false);
-
   const handleNavigate = (page) => {
-    setIsExiting(true);
-    setTimeout(() => onNavigate(page), 180);
+    onNavigate(page);
   };
 
   return (
-    <div
-      className={`home-wrapper ${isExiting ? 'page-fade-out' : 'page-fade-in'}`}
-      ref={containerRef}
-    >
+    <div className="home-wrapper">
       <nav className="home-nav" aria-label="Primary navigation">
         <div className="home-nav-inner">
           <button className="nav-brand" onClick={() => handleNavigate('home')}>

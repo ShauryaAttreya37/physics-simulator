@@ -2,7 +2,7 @@ import { rk4 } from '../../physics/solvers';
 import { drawArrow } from '../../utils/canvas';
 
 /**
- * Simple Pendulum (Nonlinear) — Enhanced Research-Grade
+ * Simple Pendulum (Nonlinear)
  *
  * Features:
  *  - Full nonlinear EOM (no small-angle approximation)

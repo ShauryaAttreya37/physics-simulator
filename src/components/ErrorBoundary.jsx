@@ -13,13 +13,11 @@ export default class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     this.setState({ error, errorInfo });
-    // In a professional setting, we could log the error to an error reporting service here (like Sentry)
     console.error('Caught by ErrorBoundary:', error, errorInfo);
   }
 
   handleReset = () => {
     this.setState({ hasError: false, error: null, errorInfo: null });
-    // Optionally reload the page or navigate home
     window.location.href = '/';
   };
 
@@ -64,11 +62,10 @@ export default class ErrorBoundary extends React.Component {
               backgroundColor: '#3B82F6',
               color: '#fff',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: 'var(--r-lg)',
               fontSize: '1rem',
               fontWeight: '500',
               cursor: 'pointer',
-              transition: 'background-color 0.2s',
             }}
             onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#2563EB')}
             onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#3B82F6')}
@@ -83,7 +80,7 @@ export default class ErrorBoundary extends React.Component {
                 marginTop: '3rem',
                 padding: '1rem',
                 backgroundColor: '#1E293B',
-                borderRadius: '8px',
+                borderRadius: 'var(--r-lg)',
                 maxWidth: '800px',
                 overflowX: 'auto',
               }}

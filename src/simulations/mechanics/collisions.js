@@ -1,5 +1,5 @@
 /**
- * Collisions Lab (1D) — Professional Air Track Edition
+ * Collisions Lab (1D) - Air Track Edition
  *
  * Simulates a high-precision linear air track environment.
  * Features mass-weighted overlap resolution and real-time conservation tracking.
@@ -45,6 +45,8 @@ export const equationSections = [
     ],
   },
 ];
+
+export const equations = equationSections.flatMap((section) => section.equations || []);
 
 export const controls = [
   { key: 'm1', label: 'Glider 1 Mass [kg]', min: 0.1, max: 20, step: 0.1 },
@@ -259,11 +261,10 @@ export function create(canvas, initialParams) {
       ctx.restore();
     });
 
-    // Integrated Data Panel
-    renderHUD(W, H);
+    renderHUD();
   }
 
-  function renderHUD(W, H) {
+  function renderHUD() {
     const p1 = blocks[0].m * blocks[0].v,
       p2 = blocks[1].m * blocks[1].v;
     const ke1 = 0.5 * blocks[0].m * blocks[0].v ** 2,

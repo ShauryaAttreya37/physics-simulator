@@ -7,7 +7,7 @@ import 'katex/dist/katex.min.css';
 
 /**
  * TheoryChalkboard — A technical documentation component for physics equations.
- * Displays mathematical formulas and their descriptions in a clear, professional layout.
+ * Displays mathematical formulas and their descriptions in a clear layout.
  */
 export default function TheoryChalkboard({ sections = [], title = 'Governing Equations' }) {
   const renderedSections = useMemo(() => {

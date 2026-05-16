@@ -1,5 +1,5 @@
 /**
- * Ideal Gas Law Simulation — Research-Grade Implementation
+ * Ideal Gas Law Simulation
  *
  * Models a collection of particles in a 2D container with a draggable piston.
  * Demonstrates the relationship between Pressure (P), Volume (V), and Temperature (T).

@@ -1,13 +1,7 @@
 import { rk4 } from '../../physics/solvers';
-import { drawArrow } from '../../utils/canvas';
 
 /**
- * Projectile Motion with Air Drag — Research-Grade Implementation
- *
- * Integrator:  RK4 with adaptive substeps
- * Physics:     Quadratic air drag (b/m)‖v‖v + gravity
- * Visuals:     Terrain, sky gradient, trail, force vectors,
- *              impact effects, analytical comparison, live HUD
+ * Projectile Motion with Air Drag
  */
 
 const DEFAULTS = {
@@ -190,7 +184,6 @@ export function create(canvas, initParams = {}) {
   let landed; // boolean — projectile hit ground
   let landX; // landing position
   let maxHeight;
-  let impactFrame; // frames since impact for animation
 
   // Interaction State
   let currentLaunchX = 0;
@@ -216,7 +209,6 @@ export function create(canvas, initParams = {}) {
     landed = false;
     landX = 0;
     maxHeight = 0;
-    impactFrame = 0;
     trail.push({ x, y, vx, vy, t: 0 });
   }
 
@@ -231,7 +223,6 @@ export function create(canvas, initParams = {}) {
 
   function tick(dt) {
     if (landed) {
-      impactFrame++;
       return;
     }
 
@@ -297,7 +288,6 @@ export function create(canvas, initParams = {}) {
     const W = canvas.width,
       H = canvas.height;
 
-    // Professional clean background
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, W, H);
 

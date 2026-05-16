@@ -2,7 +2,6 @@ import { useState, useCallback, useMemo } from 'react';
 import {
   Lightbulb,
   ChevronRight,
-  ChevronLeft,
   Eye,
   CheckCircle,
   XCircle,
@@ -10,37 +9,9 @@ import {
   FlaskConical,
 } from 'lucide-react';
 
-/**
- * GuidedExperiment — Predict → Observe → Explain learning loop
- *
- * Each experiment has steps. Each step:
- *  1. Sets params & asks a prediction question
- *  2. Student picks an answer (multiple choice)
- *  3. Simulation runs, student observes
- *  4. Reveal: explanation + whether prediction was right
- *  5. Optional "try it yourself" nudge
- *
- * Data format (provided per simulation):
- * {
- *   title: "Exploring Chaos",
- *   steps: [
- *     {
- *       instruction: "Set θ₁ to exactly 90°...",
- *       params: { theta1: Math.PI/2 },       // auto-applied
- *       question: "What will the second pendulum do?",
- *       choices: ["Swing symmetrically", "Go chaotic", "Stay still"],
- *       correctIndex: 1,
- *       commonMisconception: "Most students expect symmetric motion...",
- *       explanation: "The double pendulum is a chaotic system...",
- *       tryThis: "Now change θ₁ by just 0.01 rad and watch how different the motion becomes."
- *     }
- *   ]
- * }
- */
-
 export default function GuidedExperiment({ experiment, onApplyParams, onClose }) {
   const [stepIdx, setStepIdx] = useState(0);
-  const [phase, setPhase] = useState('predict'); // predict | observe | explain
+  const [phase, setPhase] = useState('predict');
   const [selectedChoice, setSelectedChoice] = useState(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
 
@@ -51,7 +22,6 @@ export default function GuidedExperiment({ experiment, onApplyParams, onClose })
   const handlePredict = useCallback(
     (choiceIdx) => {
       setSelectedChoice(choiceIdx);
-      // Apply the params so simulation shows the scenario
       if (step.params && onApplyParams) {
         onApplyParams(step.params);
       }
@@ -89,7 +59,6 @@ export default function GuidedExperiment({ experiment, onApplyParams, onClose })
 
   return (
     <div className="guided-exp">
-      {/* Header */}
       <div className="guided-exp-header">
         <FlaskConical size={14} style={{ color: 'var(--sci-green)' }} />
         <span className="guided-exp-title">{experiment.title}</span>
@@ -101,7 +70,6 @@ export default function GuidedExperiment({ experiment, onApplyParams, onClose })
         </button>
       </div>
 
-      {/* Progress bar */}
       <div className="guided-exp-bar">
         <div
           className="guided-exp-bar-fill"
@@ -111,12 +79,9 @@ export default function GuidedExperiment({ experiment, onApplyParams, onClose })
         />
       </div>
 
-      {/* Step content */}
       <div className="guided-exp-body">
-        {/* Instruction */}
         <div className="guided-exp-instruction">{step.instruction}</div>
 
-        {/* PREDICT phase */}
         {phase === 'predict' && (
           <div className="guided-exp-predict">
             <div className="guided-exp-question">
@@ -134,7 +99,6 @@ export default function GuidedExperiment({ experiment, onApplyParams, onClose })
           </div>
         )}
 
-        {/* OBSERVE phase */}
         {phase === 'observe' && (
           <div className="guided-exp-observe">
             <div className="guided-exp-observe-prompt">
@@ -150,10 +114,8 @@ export default function GuidedExperiment({ experiment, onApplyParams, onClose })
           </div>
         )}
 
-        {/* EXPLAIN phase */}
         {phase === 'explain' && (
           <div className="guided-exp-explain">
-            {/* Result banner */}
             <div className={`guided-exp-result ${isCorrect ? 'correct' : 'wrong'}`}>
               {isCorrect ? (
                 <>
@@ -166,24 +128,20 @@ export default function GuidedExperiment({ experiment, onApplyParams, onClose })
               )}
             </div>
 
-            {/* Misconception callout (only if wrong) */}
             {!isCorrect && step.commonMisconception && (
               <div className="guided-exp-misconception">
                 <strong>Why students get this wrong:</strong> {step.commonMisconception}
               </div>
             )}
 
-            {/* Explanation */}
             <div className="guided-exp-explanation">{step.explanation}</div>
 
-            {/* Try this */}
             {step.tryThis && (
               <div className="guided-exp-try">
                 <strong>Try this:</strong> {step.tryThis}
               </div>
             )}
 
-            {/* Navigation */}
             <div className="guided-exp-nav">
               {isLast ? (
                 <div className="guided-exp-summary">

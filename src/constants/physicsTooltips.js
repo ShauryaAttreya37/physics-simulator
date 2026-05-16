@@ -37,6 +37,28 @@ const READOUT_KEY_TOOLTIPS = {
   maxVelocity: 'Maximum velocity magnitude currently observed in the domain.',
   lyapunov:
     'Lyapunov exponent: positive values indicate sensitive dependence on initial conditions.',
+  E: 'Electric field magnitude at the probe. This is force per unit positive test charge.',
+  V: 'Electric potential at the probe. Field arrows point downhill from high to low potential.',
+  Ex: 'Horizontal component of the electric field at the probe.',
+  Ey: 'Vertical component of the electric field at the probe.',
+  enclosedCharge: 'Total charge inside the displayed Gaussian surface.',
+  fluxEstimate: 'Numerical estimate of electric flux through the displayed Gaussian surface.',
+  fluxRatio: "Gauss's-law check: flux should track enclosed charge for symmetric charge layouts.",
+  gaussianRadius: 'Radius of the Gaussian surface used for the flux and enclosed-charge readout.',
+  velocity: 'Free-stream wind speed used by the tunnel model.',
+  stepR:
+    'Reynolds number compares inertial forces with viscous forces; it predicts whether flow is smooth or turbulent.',
+  regimeCode: 'A qualitative regime label inferred from the current Reynolds number.',
+  dynamicPressure:
+    'Dynamic pressure = 1/2 rho v^2, the kinetic energy density of the incoming air.',
+  effectiveCd:
+    'Drag coefficient after a simple correction for blockage and wall proximity in this teaching model.',
+  forceD: 'Estimated drag force opposing the wind direction.',
+  forceL: 'Estimated lift force perpendicular to the wind direction.',
+  wakeFrequency: 'Estimated vortex shedding frequency from the Strouhal relation St = fD/U.',
+  blockage:
+    'Fraction of the tunnel height occupied by the model; high blockage distorts measurements.',
+  wallBias: 'How far the model is from the tunnel centerline; moving near a wall changes the wake.',
 };
 
 function normalize(value) {

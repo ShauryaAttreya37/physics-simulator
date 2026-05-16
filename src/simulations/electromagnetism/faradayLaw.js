@@ -113,7 +113,7 @@ export function create(canvas, initParams = {}) {
             ctx.save();
             ctx.translate(x, y);
             ctx.rotate(ang);
-            ctx.fillStyle = `rgba(59,130,246,${Math.min(0.3, mag)})`; // Professional blue arrows
+            ctx.fillStyle = `rgba(59,130,246,${Math.min(0.3, mag)})`;
             ctx.beginPath();
             ctx.moveTo(6, 0);
             ctx.lineTo(-6, 3);
@@ -259,7 +259,7 @@ export function create(canvas, initParams = {}) {
     ctx.stroke();
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 24px "Inter", sans-serif'; // Professional font
+    ctx.font = 'bold 24px "Inter", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('S', -magW / 4, 2);

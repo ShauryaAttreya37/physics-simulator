@@ -138,6 +138,165 @@ function buildRows(data) {
     });
   }
 
+  // Electrostatics rows
+  if (data.E !== undefined) {
+    rows.push({
+      key: 'E',
+      label: 'Field |E|',
+      value: formatSci(data.E, 'N/C'),
+      status: 'ok',
+    });
+  }
+  if (data.V !== undefined) {
+    rows.push({
+      key: 'V',
+      label: 'Potential V',
+      value: formatSci(data.V, 'V'),
+      status: 'ok',
+    });
+  }
+  if (data.Ex !== undefined) {
+    rows.push({
+      key: 'Ex',
+      label: 'Field Ex',
+      value: formatSci(data.Ex, 'N/C'),
+      status: 'ok',
+    });
+  }
+  if (data.Ey !== undefined) {
+    rows.push({
+      key: 'Ey',
+      label: 'Field Ey',
+      value: formatSci(data.Ey, 'N/C'),
+      status: 'ok',
+    });
+  }
+  if (data.enclosedCharge !== undefined) {
+    rows.push({
+      key: 'enclosedCharge',
+      label: 'Q enclosed',
+      value: formatSci(data.enclosedCharge, 'arb'),
+      status: Math.abs(data.enclosedCharge) > 0.001 ? 'ok' : 'warn',
+    });
+  }
+  if (data.fluxEstimate !== undefined) {
+    rows.push({
+      key: 'fluxEstimate',
+      label: 'Flux estimate',
+      value: formatSci(data.fluxEstimate, ''),
+      status: 'ok',
+    });
+  }
+  if (data.fluxRatio !== undefined) {
+    const ratioError = Math.abs(Math.abs(data.fluxRatio) - 1);
+    rows.push({
+      key: 'fluxRatio',
+      label: 'Flux / Qenc',
+      value: data.fluxRatio.toFixed(4),
+      status: ratioError < 0.2 ? 'ok' : ratioError < 0.6 ? 'warn' : 'err',
+    });
+  }
+  if (data.gaussianRadius !== undefined) {
+    rows.push({
+      key: 'gaussianRadius',
+      label: 'Gaussian radius',
+      value: formatSci(data.gaussianRadius, 'px'),
+      status: 'ok',
+    });
+  }
+
+  // Wind tunnel / aerodynamics rows
+  if (data.velocity !== undefined) {
+    rows.push({
+      key: 'velocity',
+      label: 'Wind speed',
+      value: formatSci(data.velocity, 'm/s'),
+      status: 'ok',
+    });
+  }
+  if (data.stepR !== undefined) {
+    const status = data.stepR < 2300 ? 'ok' : data.stepR < 100000 ? 'warn' : 'err';
+    rows.push({
+      key: 'stepR',
+      label: 'Reynolds number',
+      value: data.stepR.toExponential(3),
+      status,
+    });
+  }
+  if (data.regimeCode !== undefined) {
+    rows.push({
+      key: 'regimeCode',
+      label: 'Flow regime',
+      value: String(data.regimeCode),
+      status:
+        data.regimeCode === 'laminar' ? 'ok' : data.regimeCode === 'transitional' ? 'warn' : 'err',
+    });
+  }
+  if (data.dynamicPressure !== undefined) {
+    rows.push({
+      key: 'dynamicPressure',
+      label: 'Dynamic pressure',
+      value: formatSci(data.dynamicPressure, 'Pa'),
+      status: 'ok',
+    });
+  }
+  if (data.cd !== undefined) {
+    rows.push({
+      key: 'cd',
+      label: 'Base Cd',
+      value: data.cd.toFixed(3),
+      status: 'ok',
+    });
+  }
+  if (data.effectiveCd !== undefined) {
+    rows.push({
+      key: 'effectiveCd',
+      label: 'Effective Cd',
+      value: data.effectiveCd.toFixed(3),
+      status: data.effectiveCd > 1.5 ? 'warn' : 'ok',
+    });
+  }
+  if (data.forceD !== undefined) {
+    rows.push({
+      key: 'forceD',
+      label: 'Drag force',
+      value: formatSci(data.forceD, 'N'),
+      status: 'ok',
+    });
+  }
+  if (data.forceL !== undefined) {
+    rows.push({
+      key: 'forceL',
+      label: 'Lift force',
+      value: formatSci(data.forceL, 'N'),
+      status: Math.abs(data.forceL) > 5 ? 'warn' : 'ok',
+    });
+  }
+  if (data.wakeFrequency !== undefined) {
+    rows.push({
+      key: 'wakeFrequency',
+      label: 'Wake shedding',
+      value: formatSci(data.wakeFrequency, 'Hz'),
+      status: data.wakeFrequency > 0 ? 'ok' : 'warn',
+    });
+  }
+  if (data.blockage !== undefined) {
+    rows.push({
+      key: 'blockage',
+      label: 'Blockage ratio',
+      value: `${(data.blockage * 100).toFixed(1)}%`,
+      status: data.blockage < 0.12 ? 'ok' : data.blockage < 0.25 ? 'warn' : 'err',
+    });
+  }
+  if (data.wallBias !== undefined) {
+    rows.push({
+      key: 'wallBias',
+      label: 'Wall bias',
+      value: data.wallBias.toFixed(3),
+      status: Math.abs(data.wallBias) < 0.25 ? 'ok' : 'warn',
+    });
+  }
+
   // Buoyancy / Fluid specific rows
   if (data.weight !== undefined) {
     rows.push({ key: 'weight', label: 'Weight', value: formatSci(data.weight, 'N'), status: 'ok' });
@@ -197,4 +356,6 @@ const METHOD_BADGES = {
   'sph-xsph': { label: 'SPH XSPH', cls: 'sph' },
   fdm: { label: 'FDM', cls: 'fdm' },
   'fdm-pml': { label: 'FDM PML', cls: 'fdm' },
+  webgl2: { label: 'WebGL2 fluid', cls: 'fdm' },
+  superposition: { label: 'Field superposition', cls: 'fdm' },
 };

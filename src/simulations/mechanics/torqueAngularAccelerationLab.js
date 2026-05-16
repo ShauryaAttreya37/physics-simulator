@@ -1,7 +1,7 @@
 import { drawArrow } from '../../utils/canvas';
 
 /**
- * Torque & Angular Acceleration Lab — Research-Grade Implementation
+ * Torque & Angular Acceleration Lab
  *
  * Interactive rotary dynamics bench with a flywheel.
  * Demonstrates Newton's Second Law for Rotation: tau = I * alpha.

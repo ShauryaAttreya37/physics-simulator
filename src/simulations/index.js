@@ -484,10 +484,10 @@ export const TOPICS = {
         id: 'wind-tunnel',
         title: 'Wind Tunnel',
         description:
-          'Compare flow around simple profiles and inspect streamlines, drag, and Reynolds number effects.',
-        tags: ['Potential Flow', 'Aerodynamics', 'Drag'],
+          'Drag models through a live WebGL2 flow field and connect wake patterns to drag, lift, Reynolds number, and tunnel blockage.',
+        tags: ['WebGL2 Flow', 'Aerodynamics', 'Drag'],
 
-        method: 'analytical',
+        method: 'webgl2',
         create: windTunnel.create,
         controls: windTunnel.controls,
         defaultParams: windTunnel.defaultParams,
@@ -536,10 +536,10 @@ export const TOPICS = {
         id: 'electrostatic-fields',
         title: 'Electrostatic Geometries',
         description:
-          'Sample electric fields and potentials for rings, plates, dipoles, and other charge layouts.',
-        tags: ['Maxwell', 'Gauss', 'Streamlines', 'Vector Field'],
+          "Measure electric field, potential, equipotentials, and Gauss's-law flux for point charges, dipoles, plates, rings, spheres, cylinders, and discs.",
+        tags: ['Gauss Law', 'Potential', 'Field Probe'],
 
-        method: 'discrete integration',
+        method: 'superposition',
         create: electrostaticFields.create,
         controls: electrostaticFields.controls,
         defaultParams: electrostaticFields.defaultParams,

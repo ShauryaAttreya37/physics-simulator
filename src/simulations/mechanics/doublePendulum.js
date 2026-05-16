@@ -1,5 +1,5 @@
 /**
- * Double Pendulum — Research-Grade Implementation
+ * Double Pendulum
  *
  * Integrator:  Adaptive Dormand-Prince RK45 with error estimation
  * Physics:     Full Lagrangian mechanics (no small-angle approximation)
@@ -400,7 +400,6 @@ export function render(ctx, state, p, canvas) {
   const W = canvas.width,
     H = canvas.height;
 
-  // Professional clean background
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, W, H);
 

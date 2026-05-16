@@ -1,15 +1,27 @@
 /**
  * Wind Tunnel Simulation
- * Ported from FluidSandboxPage.jsx
+ * High-Performance WebGL2 Navier-Stokes Fluid Dynamics
  */
 
 const SHAPES = [
   { id: 'circle', name: 'Cylinder', cd: 1.2, cl: 0, st: 0.2 },
   { id: 'box', name: 'Flat Plate', cd: 1.98, cl: 0, st: 0.15 },
-  { id: 'sphere3d', name: 'Sphere 3D', cd: 0.47, cl: 0, st: 0.19 },
+  { id: 'sphere3d', name: 'Sphere 3D', cd: 0.47, cl: 0, st: 0.19 }, // Rendered similarly to cylinder but different aero
   { id: 'airfoil', name: 'Airfoil', cd: 0.008, cl: 0.3, st: 0.0 },
   { id: 'diamond', name: 'Diamond', cd: 1.5, cl: 0, st: 0.18 },
 ];
+
+const AIR_DENSITY = 1.225;
+const AIR_VISCOSITY = 1.81e-5;
+const WIND_SPEED_TO_MPS = 0.1;
+const TUNNEL_HEIGHT_M = 1.0;
+const DEFAULT_SHAPE_X = 0.32;
+const DEFAULT_SHAPE_Y = 0.5;
+const DEFAULT_SHAPE_SIZE = 0.08;
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
 
 function cdForRe(shape, Re) {
   const base = shape.cd;
@@ -33,100 +45,35 @@ function cdForRe(shape, Re) {
   return base;
 }
 
-function velColor(v, vmax) {
-  const t = Math.min(1, Math.max(0, v / vmax));
-  if (t < 0.25) {
-    const s = t / 0.25;
-    return [0, Math.round(s * 255), 255];
-  }
-  if (t < 0.5) {
-    const s = (t - 0.25) / 0.25;
-    return [0, 255, Math.round((1 - s) * 255)];
-  }
-  if (t < 0.75) {
-    const s = (t - 0.5) / 0.25;
-    return [Math.round(s * 255), 255, 0];
-  }
-  const s = (t - 0.75) / 0.25;
-  return [255, Math.round((1 - s) * 255), 0];
+function flowRegime(Re) {
+  if (Re < 2300) return 'laminar';
+  if (Re < 1e5) return 'transitional';
+  return 'turbulent';
 }
 
-function velField(px, py, cx, cy, R, U, shapeId = 'circle', simTime = 0) {
-  let dx = px - cx,
-    dy = py - cy;
-  if (shapeId === 'airfoil') dy *= 2.5;
-
-  const r2 = dx * dx + dy * dy;
-  const R2 = R * R;
-
-  if (shapeId === 'diamond') {
-    if (Math.abs(dx) + Math.abs(dy) < R * 0.95) return { vx: 0, vy: 0 };
-  } else if (shapeId === 'box') {
-    if (Math.abs(dx) < 25 && Math.abs(dy) < 45) return { vx: 0, vy: 0 };
-  } else if (r2 < R2 * 1.02 && dx > -R) {
-    return { vx: 0, vy: 0 };
-  }
-
-  const r4 = Math.max(1, r2 * r2);
-  let vx = U * (1.0 - (R2 * (dx * dx - dy * dy)) / r4);
-  let vy = U * ((-R2 * 2 * dx * dy) / r4);
-
-  if (shapeId === 'airfoil' && r2 > R2 * 1.1) {
-    const Cl = 0.3;
-    const Gamma = Math.PI * R * 2 * U * Cl * 0.15;
-    const r2safe = Math.max(r2, R2);
-    vx += (Gamma * dy) / (2 * Math.PI * r2safe);
-    vy -= (Gamma * dx) / (2 * Math.PI * r2safe);
-  }
-
-  if (dx > 0) {
-    const shapeData = SHAPES.find((s) => s.id === shapeId) || SHAPES[0];
-    const St = shapeData.st;
-    const shedFreq = (St * U) / R;
-
-    const wakeWidth =
-      R *
-      (shapeId === 'box' ? 3.5 : shapeId === 'airfoil' ? 0.6 : shapeId === 'diamond' ? 3.0 : 2.5);
-    const wakePersist =
-      R * (shapeId === 'box' ? 10 : shapeId === 'airfoil' ? 3 : shapeId === 'diamond' ? 7 : 6);
-    const wDecay = Math.exp(-(dy * dy) / (wakeWidth * wakeWidth)) * Math.exp(-dx / wakePersist);
-    const osc = Math.sin(dx * 0.08 - simTime * shedFreq);
-
-    if (shapeId === 'box') {
-      vy += wDecay * U * 0.85 * osc + wDecay * U * 0.35 * (Math.random() - 0.5);
-      vx *= 1 - wDecay * 0.75;
-    } else if (shapeId === 'airfoil') {
-      vy += wDecay * U * 0.03 * osc;
-      vx *= 1 - wDecay * 0.03;
-    } else if (shapeId === 'diamond') {
-      vy += wDecay * U * 0.7 * osc + wDecay * U * 0.25 * (Math.random() - 0.5);
-      vx *= 1 - wDecay * 0.6;
-    } else {
-      vy += wDecay * U * 0.5 * osc + wDecay * U * 0.15 * (Math.random() - 0.5);
-      vx *= 1 - wDecay * 0.5;
-    }
-  }
-  return { vx, vy };
+function characteristicLength(shapeSize = DEFAULT_SHAPE_SIZE) {
+  return Math.max(0.04, shapeSize * 2 * TUNNEL_HEIGHT_M);
 }
 
-function getShapeR(shape) {
-  if (shape.id === 'airfoil') return 20;
-  if (shape.id === 'box') return 48;
-  return 42;
+function referenceArea(shape, diameter) {
+  if (shape.id === 'airfoil') return diameter * 0.24;
+  if (shape.id === 'box') return diameter * 0.55;
+  if (shape.id === 'diamond') return diameter * 0.7;
+  return diameter;
 }
-
-const PX_M = 0.003;
-const N_PARTICLES = 300;
 
 export const defaultParams = {
-  windSpeed: 180,
+  windSpeed: 150,
   shapeIdx: 0,
-  showPressure: 1,
+  viewMode: 0,
   showStreamlines: 1,
+  shapeX: DEFAULT_SHAPE_X,
+  shapeY: DEFAULT_SHAPE_Y,
+  shapeSize: DEFAULT_SHAPE_SIZE,
 };
 
 export const controls = [
-  { key: 'windSpeed', label: 'Wind Speed (px/s)', min: 20, max: 500, step: 10 },
+  { key: 'windSpeed', label: 'Wind Speed', min: 10, max: 220, step: 5 },
   {
     key: 'shapeIdx',
     label: 'Object Profile',
@@ -134,12 +81,13 @@ export const controls = [
     tiles: SHAPES.map((s, i) => ({ value: i, label: s.name, sub: `Cd ${s.cd}` })),
   },
   {
-    key: 'showPressure',
-    label: 'Velocity Heatmap',
+    key: 'viewMode',
+    label: 'Flow View',
     type: 'tiles',
     tiles: [
-      { value: 0, label: 'Off' },
-      { value: 1, label: 'On' },
+      { value: 0, label: 'Speed', sub: 'Fast vs slow air' },
+      { value: 1, label: 'Wake', sub: 'Energy loss' },
+      { value: 2, label: 'Vorticity', sub: 'Rotating flow' },
     ],
   },
   {
@@ -151,485 +99,1022 @@ export const controls = [
       { value: 1, label: 'On' },
     ],
   },
+  { key: 'shapeX', label: 'Object X', min: 0.16, max: 0.72, step: 0.01 },
+  { key: 'shapeY', label: 'Object Height', min: 0.2, max: 0.8, step: 0.01 },
+  { key: 'shapeSize', label: 'Object Size', min: 0.04, max: 0.14, step: 0.01 },
 ];
 
 export const equations = [];
 
 export const equationSections = [
   {
-    title: 'Introduction',
+    title: 'What You Are Seeing',
     content:
-      'A wind tunnel simulates airflow around objects to study aerodynamics. This helps engineers design airplanes, cars, and buildings. The simulation shows how air particles flow around different shapes, creating drag (resistance) and lift (upward force). You can see pressure differences and vortex shedding.',
+      'This wind tunnel shows a 2D incompressible flow field. Drag the model to see how the wake changes when the object moves closer to a wall. Use Speed view to compare fast and slow air, Wake view to see energy loss behind the model, and Vorticity view to spot rotating shear layers.',
   },
   {
-    title: 'Aerodynamic Equations',
+    title: 'Forces And Flow Numbers',
     equations: [
       {
-        latex: String.raw`F_D = \frac{1}{2} \rho v^2 C_D A`,
+        latex: String.raw`F_D = \frac{1}{2} \rho U^2 C_D A`,
         description:
-          'Drag force - the resistance force opposing motion. Depends on air density ρ, speed v, drag coefficient C_D, and frontal area A.',
+          'Drag grows with the square of wind speed. Doubling the wind speed makes the drag about four times larger.',
       },
       {
-        latex: String.raw`F_L = \frac{1}{2} \rho v^2 C_L A`,
+        latex: String.raw`F_L = \frac{1}{2} \rho U^2 C_L A`,
         description:
-          'Lift force - the upward force perpendicular to flow. C_L is lift coefficient, higher for streamlined shapes.',
+          'Lift is the sideways force from asymmetric flow. Airfoils create lift by design; wall proximity can also create a lift bias.',
       },
       {
-        latex: String.raw`Re = \frac{\rho v D}{\mu}`,
+        latex: String.raw`Re = \frac{\rho U D}{\mu}`,
         description:
-          'Reynolds number - dimensionless number comparing inertial to viscous forces. High Re means turbulent flow.',
+          'Reynolds number compares inertia with viscosity. Higher Re tends to produce thinner shear layers and more unstable wakes.',
       },
       {
         latex: String.raw`St = \frac{f D}{U}`,
         description:
-          'Strouhal number - characterizes vortex shedding frequency. f is shedding frequency, D is diameter, U is flow speed.',
+          'The Strouhal relation estimates how often vortices shed behind bluff bodies like cylinders and flat plates.',
+      },
+      {
+        latex: String.raw`\beta = \frac{D}{H}`,
+        description:
+          'Blockage ratio compares model size D with tunnel height H. Large blockage makes tunnel measurements less representative of open air.',
       },
     ],
     variables: [
-      { symbol: 'ρ', description: 'Air density (mass per volume)' },
-      { symbol: 'v', description: 'Flow velocity (wind speed)' },
-      { symbol: 'C_D, C_L', description: 'Drag and lift coefficients (depend on shape)' },
-      { symbol: 'A', description: 'Reference area (usually frontal area)' },
-      { symbol: 'μ', description: 'Dynamic viscosity of air' },
+      { symbol: 'rho', description: 'Air density' },
+      { symbol: 'U', description: 'Incoming wind speed' },
+      { symbol: 'D', description: 'Characteristic model size' },
+      { symbol: 'H', description: 'Tunnel height' },
+      { symbol: 'mu', description: 'Dynamic viscosity of air' },
     ],
   },
   {
-    title: 'Flow Regimes',
+    title: 'Classroom Investigations',
     equations: [
       {
-        latex: String.raw`Re < 10^3`,
-        description: 'Laminar flow - smooth, predictable streamlines.',
+        latex: String.raw`q = \frac{1}{2}\rho U^2`,
+        description:
+          'Watch dynamic pressure in the readout while changing wind speed. It rises quadratically, not linearly.',
       },
       {
-        latex: String.raw`Re > 10^5`,
-        description: 'Turbulent flow - chaotic, with eddies and mixing.',
+        latex: String.raw`f = \frac{St\,U}{D}`,
+        description:
+          'Increase model size and notice the predicted shedding frequency drops. Increase wind speed and it rises.',
       },
     ],
+    content:
+      'Try three quick experiments: compare cylinder vs airfoil drag, move the cylinder toward the upper wall to see wall interference, then switch to Vorticity view and look for the paired shear layers coming off the model.',
   },
   {
     title: 'How to Use',
     content:
-      '1. Select different object shapes (circle, square, airfoil) to see how shape affects drag and lift.\n2. Adjust wind speed - higher speeds increase forces quadratically.\n3. Change object size - larger objects experience more force.\n4. Watch the particle trails to visualize airflow patterns.\n5. Look for vortex shedding behind bluff bodies (alternating vortices).\n6. Check the graphs for force variations and Reynolds number.',
-  },
-  {
-    title: 'Beginner Tips',
-    content:
-      'Streamlined shapes (airfoils) have low drag and high lift. Blunt shapes create more drag and wake turbulence. At low speeds, flow is smooth; at high speeds, it becomes turbulent. The pressure is higher where flow slows down. Try the mouse probe to see local flow conditions.',
+      'Drag the model directly inside the tunnel, or use Object X and Object Height for precise placement. Use Object Size to change blockage ratio. Keep the readout open and compare visual changes with Reynolds number, drag, lift, dynamic pressure, and wake shedding frequency.',
   },
 ];
 
 export const graphParams = [
   { key: 'forceD', label: 'Drag Force', color: '#f97316' },
   { key: 'forceL', label: 'Lift Force', color: '#22d3ee' },
-  { key: 'pressure', label: 'Dynamic Pressure', color: '#a78bfa' },
+  { key: 'dynamicPressure', label: 'Dynamic Pressure', color: '#a78bfa' },
   { key: 'stepR', label: 'Reynolds Number', color: '#4ade80' },
+  { key: 'wakeFrequency', label: 'Vortex Shedding', color: '#f43f5e' },
+  { key: 'blockage', label: 'Blockage Ratio', color: '#facc15' },
 ];
 
-export function create(canvas, initParams = {}) {
-  const ctx = canvas.getContext('2d');
+// --- WebGL2 Fluid Solver ---
+
+const vsh = `#version 300 es
+precision highp float;
+in vec2 aPosition;
+out vec2 vUv;
+void main() {
+    vUv = aPosition * 0.5 + 0.5;
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+}`;
+
+const fshAdvection = `#version 300 es
+precision highp float;
+precision highp sampler2D;
+in vec2 vUv;
+out vec4 fragColor;
+uniform sampler2D uVelocity;
+uniform sampler2D uSource;
+uniform vec2 texelSize;
+uniform float dt;
+uniform float dissipation;
+
+void main() {
+    vec2 coord = vUv - dt * texture(uVelocity, vUv).xy * texelSize;
+    fragColor = dissipation * texture(uSource, coord);
+}`;
+
+const fshDivergence = `#version 300 es
+precision highp float;
+precision highp sampler2D;
+in vec2 vUv;
+out vec4 fragColor;
+uniform sampler2D uVelocity;
+uniform vec2 texelSize;
+
+void main() {
+    float L = texture(uVelocity, vUv - vec2(texelSize.x, 0.0)).x;
+    float R = texture(uVelocity, vUv + vec2(texelSize.x, 0.0)).x;
+    float T = texture(uVelocity, vUv + vec2(0.0, texelSize.y)).y;
+    float B = texture(uVelocity, vUv - vec2(0.0, texelSize.y)).y;
+    vec2 C = texture(uVelocity, vUv).xy;
+    
+    if (vUv.x - texelSize.x < 0.0) L = -C.x;
+    if (vUv.x + texelSize.x > 1.0) R = -C.x;
+    if (vUv.y - texelSize.y < 0.0) B = -C.y;
+    if (vUv.y + texelSize.y > 1.0) T = -C.y;
+
+    float div = 0.5 * ((R - L) + (T - B));
+    fragColor = vec4(div, 0.0, 0.0, 1.0);
+}`;
+
+const fshJacobi = `#version 300 es
+precision highp float;
+precision highp sampler2D;
+in vec2 vUv;
+out vec4 fragColor;
+uniform sampler2D uPressure;
+uniform sampler2D uDivergence;
+uniform vec2 texelSize;
+
+void main() {
+    float L = texture(uPressure, vUv - vec2(texelSize.x, 0.0)).x;
+    float R = texture(uPressure, vUv + vec2(texelSize.x, 0.0)).x;
+    float T = texture(uPressure, vUv + vec2(0.0, texelSize.y)).x;
+    float B = texture(uPressure, vUv - vec2(0.0, texelSize.y)).x;
+    float C = texture(uPressure, vUv).x;
+    
+    if (vUv.x - texelSize.x < 0.0) L = C;
+    if (vUv.x + texelSize.x > 1.0) R = C;
+    if (vUv.y - texelSize.y < 0.0) B = C;
+    if (vUv.y + texelSize.y > 1.0) T = C;
+
+    float div = texture(uDivergence, vUv).x;
+    float p = (L + R + B + T - div) * 0.25;
+    fragColor = vec4(p, 0.0, 0.0, 1.0);
+}`;
+
+const fshGradient = `#version 300 es
+precision highp float;
+precision highp sampler2D;
+in vec2 vUv;
+out vec4 fragColor;
+uniform sampler2D uPressure;
+uniform sampler2D uVelocity;
+uniform vec2 texelSize;
+
+void main() {
+    float L = texture(uPressure, vUv - vec2(texelSize.x, 0.0)).x;
+    float R = texture(uPressure, vUv + vec2(texelSize.x, 0.0)).x;
+    float T = texture(uPressure, vUv + vec2(0.0, texelSize.y)).x;
+    float B = texture(uPressure, vUv - vec2(0.0, texelSize.y)).x;
+    float C = texture(uPressure, vUv).x;
+    
+    if (vUv.x - texelSize.x < 0.0) L = C;
+    if (vUv.x + texelSize.x > 1.0) R = C;
+    if (vUv.y - texelSize.y < 0.0) B = C;
+    if (vUv.y + texelSize.y > 1.0) T = C;
+    
+    vec2 vel = texture(uVelocity, vUv).xy;
+    vel.xy -= vec2(R - L, T - B) * 0.5;
+    fragColor = vec4(vel, 0.0, 1.0);
+}`;
+
+const fshBoundary = `#version 300 es
+precision highp float;
+precision highp sampler2D;
+in vec2 vUv;
+out vec4 fragColor;
+uniform sampler2D uTarget;
+uniform int uShape;
+uniform float uAspect;
+uniform vec2 uShapePos;
+uniform float uShapeSize;
+uniform int uIsVelocity;
+
+float shapeDistance(vec2 d, int shape, float size) {
+    if (shape == 0 || shape == 2) {
+        return length(d) - size;
+    }
+    if (shape == 1) {
+        vec2 q = abs(d) - vec2(size * 0.18, size * 0.95);
+        return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
+    }
+    if (shape == 3) {
+        float W = size * 1.95;
+        float H = size * 0.38;
+        float x = clamp((d.x + W * 0.38) / W, 0.0, 1.0);
+        float chordMask = step(-W * 0.38, d.x) * step(d.x, W * 0.62);
+        float camber = -H * 0.12 * sin(3.14159265 * x);
+        float halfThickness = H * 4.0 * x * (1.0 - x) * (1.0 - 0.2 * x);
+        float airfoil = abs(d.y - camber) - halfThickness;
+        float cap = min(abs(d.x + W * 0.38), abs(d.x - W * 0.62)) + H;
+        return chordMask > 0.5 ? airfoil : cap;
+    }
+    return abs(d.x) + abs(d.y) - size * 0.82;
+}
+
+void main() {
+    vec4 base = texture(uTarget, vUv);
+    vec2 d = vUv - uShapePos;
+    d.x *= uAspect;
+    bool inside = shapeDistance(d, uShape, uShapeSize) < 0.0;
+    
+    if (inside) {
+        if (uIsVelocity == 1) base.xy = vec2(0.0);
+        else base.rgb = vec3(0.0);
+    }
+    
+    if (vUv.y < 0.01 || vUv.y > 0.99) {
+        if (uIsVelocity == 1) base.xy = vec2(0.0);
+    }
+    
+    fragColor = base;
+}`;
+
+const fshInjection = `#version 300 es
+precision highp float;
+precision highp sampler2D;
+in vec2 vUv;
+out vec4 fragColor;
+uniform sampler2D uTarget;
+uniform int uIsVelocity;
+uniform float uWindSpeed;
+uniform int uShowStreamlines;
+uniform int uFillDomain;
+uniform float uTime;
+
+void main() {
+    vec4 base = texture(uTarget, vUv);
+    
+    if (uFillDomain == 1 || vUv.x < 0.02) {
+        if (uIsVelocity == 1) {
+            float noise = fract(sin(dot(vUv.xy + uTime, vec2(12.9898, 78.233))) * 43758.5453);
+            vec2 seededWind = vec2(uWindSpeed, 0.0);
+            vec2 inletWind = vec2(uWindSpeed + (noise - 0.5) * uWindSpeed * 0.05, (noise - 0.5) * uWindSpeed * 0.05);
+            base.xy = uFillDomain == 1 ? seededWind : inletWind;
+        } else {
+            if (uShowStreamlines == 1) {
+                float stripes = sin(vUv.y * 100.0);
+                float stripe = smoothstep(0.92, 1.0, stripes);
+                base.rgb = mix(base.rgb * 0.92, vec3(0.28, 0.55, 0.78), stripe);
+            } else {
+                base.rgb *= 0.9; // fade out
+            }
+        }
+    }
+    
+    fragColor = base;
+}`;
+
+const fshDisplay = `#version 300 es
+precision highp float;
+precision highp sampler2D;
+in vec2 vUv;
+out vec4 fragColor;
+uniform sampler2D uVelocity;
+uniform sampler2D uDye;
+uniform vec2 texelSize;
+uniform int uViewMode;
+uniform int uShowStreamlines;
+uniform int uShape; 
+uniform vec2 uShapePos;
+uniform float uAspect;
+uniform float uShapeSize;
+uniform float uWindSpeed;
+uniform int uDragging;
+
+vec3 speedPalette(float v) {
+    float t = clamp(v, 0.0, 1.0);
+    vec3 deep = vec3(0.025, 0.08, 0.18);
+    vec3 blue = vec3(0.06, 0.32, 0.58);
+    vec3 cyan = vec3(0.10, 0.72, 0.82);
+    vec3 green = vec3(0.35, 0.82, 0.48);
+    vec3 amber = vec3(0.98, 0.72, 0.20);
+    vec3 red = vec3(0.92, 0.20, 0.18);
+    if (t < 0.20) return mix(deep, blue, t / 0.20);
+    if (t < 0.45) return mix(blue, cyan, (t - 0.20) / 0.25);
+    if (t < 0.68) return mix(cyan, green, (t - 0.45) / 0.23);
+    if (t < 0.86) return mix(green, amber, (t - 0.68) / 0.18);
+    return mix(amber, red, (t - 0.86) / 0.14);
+}
+
+float shapeDistance(vec2 d, int shape, float size) {
+    if (shape == 0 || shape == 2) return length(d) - size;
+    if (shape == 1) {
+        vec2 q = abs(d) - vec2(size * 0.18, size * 0.95);
+        return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
+    }
+    if (shape == 3) {
+        float W = size * 1.95;
+        float H = size * 0.38;
+        float x = clamp((d.x + W * 0.38) / W, 0.0, 1.0);
+        float chordMask = step(-W * 0.38, d.x) * step(d.x, W * 0.62);
+        float camber = -H * 0.12 * sin(3.14159265 * x);
+        float halfThickness = H * 4.0 * x * (1.0 - x) * (1.0 - 0.2 * x);
+        float airfoil = abs(d.y - camber) - halfThickness;
+        float cap = min(abs(d.x + W * 0.38), abs(d.x - W * 0.62)) + H;
+        return chordMask > 0.5 ? airfoil : cap;
+    }
+    return abs(d.x) + abs(d.y) - size * 0.82;
+}
+
+float lineMask(float value, float width) {
+    return 1.0 - smoothstep(0.0, width, abs(value));
+}
+
+void main() {
+    vec2 vel = texture(uVelocity, vUv).xy;
+    vec4 dye = texture(uDye, vUv);
+    vec2 left = texture(uVelocity, vUv - vec2(texelSize.x, 0.0)).xy;
+    vec2 right = texture(uVelocity, vUv + vec2(texelSize.x, 0.0)).xy;
+    vec2 top = texture(uVelocity, vUv + vec2(0.0, texelSize.y)).xy;
+    vec2 bottom = texture(uVelocity, vUv - vec2(0.0, texelSize.y)).xy;
+    
+    vec3 tunnelBase = mix(vec3(0.015, 0.022, 0.040), vec3(0.025, 0.055, 0.080), vUv.x);
+    vec3 color = tunnelBase;
+    float speed = length(vel);
+    float speedRatio = speed / max(uWindSpeed, 1.0);
+    float curl = ((right.y - left.y) - (top.x - bottom.x)) * 0.5;
+    
+    if (uViewMode == 0) {
+        color = speedPalette(speedRatio * 0.72);
+    } else if (uViewMode == 1) {
+        float deficit = clamp(1.0 - speedRatio, 0.0, 1.0);
+        float acceleration = clamp(speedRatio - 1.0, 0.0, 1.0);
+        color = mix(tunnelBase, vec3(0.06, 0.22, 0.42), 0.85 * deficit);
+        color = mix(color, vec3(0.98, 0.66, 0.18), 0.65 * acceleration);
+    } else {
+        float spin = clamp(abs(curl) * 0.035, 0.0, 1.0);
+        vec3 clockwise = vec3(0.04, 0.78, 0.95);
+        vec3 counter = vec3(1.0, 0.36, 0.18);
+        color = mix(tunnelBase, curl >= 0.0 ? clockwise : counter, spin);
+        color += speedPalette(speedRatio * 0.35) * 0.18;
+    }
+    
+    if (uShowStreamlines == 1) {
+        float dyeStrength = clamp(max(max(dye.r, dye.g), dye.b), 0.0, 1.0);
+        color = mix(color, vec3(0.78, 0.93, 1.0), dyeStrength * 0.36);
+    }
+
+    float wall = smoothstep(0.015, 0.0, vUv.y) + smoothstep(0.985, 1.0, vUv.y);
+    float centerLine = lineMask(vUv.y - 0.5, 0.0015);
+    float grid = max(lineMask(fract(vUv.x * 10.0) - 0.5, 0.008), lineMask(fract(vUv.y * 6.0) - 0.5, 0.006));
+    color = mix(color, vec3(0.86, 0.91, 0.96), wall * 0.55);
+    color += vec3(0.08, 0.12, 0.16) * grid * 0.18;
+    color += vec3(0.8, 0.95, 1.0) * centerLine * 0.08;
+    
+    vec2 d = vUv - uShapePos;
+    d.x *= uAspect;
+    float sdf = shapeDistance(d, uShape, uShapeSize);
+    bool inside = sdf < 0.0;
+    
+    if (inside) {
+        vec2 n = normalize(d + vec2(0.0001, 0.0002));
+        float light = 0.55 + 0.45 * dot(normalize(vec2(-0.7, 0.9)), n);
+        vec3 steel = mix(vec3(0.18, 0.24, 0.30), vec3(0.82, 0.90, 0.94), light);
+        color = uDragging == 1 ? mix(steel, vec3(1.0, 0.78, 0.28), 0.24) : steel;
+    } else {
+        float outline = 1.0 - smoothstep(0.0, 0.012, abs(sdf));
+        vec3 outlineColor = uDragging == 1 ? vec3(1.0, 0.76, 0.24) : vec3(0.80, 0.93, 1.0);
+        color = mix(color, outlineColor, outline * 0.55);
+    }
+    
+    fragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
+}`;
+
+export function create(canvas, initParams = {}, options = {}) {
   let p = { ...defaultParams, ...initParams };
 
-  let TN_TOP = 45,
-    TN_BOT = 405,
-    TN_LEFT = 20,
-    TN_RIGHT = canvas.width - 20;
-  let OBJ_CX = canvas.width * 0.4,
-    OBJ_CY = canvas.height * 0.5;
-
-  let particles = [];
-  let bgCache = null;
-  let bgDirty = true;
-  let simTime = 0;
-  let mouseProbe = null;
-
-  function initParticle() {
-    return {
-      x: TN_LEFT - Math.random() * 30,
-      y: TN_TOP + Math.random() * (TN_BOT - TN_TOP),
-      trail: [],
-    };
+  const gl = canvas.getContext('webgl2', { antialias: false, depth: false });
+  if (!gl) {
+    throw new Error('WebGL2 is required for the wind tunnel simulation.');
   }
 
-  function resize() {
-    TN_RIGHT = canvas.width - 20;
-    OBJ_CX = Math.min(280, canvas.width * 0.4);
-    OBJ_CY = canvas.height * 0.5;
-    TN_TOP = canvas.height * 0.1;
-    TN_BOT = canvas.height * 0.9;
-    bgDirty = true;
+  const ext1 = gl.getExtension('EXT_color_buffer_float');
+  const ext2 = gl.getExtension('EXT_color_buffer_half_float');
+  const ext3 = gl.getExtension('OES_texture_float_linear');
+  const ext4 = gl.getExtension('OES_texture_half_float_linear');
+
+  if (!ext1 && !ext2) {
+    throw new Error('Wind Tunnel requires WebGL2 floating-point render targets.');
   }
 
-  canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    mouseProbe = {
-      x: (e.clientX - rect.left) * scaleX,
-      y: (e.clientY - rect.top) * scaleY,
-      active: true,
-    };
+  console.log('Wind Tunnel: WebGL2 context initialized.', {
+    float_render: !!ext1,
+    half_float_render: !!ext2,
+    float_linear: !!ext3,
+    half_float_linear: !!ext4,
   });
-  canvas.addEventListener('mouseleave', () => (mouseProbe = null));
 
-  function buildBgImageData(U, shape) {
-    const iw = Math.floor((TN_RIGHT - TN_LEFT) / 4);
-    const ih = Math.floor((TN_BOT - TN_TOP) / 4);
-    if (iw <= 0 || ih <= 0) return null;
-    const R = getShapeR(shape);
-    const data = new Uint8ClampedArray(iw * ih * 4);
+  gl.disable(gl.BLEND);
+  gl.disable(gl.DEPTH_TEST);
 
-    for (let j = 0; j < ih; j++) {
-      for (let i = 0; i < iw; i++) {
-        const px = i * 4,
-          py = j * 4;
-        const { vx, vy } = velField(TN_LEFT + px, TN_TOP + py, OBJ_CX, OBJ_CY, R, U, shape.id, 0);
-        const speed = Math.sqrt(vx * vx + vy * vy);
-        const [r, g, b] = velColor(speed, U * 2.2);
-        const idx = (j * iw + i) * 4;
-        data[idx] = r;
-        data[idx + 1] = g;
-        data[idx + 2] = b;
-        data[idx + 3] = 60;
-      }
+  function createShader(type, source, label) {
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      const info = gl.getShaderInfoLog(shader) || 'unknown shader compile error';
+      gl.deleteShader(shader);
+      throw new Error(`Wind Tunnel ${label} shader failed to compile: ${info}`);
     }
-    return { iw, ih, data };
+    return shader;
   }
 
-  function drawTunnelShape(ctx, shape, cx, cy) {
-    ctx.save();
-    ctx.translate(cx, cy);
-    if (shape.id === 'circle' || shape.id === 'sphere3d') {
-      const R = 42;
-      if (shape.id === 'sphere3d') {
-        const g = ctx.createRadialGradient(-R * 0.3, -R * 0.3, R * 0.05, 0, 0, R);
-        g.addColorStop(0, '#d0d8e8');
-        g.addColorStop(0.4, '#7090b0');
-        g.addColorStop(1, '#1a2a3a');
-        ctx.beginPath();
-        ctx.arc(0, 0, R, 0, Math.PI * 2);
-        ctx.fillStyle = g;
-        ctx.fill();
-        ctx.strokeStyle = '#3a5070';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        const hg = ctx.createRadialGradient(-R * 0.3, -R * 0.3, 0, -R * 0.28, -R * 0.28, R * 0.45);
-        hg.addColorStop(0, 'rgba(255,255,255,0.55)');
-        hg.addColorStop(1, 'rgba(255,255,255,0)');
-        ctx.beginPath();
-        ctx.arc(0, 0, R, 0, Math.PI * 2);
-        ctx.fillStyle = hg;
-        ctx.fill();
-      } else {
-        const g = ctx.createLinearGradient(-R, -R, R, R);
-        g.addColorStop(0, '#5090c0');
-        g.addColorStop(1, '#1a3a5a');
-        ctx.beginPath();
-        ctx.arc(0, 0, R, 0, Math.PI * 2);
-        ctx.fillStyle = g;
-        ctx.fill();
-        ctx.strokeStyle = '#4a80aa';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-      }
-    } else if (shape.id === 'box') {
-      const w = 50,
-        h = 90;
-      const g = ctx.createLinearGradient(-w / 2, -h / 2, w / 2, h / 2);
-      g.addColorStop(0, '#8080a0');
-      g.addColorStop(1, '#282838');
-      ctx.fillStyle = g;
-      ctx.fillRect(-w / 2, -h / 2, w, h);
-      ctx.strokeStyle = '#6060a0';
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(-w / 2, -h / 2, w, h);
-    } else if (shape.id === 'airfoil') {
-      const W = 110,
-        H = 28;
-      ctx.beginPath();
-      ctx.moveTo(-W / 2, 0);
-      ctx.bezierCurveTo(-W / 2 + W * 0.3, -H * 0.6, W / 2 - W * 0.2, -H * 0.5, W / 2, 0);
-      ctx.bezierCurveTo(W / 2 - W * 0.15, H * 0.3, -W / 2 + W * 0.25, H * 0.2, -W / 2, 0);
-      ctx.closePath();
-      const g = ctx.createLinearGradient(-W / 2, -H, W / 2, H);
-      g.addColorStop(0, '#a0c8f0');
-      g.addColorStop(1, '#2060a0');
-      ctx.fillStyle = g;
-      ctx.fill();
-      ctx.strokeStyle = '#5090d0';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-    } else if (shape.id === 'diamond') {
-      const R = 42;
-      ctx.beginPath();
-      ctx.moveTo(0, -R);
-      ctx.lineTo(R, 0);
-      ctx.lineTo(0, R);
-      ctx.lineTo(-R, 0);
-      ctx.closePath();
-      const g = ctx.createLinearGradient(-R, -R, R, R);
-      g.addColorStop(0, '#c060a0');
-      g.addColorStop(1, '#401028');
-      ctx.fillStyle = g;
-      ctx.fill();
-      ctx.strokeStyle = '#a04080';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
+  function createProgram(name, vsSource, fsSource) {
+    const program = gl.createProgram();
+    const vertexShader = createShader(gl.VERTEX_SHADER, vsSource, `${name} vertex`);
+    const fragmentShader = createShader(gl.FRAGMENT_SHADER, fsSource, `${name} fragment`);
+
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.bindAttribLocation(program, 0, 'aPosition');
+    gl.linkProgram(program);
+
+    gl.deleteShader(vertexShader);
+    gl.deleteShader(fragmentShader);
+
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      const info = gl.getProgramInfoLog(program) || 'unknown program link error';
+      gl.deleteProgram(program);
+      throw new Error(`Wind Tunnel ${name} program failed to link: ${info}`);
     }
-    ctx.restore();
+
+    const uniformCount = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+    const uniforms = new Map();
+    for (let i = 0; i < uniformCount; i += 1) {
+      const active = gl.getActiveUniform(program, i);
+      if (!active) continue;
+      const uniformName = active.name.replace(/\[0\]$/, '');
+      uniforms.set(uniformName, {
+        location: gl.getUniformLocation(program, uniformName),
+        type: active.type,
+      });
+    }
+
+    return { name, handle: program, uniforms };
   }
 
-  function tick(dt) {
-    if (particles.length < N_PARTICLES) {
-      particles = Array.from({ length: N_PARTICLES }, initParticle);
-    }
-    simTime += dt * 3;
-    const shape = SHAPES[p.shapeIdx];
-    const U = p.windSpeed;
-    const R = getShapeR(shape);
+  const programs = {
+    advection: createProgram('advection', vsh, fshAdvection),
+    divergence: createProgram('divergence', vsh, fshDivergence),
+    jacobi: createProgram('jacobi', vsh, fshJacobi),
+    gradient: createProgram('gradient', vsh, fshGradient),
+    boundary: createProgram('boundary', vsh, fshBoundary),
+    injection: createProgram('injection', vsh, fshInjection),
+    display: createProgram('display', vsh, fshDisplay),
+  };
 
-    if (bgDirty && p.showPressure) {
-      bgCache = buildBgImageData(U, shape);
-      bgDirty = false;
-    }
+  const quadVBO = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadVBO);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
 
-    for (const pt of particles) {
-      pt.trail.push({ x: pt.x, y: pt.y });
-      if (pt.trail.length > 9) pt.trail.shift();
-
-      const { vx, vy } = velField(pt.x, pt.y, OBJ_CX, OBJ_CY, R, U, shape.id, simTime);
-      pt.x += vx * dt;
-      pt.y += vy * dt;
-
-      const dx = pt.x - OBJ_CX,
-        dy = pt.y - OBJ_CY;
-      const reset =
-        pt.x > TN_RIGHT + 20 ||
-        pt.x < TN_LEFT - 40 ||
-        pt.y < TN_TOP - 5 ||
-        pt.y > TN_BOT + 5 ||
-        dx * dx + dy * dy < R * R * 0.98;
-      if (reset) {
-        pt.x = TN_LEFT - Math.random() * 25;
-        pt.y = TN_TOP + Math.random() * (TN_BOT - TN_TOP);
-        pt.trail = [];
-      }
-    }
+  function bindQuad() {
+    gl.bindBuffer(gl.ARRAY_BUFFER, quadVBO);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
   }
 
-  function render() {
-    const W = canvas.width,
-      H = canvas.height;
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#06080f';
-    ctx.fillRect(0, 0, W, H);
-
-    ctx.strokeStyle = 'rgba(255,255,255,0.025)';
-    ctx.lineWidth = 1;
-    for (let x = 0; x < W; x += 28) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, H);
-      ctx.stroke();
+  function blit(target) {
+    if (target == null) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+    } else {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, target.fbo);
+      gl.viewport(0, 0, target.width, target.height);
     }
-    for (let y = 0; y < H; y += 28) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(W, y);
-      ctx.stroke();
-    }
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
 
-    const shape = SHAPES[p.shapeIdx];
-    const U = p.windSpeed;
+  function framebufferStatusLabel(status) {
+    const labels = {
+      [gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT]: 'incomplete attachment',
+      [gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT]: 'missing attachment',
+      [gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS]: 'incomplete dimensions',
+      [gl.FRAMEBUFFER_UNSUPPORTED]: 'unsupported format',
+      [gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE]: 'incomplete multisample',
+    };
+    return labels[status] || `status ${status}`;
+  }
 
-    if (p.showPressure && bgCache && typeof OffscreenCanvas !== 'undefined') {
-      const { iw, ih, data } = bgCache;
-      const offCanvas = new OffscreenCanvas(iw, ih);
-      const offCtx = offCanvas.getContext('2d');
-      const imgData = offCtx.createImageData(iw, ih);
-      imgData.data.set(data);
-      offCtx.putImageData(imgData, 0, 0);
-      ctx.drawImage(offCanvas, TN_LEFT, TN_TOP, TN_RIGHT - TN_LEFT, TN_BOT - TN_TOP);
-    }
+  function createFBO(w, h, internalFormat, format, type, param) {
+    gl.activeTexture(gl.TEXTURE0);
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, param);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, param);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, w, h, 0, format, type, null);
 
-    ctx.fillStyle = 'rgba(255,255,255,0.04)';
-    ctx.fillRect(TN_LEFT, 0, TN_RIGHT - TN_LEFT, TN_TOP);
-    ctx.fillRect(TN_LEFT, TN_BOT, TN_RIGHT - TN_LEFT, H - TN_BOT);
-    ctx.strokeStyle = '#3a4a60';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(TN_LEFT, TN_TOP);
-    ctx.lineTo(TN_RIGHT, TN_TOP);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(TN_LEFT, TN_BOT);
-    ctx.lineTo(TN_RIGHT, TN_BOT);
-    ctx.stroke();
+    const fbo = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
 
-    for (let y = TN_TOP + 20; y < TN_BOT; y += 38) {
-      const speed = Math.min(1, U / (U + 20));
-      const arrowLen = 18 + speed * 10;
-      ctx.beginPath();
-      ctx.moveTo(TN_LEFT + 5, y);
-      ctx.lineTo(TN_LEFT + 5 + arrowLen, y);
-      ctx.strokeStyle = `rgba(96,165,250,${0.3 + speed * 0.3})`;
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(TN_LEFT + 5 + arrowLen, y);
-      ctx.lineTo(TN_LEFT + 5 + arrowLen - 5, y - 3);
-      ctx.lineTo(TN_LEFT + 5 + arrowLen - 5, y + 3);
-      ctx.closePath();
-      ctx.fillStyle = `rgba(96,165,250,${0.3 + speed * 0.3})`;
-      ctx.fill();
+    const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+    if (status !== gl.FRAMEBUFFER_COMPLETE) {
+      gl.deleteTexture(texture);
+      gl.deleteFramebuffer(fbo);
+      throw new Error(`Wind Tunnel framebuffer is incomplete: ${framebufferStatusLabel(status)}.`);
     }
 
-    const R = getShapeR(shape);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    return { texture, fbo, width: w, height: h };
+  }
 
-    if (p.showStreamlines) {
-      const nLines = 12;
-      for (let si = 0; si < nLines; si++) {
-        const startY = TN_TOP + 15 + (si / (nLines - 1)) * (TN_BOT - TN_TOP - 30);
-        ctx.beginPath();
-        let px = TN_LEFT + 5,
-          py = startY;
-        ctx.moveTo(px, py);
-        for (let step = 0; step < 200; step++) {
-          const { vx, vy } = velField(px, py, OBJ_CX, OBJ_CY, R, U, shape.id, simTime);
-          const speedSp = Math.sqrt(vx * vx + vy * vy);
-          if (speedSp < 0.1) break;
-          const dt = 3 / speedSp;
-          px += vx * dt;
-          py += vy * dt;
-          if (px > TN_RIGHT + 10 || py < TN_TOP - 5 || py > TN_BOT + 5) break;
-          const dx = px - OBJ_CX,
-            dy = py - OBJ_CY;
-          if (dx * dx + dy * dy < R * R) break;
-          ctx.lineTo(px, py);
-        }
-        const norm = si / (nLines - 1);
-        ctx.strokeStyle = `rgba(${Math.round(60 + norm * 100)},${Math.round(150 - norm * 80)},${Math.round(255 - norm * 100)},0.35)`;
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      }
-    }
+  function createDoubleFBO(w, h, internalFormat, format, type, param) {
+    const fbo1 = createFBO(w, h, internalFormat, format, type, param);
+    const fbo2 = createFBO(w, h, internalFormat, format, type, param);
+    return {
+      read: fbo1,
+      write: fbo2,
+      swap() {
+        const temp = this.read;
+        this.read = this.write;
+        this.write = temp;
+      },
+    };
+  }
 
-    for (const pt of particles) {
-      const { vx, vy } = velField(pt.x, pt.y, OBJ_CX, OBJ_CY, R, U, shape.id, simTime);
-      const speedSp = Math.sqrt(vx * vx + vy * vy);
-      const [r, g, b] = velColor(speedSp, U * 2.2);
+  const SIM_RES = 512; // High-res simulation grid
+  let simRes = { w: SIM_RES, h: SIM_RES };
+  let velocity, dye, pressure, divergence;
+  let lastW = 0,
+    lastH = 0;
+  let destroyed = false;
 
-      if (pt.trail.length > 1) {
-        ctx.beginPath();
-        ctx.moveTo(pt.trail[0].x, pt.trail[0].y);
-        for (let ti = 1; ti < pt.trail.length; ti++) ctx.lineTo(pt.trail[ti].x, pt.trail[ti].y);
-        const grad = ctx.createLinearGradient(pt.trail[0].x, pt.trail[0].y, pt.x, pt.y);
-        grad.addColorStop(0, `rgba(${r},${g},${b},0.0)`);
-        grad.addColorStop(1, `rgba(${r},${g},${b},0.6)`);
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-      }
-      ctx.beginPath();
-      ctx.arc(pt.x, pt.y, 1.8, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255,255,255,0.9)`;
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = `rgba(${r},${g},${b},1)`;
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    }
+  function deleteFBO(target) {
+    if (!target) return;
+    gl.deleteTexture(target.texture);
+    gl.deleteFramebuffer(target.fbo);
+  }
 
-    if (mouseProbe && mouseProbe.active) {
-      const { vx: probeVx, vy: probeVy } = velField(
-        mouseProbe.x,
-        mouseProbe.y,
-        OBJ_CX,
-        OBJ_CY,
-        R,
-        U,
-        shape.id,
-        simTime,
+  function deleteDoubleFBO(target) {
+    if (!target) return;
+    deleteFBO(target.read);
+    deleteFBO(target.write);
+  }
+
+  function releaseFBOs() {
+    deleteDoubleFBO(velocity);
+    deleteDoubleFBO(dye);
+    deleteDoubleFBO(pressure);
+    deleteFBO(divergence);
+    velocity = null;
+    dye = null;
+    pressure = null;
+    divergence = null;
+  }
+
+  function clearFBO(target) {
+    if (!target) return;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, target.fbo);
+    gl.clearColor(0, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+  }
+
+  function clearDoubleFBO(target) {
+    if (!target) return;
+    clearFBO(target.read);
+    clearFBO(target.write);
+  }
+
+  function initFBOs() {
+    if (canvas.width <= 0 || canvas.height <= 0) {
+      console.warn(
+        'Wind Tunnel: Invalid canvas dimensions for FBO init.',
+        canvas.width,
+        canvas.height,
       );
-      const probeSpd = Math.sqrt(probeVx * probeVx + probeVy * probeVy);
-      ctx.beginPath();
-      ctx.arc(mouseProbe.x, mouseProbe.y, 4, 0, Math.PI * 2);
-      ctx.strokeStyle = '#4FC3F7';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      const arrowLen = Math.min(60, probeSpd * 0.2);
-      if (arrowLen > 2) {
-        const normX = probeVx / probeSpd,
-          normY = probeVy / probeSpd;
-        ctx.beginPath();
-        ctx.moveTo(mouseProbe.x, mouseProbe.y);
-        ctx.lineTo(mouseProbe.x + normX * arrowLen, mouseProbe.y + normY * arrowLen);
-        ctx.strokeStyle = '#FFD166';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
-      ctx.fillStyle = '#E6EDF3';
-      ctx.font = 'bold 12px "JetBrains Mono", monospace';
-      ctx.fillText(`${(probeSpd * 0.1).toFixed(1)} m/s`, mouseProbe.x + 10, mouseProbe.y - 10);
+      return;
+    }
+    const aspect = canvas.width / canvas.height;
+    simRes.w = SIM_RES;
+    simRes.h = Math.max(2, Math.floor(SIM_RES / aspect));
+
+    console.log(`Wind Tunnel: Initializing FBOs at ${simRes.w}x${simRes.h}`);
+    const type = gl.HALF_FLOAT;
+    const internalFormat = gl.RGBA16F;
+    const filter = ext4 ? gl.LINEAR : gl.NEAREST;
+
+    if (velocity) {
+      releaseFBOs();
     }
 
-    drawTunnelShape(ctx, shape, OBJ_CX, OBJ_CY);
+    velocity = createDoubleFBO(simRes.w, simRes.h, internalFormat, gl.RGBA, type, filter);
+    dye = createDoubleFBO(simRes.w, simRes.h, internalFormat, gl.RGBA, type, filter);
+    pressure = createDoubleFBO(simRes.w, simRes.h, internalFormat, gl.RGBA, type, gl.NEAREST);
+    divergence = createFBO(simRes.w, simRes.h, internalFormat, gl.RGBA, type, gl.NEAREST);
+    seedVelocityField();
+  }
+
+  function checkResize() {
+    if (destroyed) return;
+    if (canvas.width === 0 || canvas.height === 0) return;
+    if (canvas.width !== lastW || canvas.height !== lastH || !velocity) {
+      lastW = canvas.width;
+      lastH = canvas.height;
+      initFBOs();
+    }
+  }
+
+  function setUniforms(program, uniforms) {
+    gl.useProgram(program.handle);
+    for (const [name, rawValue] of Object.entries(uniforms)) {
+      const uniform = program.uniforms.get(name);
+      if (!uniform || uniform.location === null) continue;
+
+      const value =
+        rawValue && typeof rawValue === 'object' && 'value' in rawValue ? rawValue.value : rawValue;
+
+      switch (uniform.type) {
+        case gl.SAMPLER_2D:
+        case gl.SAMPLER_2D_SHADOW:
+        case gl.SAMPLER_CUBE:
+        case gl.INT:
+        case gl.BOOL:
+          gl.uniform1i(uniform.location, Number(value));
+          break;
+        case gl.FLOAT:
+          gl.uniform1f(uniform.location, Number(value));
+          break;
+        case gl.FLOAT_VEC2:
+          gl.uniform2f(uniform.location, value[0], value[1]);
+          break;
+        case gl.FLOAT_VEC3:
+          gl.uniform3f(uniform.location, value[0], value[1], value[2]);
+          break;
+        default:
+          throw new Error(`Wind Tunnel does not support uniform "${name}" on ${program.name}.`);
+      }
+    }
+  }
+
+  function bindTexture(texture, unit) {
+    gl.activeTexture(gl.TEXTURE0 + unit);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    return unit;
+  }
+
+  let simTime = 0;
+  let isDraggingObstacle = false;
+
+  function getShapePosition() {
+    return [
+      clamp(Number(p.shapeX ?? DEFAULT_SHAPE_X), 0.12, 0.82),
+      clamp(Number(p.shapeY ?? DEFAULT_SHAPE_Y), 0.16, 0.84),
+    ];
+  }
+
+  function getShapeSize() {
+    return clamp(Number(p.shapeSize ?? DEFAULT_SHAPE_SIZE), 0.035, 0.16);
+  }
+
+  function canvasEventToUv(event) {
+    const rect = canvas.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / Math.max(rect.width, 1);
+    const y = 1 - (event.clientY - rect.top) / Math.max(rect.height, 1);
+    return [clamp(x, 0, 1), clamp(y, 0, 1)];
+  }
+
+  function pointInObstacle(uv) {
+    const [shapeX, shapeY] = getShapePosition();
+    const shapeSize = getShapeSize();
+    const aspect = simRes.w / Math.max(simRes.h, 1);
+    const dx = (uv[0] - shapeX) * aspect;
+    const dy = uv[1] - shapeY;
+    const shape = SHAPES[p.shapeIdx] || SHAPES[0];
+
+    if (shape.id === 'circle' || shape.id === 'sphere3d') {
+      return Math.hypot(dx, dy) <= shapeSize * 1.2;
+    }
+    if (shape.id === 'box') {
+      return Math.abs(dx) <= shapeSize * 0.28 && Math.abs(dy) <= shapeSize * 1.08;
+    }
+    if (shape.id === 'airfoil') {
+      return dx >= -shapeSize * 0.9 && dx <= shapeSize * 1.25 && Math.abs(dy) <= shapeSize * 0.36;
+    }
+    return Math.abs(dx) + Math.abs(dy) <= shapeSize * 1.05;
+  }
+
+  function resetObstacleTransients(clearDye = false) {
+    clearDoubleFBO(pressure);
+    clearFBO(divergence);
+    if (clearDye) clearDoubleFBO(dye);
+  }
+
+  function setObstaclePosition(uv, notify = true) {
+    const size = getShapeSize();
+    const nextX = clamp(uv[0], 0.1 + size, 0.9 - size);
+    const nextY = clamp(uv[1], 0.08 + size, 0.92 - size);
+    if (Math.abs(nextX - p.shapeX) < 0.0005 && Math.abs(nextY - p.shapeY) < 0.0005) return;
+
+    p = { ...p, shapeX: nextX, shapeY: nextY };
+    resetObstacleTransients(false);
+    if (notify) options.onParamChange?.({ shapeX: nextX, shapeY: nextY });
+  }
+
+  function handlePointerDown(event) {
+    if (event.button !== 0 || destroyed) return;
+    const uv = canvasEventToUv(event);
+    if (!pointInObstacle(uv)) return;
+    event.preventDefault();
+    isDraggingObstacle = true;
+    canvas.setPointerCapture?.(event.pointerId);
+    canvas.style.cursor = 'grabbing';
+    setObstaclePosition(uv, true);
+  }
+
+  function handlePointerMove(event) {
+    const uv = canvasEventToUv(event);
+    if (isDraggingObstacle) {
+      event.preventDefault();
+      setObstaclePosition(uv, true);
+      return;
+    }
+    canvas.style.cursor = pointInObstacle(uv) ? 'grab' : 'crosshair';
+  }
+
+  function handlePointerUp(event) {
+    if (!isDraggingObstacle) return;
+    isDraggingObstacle = false;
+    canvas.releasePointerCapture?.(event.pointerId);
+    canvas.style.cursor = pointInObstacle(canvasEventToUv(event)) ? 'grab' : 'crosshair';
+  }
+
+  function seedVelocityField() {
+    if (!velocity) return;
+    bindQuad();
+    setUniforms(programs.injection, {
+      uTarget: bindTexture(velocity.read.texture, 0),
+      uIsVelocity: { type: 'int', value: 1 },
+      uWindSpeed: p.windSpeed,
+      uShowStreamlines: { type: 'int', value: 0 },
+      uFillDomain: { type: 'int', value: 1 },
+      uTime: simTime,
+    });
+    blit(velocity.write);
+    velocity.swap();
+  }
+
+  function step(dt) {
+    checkResize();
+    if (!velocity) return;
+
+    bindQuad();
+
+    const texelSize = [1.0 / simRes.w, 1.0 / simRes.h];
+    const aspect = simRes.w / simRes.h;
+
+    const shapePos = getShapePosition();
+    const shapeSize = getShapeSize();
+
+    // 1. Advect Velocity
+    setUniforms(programs.advection, {
+      uVelocity: bindTexture(velocity.read.texture, 0),
+      uSource: bindTexture(velocity.read.texture, 1),
+      texelSize,
+      dt,
+      dissipation: 1.0,
+    });
+    blit(velocity.write);
+    velocity.swap();
+
+    // 2. Advect Dye
+    setUniforms(programs.advection, {
+      uVelocity: bindTexture(velocity.read.texture, 0),
+      uSource: bindTexture(dye.read.texture, 1),
+      texelSize,
+      dt,
+      dissipation: 0.998,
+    });
+    blit(dye.write);
+    dye.swap();
+
+    // 3. Inject Wind Velocity
+    setUniforms(programs.injection, {
+      uTarget: bindTexture(velocity.read.texture, 0),
+      uIsVelocity: { type: 'int', value: 1 },
+      uWindSpeed: p.windSpeed,
+      uShowStreamlines: { type: 'int', value: 0 },
+      uFillDomain: { type: 'int', value: 0 },
+      uTime: simTime,
+    });
+    blit(velocity.write);
+    velocity.swap();
+
+    // 4. Inject Smoke Dye
+    setUniforms(programs.injection, {
+      uTarget: bindTexture(dye.read.texture, 0),
+      uIsVelocity: { type: 'int', value: 0 },
+      uWindSpeed: p.windSpeed,
+      uShowStreamlines: { type: 'int', value: p.showStreamlines },
+      uFillDomain: { type: 'int', value: 0 },
+      uTime: simTime,
+    });
+    blit(dye.write);
+    dye.swap();
+
+    // Apply Obstacle to Velocity BEFORE Divergence
+    setUniforms(programs.boundary, {
+      uTarget: bindTexture(velocity.read.texture, 0),
+      uShape: { type: 'int', value: p.shapeIdx },
+      uAspect: aspect,
+      uShapePos: shapePos,
+      uShapeSize: shapeSize,
+      uIsVelocity: { type: 'int', value: 1 },
+    });
+    blit(velocity.write);
+    velocity.swap();
+
+    // 5. Divergence
+    setUniforms(programs.divergence, {
+      uVelocity: bindTexture(velocity.read.texture, 0),
+      texelSize,
+    });
+    blit(divergence);
+
+    // 6. Clear Pressure (Stabilize)
+    gl.bindFramebuffer(gl.FRAMEBUFFER, pressure.read.fbo);
+    gl.clearColor(0, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    // 7. Jacobi Iteration (Pressure solver)
+    for (let i = 0; i < 20; i++) {
+      setUniforms(programs.jacobi, {
+        uPressure: bindTexture(pressure.read.texture, 0),
+        uDivergence: bindTexture(divergence.texture, 1),
+        texelSize,
+      });
+      blit(pressure.write);
+      pressure.swap();
+    }
+
+    // 8. Gradient Subtraction
+    setUniforms(programs.gradient, {
+      uPressure: bindTexture(pressure.read.texture, 0),
+      uVelocity: bindTexture(velocity.read.texture, 1),
+      texelSize,
+    });
+    blit(velocity.write);
+    velocity.swap();
+
+    // Enforce No-Slip Obstacle Boundary AFTER projection
+    setUniforms(programs.boundary, {
+      uTarget: bindTexture(velocity.read.texture, 0),
+      uShape: { type: 'int', value: p.shapeIdx },
+      uAspect: aspect,
+      uShapePos: shapePos,
+      uShapeSize: shapeSize,
+      uIsVelocity: { type: 'int', value: 1 },
+    });
+    blit(velocity.write);
+    velocity.swap();
+
+    // Enforce Dye Boundary
+    setUniforms(programs.boundary, {
+      uTarget: bindTexture(dye.read.texture, 0),
+      uShape: { type: 'int', value: p.shapeIdx },
+      uAspect: aspect,
+      uShapePos: shapePos,
+      uShapeSize: shapeSize,
+      uIsVelocity: { type: 'int', value: 0 },
+    });
+    blit(dye.write);
+    dye.swap();
+
+    // 9. Display (Render to Screen)
+    setUniforms(programs.display, {
+      uVelocity: bindTexture(velocity.read.texture, 0),
+      uDye: bindTexture(dye.read.texture, 1),
+      texelSize,
+      uViewMode: { type: 'int', value: p.viewMode },
+      uShowStreamlines: { type: 'int', value: p.showStreamlines },
+      uShape: { type: 'int', value: p.shapeIdx },
+      uAspect: aspect,
+      uShapePos: shapePos,
+      uShapeSize: shapeSize,
+      uWindSpeed: p.windSpeed,
+      uDragging: { type: 'int', value: isDraggingObstacle ? 1 : 0 },
+    });
+    blit(null);
   }
 
   let rafId,
-    running = false,
-    lastTs;
-  function loop(ts) {
+    running = false;
+
+  function loop() {
     if (!running) return;
-    const dt = Math.min((ts - (lastTs || ts)) / 1000, 0.05);
-    lastTs = ts;
-    tick(dt);
-    render();
+    const dt = 0.016;
+    simTime += dt;
+    step(dt);
     rafId = requestAnimationFrame(loop);
   }
 
-  resize();
-  render();
+  canvas.style.cursor = 'crosshair';
+  canvas.addEventListener('pointerdown', handlePointerDown);
+  canvas.addEventListener('pointermove', handlePointerMove);
+  canvas.addEventListener('pointerup', handlePointerUp);
+  canvas.addEventListener('pointercancel', handlePointerUp);
+
+  // Pre-initialization check
+  checkResize();
 
   return {
     start() {
+      if (destroyed) return;
+      if (running) return;
+      console.log('Wind Tunnel: Starting...');
       running = true;
-      lastTs = performance.now();
-      loop(lastTs);
+      rafId = requestAnimationFrame(loop);
     },
     stop() {
+      console.log('Wind Tunnel: Stopping...');
       running = false;
       cancelAnimationFrame(rafId);
     },
     reset() {
       this.stop();
-      particles = [];
       simTime = 0;
-      render();
+      clearDoubleFBO(velocity);
+      clearDoubleFBO(dye);
+      clearDoubleFBO(pressure);
+      clearFBO(divergence);
+      seedVelocityField();
       this.start();
     },
     destroy() {
+      if (destroyed) return;
       this.stop();
+      destroyed = true;
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      canvas.removeEventListener('pointermove', handlePointerMove);
+      canvas.removeEventListener('pointerup', handlePointerUp);
+      canvas.removeEventListener('pointercancel', handlePointerUp);
+      canvas.style.cursor = '';
+      releaseFBOs();
+      gl.deleteBuffer(quadVBO);
+      Object.values(programs).forEach((program) => gl.deleteProgram(program.handle));
     },
     setParams(newP) {
-      if (newP.shapeIdx !== p.shapeIdx || newP.windSpeed !== p.windSpeed) bgDirty = true;
+      const shapeChanged =
+        (Object.prototype.hasOwnProperty.call(newP, 'shapeIdx') && newP.shapeIdx !== p.shapeIdx) ||
+        (Object.prototype.hasOwnProperty.call(newP, 'shapeSize') && newP.shapeSize !== p.shapeSize);
+      const positionChanged =
+        (Object.prototype.hasOwnProperty.call(newP, 'shapeX') && newP.shapeX !== p.shapeX) ||
+        (Object.prototype.hasOwnProperty.call(newP, 'shapeY') && newP.shapeY !== p.shapeY);
       p = { ...p, ...newP };
+      if (shapeChanged) {
+        clearDoubleFBO(velocity);
+        clearDoubleFBO(dye);
+        clearDoubleFBO(pressure);
+        clearFBO(divergence);
+        seedVelocityField();
+      } else if (positionChanged) {
+        resetObstacleTransients(false);
+      }
     },
     getData() {
       const sh = SHAPES[p.shapeIdx];
-      const v = p.windSpeed * 0.1;
-      const D = 2 * getShapeR(sh) * PX_M;
-      const Afront = sh.id === 'box' ? 50 * PX_M : sh.id === 'airfoil' ? 28 * PX_M : D;
-      const Re = (1.225 * v * D) / 1.81e-5;
+      const [shapeX, shapeY] = getShapePosition();
+      const shapeSize = getShapeSize();
+      const v = p.windSpeed * WIND_SPEED_TO_MPS;
+      const D = characteristicLength(shapeSize);
+      const Afront = referenceArea(sh, D);
+      const Re = (AIR_DENSITY * v * D) / AIR_VISCOSITY;
       const Cd = cdForRe(sh, Re);
-      const q = 0.5 * 1.225 * v * v;
-      const Fd = q * Cd * Afront;
-      const Fl = q * (sh.cl || 0) * Afront;
+      const blockage = clamp(D / TUNNEL_HEIGHT_M, 0.01, 0.85);
+      const wallBias = (shapeY - 0.5) * 2;
+      const confinement = 1 + 0.5 * blockage + 0.28 * Math.abs(wallBias);
+      const effectiveCd = Cd * confinement;
+      const effectiveCl = (sh.cl || 0) - wallBias * blockage * 0.45;
+      const q = 0.5 * AIR_DENSITY * v * v;
+      const Fd = q * effectiveCd * Afront;
+      const Fl = q * effectiveCl * Afront;
+      const wakeFrequency = sh.st > 0 ? (sh.st * v) / D : 0;
       return {
+        time: simTime,
         stepR: Re,
         forceD: Fd,
         forceL: Fl,
-        pressure: q,
+        dynamicPressure: q,
         velocity: v,
         cd: Cd,
+        effectiveCd,
+        cl: effectiveCl,
+        wakeFrequency,
+        blockage,
+        wallBias,
+        strouhal: sh.st,
+        objectX: shapeX,
+        objectY: shapeY,
+        regimeCode: flowRegime(Re),
       };
     },
   };

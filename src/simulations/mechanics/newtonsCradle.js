@@ -3,7 +3,7 @@
  *
  * Physics: Each ball is a simple pendulum integrated with RK4.
  *          Collisions are resolved using exact 1D elastic equations.
- * Professional Overhaul: Clean laboratory aesthetic, manual ball dragging.
+ * Includes a laboratory-style view with manual ball dragging.
  */
 
 const DEFAULTS = {
