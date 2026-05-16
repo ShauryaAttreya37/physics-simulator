@@ -507,29 +507,73 @@ const ICONS = {
   ),
   'electrostatic-fields': (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-      {/* Background vector arrows */}
-      {[20, 32, 44].map((y, i) =>
-        [16, 32, 48].map((x, j) => (
-          <path
-            key={`${i}-${j}`}
-            d={`M ${x - 3} ${y + 3} L ${x + 3} ${y - 3} M ${x} ${y - 4} L ${x + 4} ${y - 4} L ${x + 4} ${y}`}
-            stroke="currentColor"
-            strokeWidth="1"
-            opacity="0.3"
-            fill="none"
-          />
-        )),
-      )}
-      <circle
-        cx="32"
-        cy="32"
-        r="16"
+      <circle cx="20" cy="32" r="4" fill="#f87171" />
+      <circle cx="44" cy="32" r="4" fill="#60a5fa" />
+      <path d="M 24 32 C 32 24 36 24 40 32" stroke="currentColor" strokeWidth="1.2" opacity="0.4" />
+      <path d="M 24 32 C 32 40 36 40 40 32" stroke="currentColor" strokeWidth="1.2" opacity="0.4" />
+      <path d="M 20 28 C 20 16 44 16 44 28" stroke="currentColor" strokeWidth="1" opacity="0.3" />
+      <path d="M 20 36 C 20 48 44 48 44 36" stroke="currentColor" strokeWidth="1" opacity="0.3" />
+      <rect
+        x="8"
+        y="8"
+        width="48"
+        height="48"
+        stroke="currentColor"
+        strokeWidth="0.5"
+        opacity="0.1"
+      />
+    </svg>
+  ),
+  'torque-angular-acceleration-lab': (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      <circle cx="32" cy="32" r="20" stroke="currentColor" strokeWidth="2.5" opacity="0.4" />
+      <circle cx="32" cy="32" r="4" fill="currentColor" />
+      <path d="M 52 32 L 52 12 M 48 16 L 52 12 L 56 16" stroke="#fb7185" strokeWidth="2.5" />
+      <path
+        d="M 32 32 L 52 32"
         stroke="currentColor"
         strokeWidth="1.5"
-        opacity="0.8"
-        fill="none"
+        strokeDasharray="3 3"
+        opacity="0.5"
       />
-      <circle cx="32" cy="32" r="4" fill="currentColor" opacity="0.8" />
+      <path d="M 12 32 A 20 20 0 0 1 32 12" stroke="#4ade80" strokeWidth="2.5" />
+      <path d="M 28 12 L 32 12 L 32 16" stroke="#4ade80" strokeWidth="2.5" />
+    </svg>
+  ),
+  'gyroscope-precession-3d': (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      <ellipse
+        cx="32"
+        cy="32"
+        rx="24"
+        ry="8"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        transform="rotate(-30 32 32)"
+        opacity="0.8"
+      />
+      <line
+        x1="32"
+        y1="8"
+        x2="32"
+        y2="56"
+        stroke="currentColor"
+        strokeWidth="2"
+        opacity="0.5"
+        transform="rotate(-30 32 32)"
+      />
+      <circle cx="32" cy="32" r="4" fill="currentColor" />
+      <ellipse
+        cx="32"
+        cy="18"
+        rx="12"
+        ry="4"
+        stroke="#a78bfa"
+        strokeWidth="1.5"
+        strokeDasharray="3 2"
+        opacity="0.6"
+      />
+      <path d="M 44 18 L 48 18 L 46 22" stroke="#a78bfa" strokeWidth="1.5" />
     </svg>
   ),
   'quantum-harmonic-oscillator': (
