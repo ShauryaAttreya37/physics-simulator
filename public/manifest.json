@@ -1,0 +1,19 @@
+{
+  "name": "Physics Lab - Interactive Simulations",
+  "short_name": "Physics Lab",
+  "description": "Interactive physics simulation library for exploring mechanics, fields, fluids, optics, thermodynamics, and quantum systems.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#051b2c",
+  "theme_color": "#051b2c",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "science"]
+}

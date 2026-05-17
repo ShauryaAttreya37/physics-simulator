@@ -52,6 +52,9 @@ body,
   height: 100dvh;
   margin: 0;
   overflow: hidden;
+  /* Prevent rubber-band over-scroll on iOS */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 body {
@@ -74,6 +77,10 @@ button {
 
 canvas {
   display: block;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 ::-webkit-scrollbar {
@@ -661,6 +668,9 @@ canvas {
   width: 100%;
   height: 100%;
   touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .sim-side-panel {
@@ -1648,6 +1658,25 @@ canvas {
     width: 44px;
     height: 44px;
   }
+
+  /* Prevent text selection while interacting on mobile */
+  .sim-runner {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Bigger touch targets for sliders */
+  .slider-input {
+    height: 32px;
+  }
+
+  /* Ensure form inputs don't zoom on iOS (16px minimum) */
+  .form-input,
+  .number-input,
+  .speed-select,
+  select {
+    font-size: 16px !important;
+  }
 }
 
 @media (max-width: 560px) {
@@ -1738,5 +1767,77 @@ canvas {
 
   .sim-card {
     min-height: 0;
+  }
+}
+
+/* Landscape mode on mobile — maximize canvas area */
+@media (max-width: 900px) and (orientation: landscape) {
+  .sim-runner-top-bar {
+    min-height: 44px;
+    padding: var(--sp-1) var(--sp-2);
+  }
+
+  .sim-title-block {
+    order: 1;
+  }
+
+  .sim-panel-actions {
+    display: none;
+  }
+
+  .sim-side-panel {
+    width: 50vw;
+    max-width: 50vw;
+    height: 100dvh;
+    top: 0;
+    right: 0;
+    bottom: auto;
+    border-left: 1px solid var(--border);
+    border-top: 0;
+    transform: translateX(100%);
+  }
+
+  .sim-side-panel::before {
+    display: none;
+  }
+
+  .sim-runner.side-panel-open .sim-side-panel {
+    transform: translateX(0);
+  }
+
+  .sim-mobile-dock {
+    bottom: calc(var(--sp-2) + env(safe-area-inset-bottom));
+    padding: var(--sp-1);
+  }
+
+  .sim-mobile-dock .icon-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .data-readout {
+    top: var(--sp-2);
+    left: var(--sp-2);
+    transform: none !important;
+    width: min(240px, calc(100vw - 16px));
+    max-height: 40dvh;
+    font-size: 9px;
+    padding: var(--sp-2);
+  }
+}
+
+/* Safe area insets for notch devices */
+@supports (padding: env(safe-area-inset-top)) {
+  .home-nav {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .sim-runner-top-bar {
+    padding-top: max(var(--sp-2), env(safe-area-inset-top));
+  }
+
+  .sim-canvas-wrapper {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 }
