@@ -1,3 +1,4 @@
+import * as vectorAddition from './basics/vectorAddition';
 import * as doublePendulum from './mechanics/doublePendulum';
 import * as newtonsCradle from './mechanics/newtonsCradle';
 import * as orbitalGravity from './mechanics/orbitalGravity';
@@ -196,6 +197,27 @@ function withCommonControls(simId, controls = []) {
 }
 
 export const TOPICS = {
+  basics: {
+    label: 'Basics',
+    sims: [
+      {
+        id: 'vector-addition',
+        title: 'Vector Addition',
+        description:
+          'Drag two vectors on a 2D grid and see the resultant, components, magnitude, and direction in real time.',
+        tags: ['Vectors', 'Components', 'Resultant'],
+        method: 'interactive',
+        create: vectorAddition.create,
+        controls: vectorAddition.controls,
+        defaultParams: vectorAddition.defaultParams,
+        equations: vectorAddition.equations,
+        equationSections: vectorAddition.equationSections,
+        graphParams: vectorAddition.graphParams,
+        guidedExperiments: vectorAddition.guidedExperiments,
+        scenarios: vectorAddition.scenarios,
+      },
+    ],
+  },
   mechanics: {
     label: 'Mechanics',
     sims: [

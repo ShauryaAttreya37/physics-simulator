@@ -847,6 +847,92 @@ const ICONS = {
       />
     </svg>
   ),
+  'vector-addition': (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      <defs>
+        <marker
+          id="va-arrow-a"
+          markerWidth="6"
+          markerHeight="6"
+          refX="5"
+          refY="3"
+          orient="auto-start-reverse"
+        >
+          <path d="M 0 0 L 6 3 L 0 6 Z" fill="#1d4ed8" />
+        </marker>
+        <marker
+          id="va-arrow-b"
+          markerWidth="6"
+          markerHeight="6"
+          refX="5"
+          refY="3"
+          orient="auto-start-reverse"
+        >
+          <path d="M 0 0 L 6 3 L 0 6 Z" fill="#b91c1c" />
+        </marker>
+        <marker
+          id="va-arrow-s"
+          markerWidth="6"
+          markerHeight="6"
+          refX="5"
+          refY="3"
+          orient="auto-start-reverse"
+        >
+          <path d="M 0 0 L 6 3 L 0 6 Z" fill="#15803d" />
+        </marker>
+      </defs>
+      {/* Parallelogram guides */}
+      <line
+        x1="36"
+        y1="24"
+        x2="60"
+        y2="20"
+        stroke="#b91c1c"
+        strokeWidth="1.5"
+        strokeDasharray="3 3"
+        opacity="0.6"
+      />
+      <line
+        x1="40"
+        y1="44"
+        x2="60"
+        y2="20"
+        stroke="#1d4ed8"
+        strokeWidth="1.5"
+        strokeDasharray="3 3"
+        opacity="0.6"
+      />
+
+      {/* Vectors */}
+      <line
+        x1="16"
+        y1="48"
+        x2="36"
+        y2="24"
+        stroke="#1d4ed8"
+        strokeWidth="2.5"
+        markerEnd="url(#va-arrow-a)"
+      />
+      <line
+        x1="16"
+        y1="48"
+        x2="40"
+        y2="44"
+        stroke="#b91c1c"
+        strokeWidth="2.5"
+        markerEnd="url(#va-arrow-b)"
+      />
+      <line
+        x1="16"
+        y1="48"
+        x2="60"
+        y2="20"
+        stroke="#15803d"
+        strokeWidth="2.5"
+        markerEnd="url(#va-arrow-s)"
+      />
+    </svg>
+  ),
   default: (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
       <circle
