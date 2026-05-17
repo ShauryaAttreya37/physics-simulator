@@ -790,20 +790,6 @@ export default function SimulationRunner({ sim, onBack }) {
               <div className="toggle-handle" />
             </div>
           </div>
-
-          <button
-            className={`icon-btn mobile-only-btn ${showMobilePanel ? 'active' : ''}`}
-            onClick={() => {
-              if (sidePanelOpen) {
-                closeSidePanel();
-              } else {
-                openSidePanel('controls');
-              }
-            }}
-            title="Toggle Parameters"
-          >
-            <Sliders size={16} />
-          </button>
         </div>
 
         <div className="sim-canvas-wrapper">
@@ -909,13 +895,6 @@ export default function SimulationRunner({ sim, onBack }) {
 
       {!sidePanelOpen && (
         <div className="sim-mobile-dock" aria-label="Simulation quick actions">
-          <button
-            className="icon-btn"
-            onClick={() => openSidePanel('controls')}
-            title="Open parameters"
-          >
-            <Sliders size={17} />
-          </button>
           <button className="icon-btn" onClick={() => openSidePanel('graph')} title="Open data">
             <LineChartIcon size={17} />
           </button>
