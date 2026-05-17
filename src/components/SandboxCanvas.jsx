@@ -48,6 +48,8 @@ function screenToWorld(sx, sy) {
 
 export default function SandboxCanvas({ engineRef }) {
   const canvasRef = useRef(null);
+  const activePointersRef = useRef(new Map());
+  const pinchRef = useRef(null);
   const stateRef = useRef({
     dragging: null,
     springStart: null,
@@ -258,6 +260,39 @@ export default function SandboxCanvas({ engineRef }) {
     drawBodies(ctx, eng);
   }
 
+  function getPointerPoint(event) {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+    };
+  }
+
+  function getTouchPair() {
+    const points = [...activePointersRef.current.values()].filter(
+      (point) => point.pointerType === 'touch',
+    );
+    if (points.length < 2) return null;
+    const [a, b] = points;
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    return {
+      center: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 },
+      distance: Math.hypot(dx, dy),
+    };
+  }
+
+  function endDrag() {
+    const sr = stateRef.current;
+    if (sr.dragging && sr.dragging.constraint) {
+      removeFromWorld(sr.dragging.constraint);
+    }
+    sr.dragging = null;
+    sr.isPanning = false;
+    sr.panStart = null;
+  }
+
   // ---- Physics helpers ----
   function addFloor(eng) {
     const canvas = canvasRef.current;
@@ -456,9 +491,26 @@ export default function SandboxCanvas({ engineRef }) {
 
   const onPointerDown = useCallback((e) => {
     const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const sx = e.clientX - rect.left;
-    const sy = e.clientY - rect.top;
+    canvas.setPointerCapture?.(e.pointerId);
+    const point = getPointerPoint(e);
+    activePointersRef.current.set(e.pointerId, {
+      ...point,
+      pointerType: e.pointerType,
+    });
+
+    const touchPair = getTouchPair();
+    if (touchPair) {
+      endDrag();
+      pinchRef.current = {
+        distance: touchPair.distance,
+        center: touchPair.center,
+        camStart: { ...cam },
+      };
+      return;
+    }
+
+    const sx = point.x;
+    const sy = point.y;
     const wp = screenToWorld(sx, sy);
     const { activeTool, setSelectedId, addBody, addConstraint, setActiveTool } = storeRef.current;
     const sr = stateRef.current;
@@ -748,9 +800,32 @@ export default function SandboxCanvas({ engineRef }) {
   const onPointerMove = useCallback((e) => {
     const canvas = canvasRef.current;
     const sr = stateRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const sx = e.clientX - rect.left;
-    const sy = e.clientY - rect.top;
+    const point = getPointerPoint(e);
+    activePointersRef.current.set(e.pointerId, {
+      ...point,
+      pointerType: e.pointerType,
+    });
+
+    const touchPair = getTouchPair();
+    if (touchPair && pinchRef.current) {
+      e.preventDefault();
+      const pinch = pinchRef.current;
+      const factor = touchPair.distance / Math.max(1, pinch.distance);
+      const nextZoom = Math.max(0.25, Math.min(4, pinch.camStart.zoom * factor));
+      const centerWorld = {
+        x: (pinch.center.x - pinch.camStart.x) / pinch.camStart.zoom,
+        y: (pinch.center.y - pinch.camStart.y) / pinch.camStart.zoom,
+      };
+
+      cam.zoom = nextZoom;
+      cam.x = touchPair.center.x - centerWorld.x * nextZoom;
+      cam.y = touchPair.center.y - centerWorld.y * nextZoom;
+      drawFrame();
+      return;
+    }
+
+    const sx = point.x;
+    const sy = point.y;
 
     if (sr.isPanning && sr.panStart) {
       cam.x = e.clientX - sr.panStart.x;
@@ -786,8 +861,8 @@ export default function SandboxCanvas({ engineRef }) {
         const ctx = canvas.getContext('2d');
         const startPos = springStart.body
           ? worldToScreen(
-              springStart.body.position.x + springStart.worldPt.x,
-              springStart.body.position.y + springStart.worldPt.y,
+              springStart.body.position.x + springStart.localPt.x,
+              springStart.body.position.y + springStart.localPt.y,
             )
           : worldToScreen(springStart.worldPt.x, springStart.worldPt.y);
         ctx.beginPath();
@@ -801,6 +876,12 @@ export default function SandboxCanvas({ engineRef }) {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const onPointerUp = useCallback((e) => {
+    activePointersRef.current.delete(e.pointerId);
+    if (!getTouchPair()) pinchRef.current = null;
+    canvasRef.current?.releasePointerCapture?.(e.pointerId);
   }, []);
 
   const onWheel = useCallback((e) => {
@@ -828,6 +909,8 @@ export default function SandboxCanvas({ engineRef }) {
       }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
       onWheel={onWheel}
     />
   );

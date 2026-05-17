@@ -684,6 +684,11 @@ export default function SimulationRunner({ sim, onBack }) {
     setShowMobilePanel(true);
   }, []);
 
+  const closeSidePanel = useCallback(() => {
+    setSidePanelOpen(false);
+    setShowMobilePanel(false);
+  }, []);
+
   return (
     <div
       className={`sim-runner ${sidePanelOpen ? 'side-panel-open' : ''} ${
@@ -790,8 +795,7 @@ export default function SimulationRunner({ sim, onBack }) {
             className={`icon-btn mobile-only-btn ${showMobilePanel ? 'active' : ''}`}
             onClick={() => {
               if (sidePanelOpen) {
-                setSidePanelOpen(false);
-                setShowMobilePanel(false);
+                closeSidePanel();
               } else {
                 openSidePanel('controls');
               }
@@ -828,14 +832,7 @@ export default function SimulationRunner({ sim, onBack }) {
           <span className="sim-side-panel-title">
             {sideTab === 'controls' ? 'Parameters' : sideTab === 'graph' ? 'Data' : 'Theory'}
           </span>
-          <button
-            className="icon-btn"
-            onClick={() => {
-              setSidePanelOpen(false);
-              setShowMobilePanel(false);
-            }}
-            title="Close panel"
-          >
+          <button className="icon-btn" onClick={closeSidePanel} title="Close panel">
             <X size={16} />
           </button>
         </div>
@@ -909,6 +906,35 @@ export default function SimulationRunner({ sim, onBack }) {
           {sideTab === 'equations' && <TheoryChalkboard sections={eqSections} title={sim.title} />}
         </div>
       </div>
+
+      {!sidePanelOpen && (
+        <div className="sim-mobile-dock" aria-label="Simulation quick actions">
+          <button
+            className="icon-btn"
+            onClick={() => openSidePanel('controls')}
+            title="Open parameters"
+          >
+            <Sliders size={17} />
+          </button>
+          <button className="icon-btn" onClick={() => openSidePanel('graph')} title="Open data">
+            <LineChartIcon size={17} />
+          </button>
+          <button
+            className="icon-btn"
+            onClick={() => openSidePanel('equations')}
+            title="Open theory"
+          >
+            <BookOpen size={17} />
+          </button>
+          <button
+            className={`icon-btn ${showReadout ? 'active' : ''}`}
+            onClick={toggleReadout}
+            title="Toggle HUD"
+          >
+            <Gauge size={17} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

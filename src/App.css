@@ -47,8 +47,9 @@
 html,
 body,
 #root {
-  width: 100vw;
+  width: 100%;
   height: 100vh;
+  height: 100dvh;
   margin: 0;
   overflow: hidden;
 }
@@ -97,7 +98,8 @@ canvas {
 .page-wrapper {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100dvh;
+  min-width: 0;
 }
 
 .page-content {
@@ -197,18 +199,21 @@ canvas {
 .app-container {
   display: grid;
   grid-template-columns: var(--left-w) minmax(0, 1fr) var(--right-w);
-  width: 100vw;
+  width: 100%;
   height: 100%;
   min-height: 0;
+  min-width: 0;
   background: var(--bg);
 }
 
 .canvas-container {
   min-width: 0;
+  min-height: 0;
   height: 100%;
   position: relative;
   background: #ffffff;
   border-inline: 1px solid var(--border);
+  touch-action: none;
 }
 
 .canvas-container canvas {
@@ -276,6 +281,7 @@ canvas {
   width: 40px;
   height: 40px;
   padding: 0;
+  flex: 0 0 auto;
 }
 
 .btn,
@@ -535,12 +541,13 @@ canvas {
   grid-template-columns: minmax(0, 1fr);
   width: 100vw;
   height: 100dvh;
+  min-width: 0;
   overflow: hidden;
   background: var(--bg);
 }
 
 .sim-main-area {
-  width: 100vw;
+  width: 100%;
   min-width: 0;
   max-width: 100vw;
   display: flex;
@@ -597,6 +604,10 @@ canvas {
   border-left: 1px solid var(--border);
 }
 
+.sim-mobile-dock {
+  display: none;
+}
+
 .panel-action-btn {
   min-height: 34px;
   padding: 0 var(--sp-3);
@@ -642,12 +653,14 @@ canvas {
   min-height: 0;
   overflow: hidden;
   background: var(--canvas-bg);
+  touch-action: none;
 }
 
 .sim-runner-canvas {
   display: block;
   width: 100%;
   height: 100%;
+  touch-action: none;
 }
 
 .sim-side-panel {
@@ -1343,12 +1356,56 @@ canvas {
 }
 
 @media (max-width: 900px) {
+  :root {
+    --right-w: min(100vw, 420px);
+  }
+
+  body {
+    overscroll-behavior: none;
+  }
+
+  .app-header {
+    height: auto;
+    min-height: 56px;
+    padding: var(--sp-2) var(--sp-3);
+  }
+
+  .header-left {
+    width: 100%;
+    min-width: 0;
+    gap: var(--sp-2);
+  }
+
+  .header-logo {
+    flex: 0 0 auto;
+  }
+
+  .header-nav {
+    min-width: 0;
+    flex: 1;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-item {
+    min-width: max-content;
+    min-height: 40px;
+    padding: 0 var(--sp-3);
+  }
+
   .app-container {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
+    width: 100%;
+    min-width: 0;
   }
 
   .hide-mobile {
+    display: none !important;
+  }
+
+  .mobile-hide {
     display: none !important;
   }
 
@@ -1358,9 +1415,9 @@ canvas {
 
   .left-sidebar {
     position: static;
-    width: 100vw;
+    width: 100%;
     height: auto;
-    min-height: 56px;
+    min-height: 58px;
     padding: var(--sp-2);
     flex-direction: row;
     align-items: center;
@@ -1370,6 +1427,12 @@ canvas {
     border-bottom: 1px solid var(--border);
     gap: var(--sp-2);
     -webkit-overflow-scrolling: touch;
+  }
+
+  .left-sidebar .icon-btn,
+  .left-sidebar .tool-btn {
+    width: 44px;
+    height: 44px;
   }
 
   .sidebar-sep {
@@ -1396,7 +1459,7 @@ canvas {
     bottom: 0;
     z-index: 200;
     width: 100vw;
-    height: 50vh;
+    height: min(64dvh, 560px);
     display: none;
     border: 0;
     border-top: 1px solid var(--border);
@@ -1404,22 +1467,33 @@ canvas {
     box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
   }
 
+  .panel-header {
+    min-height: 54px;
+    height: auto;
+  }
+
+  .panel-content {
+    padding: var(--sp-4);
+  }
+
   .inspector-panel.show {
     display: flex;
   }
 
   .data-readout {
-    top: auto;
-    bottom: 24px;
+    top: var(--sp-3);
+    bottom: auto;
     left: 50%;
     transform: translateX(-50%) !important;
     width: min(340px, calc(100vw - 32px));
-    z-index: 10;
+    max-height: 28dvh;
+    padding: var(--sp-3);
+    overflow: auto;
+    z-index: 12;
   }
 
   .sim-runner.mobile-panel-open .data-readout {
-    bottom: auto;
-    top: 24px;
+    display: none;
   }
 
   .sim-side-panel {
@@ -1427,7 +1501,7 @@ canvas {
     bottom: 0;
     width: 100%;
     max-width: none;
-    height: min(62dvh, 620px);
+    height: min(72dvh, 620px);
     border-left: 0;
     border-top: 1px solid var(--border);
     overflow: hidden;
@@ -1435,13 +1509,18 @@ canvas {
     transform: translateY(100%);
   }
 
-  .sim-runner.side-panel-open .sim-side-panel {
-    transform: translateY(0);
+  .sim-side-panel::before {
+    content: '';
+    width: 44px;
+    height: 4px;
+    margin: 8px auto 0;
+    border-radius: var(--r-pill);
+    background: #c7d5e1;
+    flex: 0 0 auto;
   }
 
-  .sim-main-area {
-    width: 100vw;
-    max-width: 100vw;
+  .sim-runner.side-panel-open .sim-side-panel {
+    transform: translateY(0);
   }
 
   .sim-card {
@@ -1453,13 +1532,32 @@ canvas {
   }
 
   .sim-title-block {
-    max-width: min(220px, 28vw);
+    flex: 1 1 110px;
+    max-width: none;
   }
 
   .sim-runner-top-bar {
+    height: auto;
+    min-height: 58px;
     min-width: 0;
-    padding: 0 var(--sp-2);
+    padding: var(--sp-2);
     gap: var(--sp-2);
+    flex-wrap: wrap;
+    align-content: center;
+  }
+
+  .sim-runner-top-bar > .icon-btn:first-child,
+  .sim-runner-top-bar > .sim-toolbar-group {
+    order: 1;
+  }
+
+  .sim-title-block {
+    order: 2;
+  }
+
+  .sim-panel-actions {
+    order: 3;
+    width: 100%;
   }
 
   .sim-meta {
@@ -1467,15 +1565,18 @@ canvas {
   }
 
   .sim-panel-actions {
-    margin-left: auto;
-    padding-left: var(--sp-2);
-    gap: var(--sp-1);
+    margin-left: 0;
+    padding-left: 0;
+    border-left: 0;
+    gap: var(--sp-2);
   }
 
   .panel-action-btn {
-    min-width: 42px;
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 40px;
     padding: 0 var(--sp-2);
-    font-size: 0;
+    font-size: 12px;
   }
 
   .panel-action-btn svg {
@@ -1484,11 +1585,11 @@ canvas {
   }
 
   .sim-runner .mobile-only-btn {
-    display: none;
+    display: inline-flex;
   }
 
   .side-pane {
-    padding: var(--sp-4);
+    padding: var(--sp-4) var(--sp-4) calc(var(--sp-6) + env(safe-area-inset-bottom));
     gap: var(--sp-4);
   }
 
@@ -1512,8 +1613,8 @@ canvas {
   .mobile-bottom-toggle {
     display: inline-flex;
     position: fixed;
-    right: var(--sp-4);
-    bottom: var(--sp-4);
+    right: calc(var(--sp-4) + env(safe-area-inset-right));
+    bottom: calc(var(--sp-4) + env(safe-area-inset-bottom));
     z-index: 150;
     width: 48px;
     height: 48px;
@@ -1524,5 +1625,118 @@ canvas {
     color: #fff;
     box-shadow: var(--shadow);
     border: none;
+  }
+
+  .sim-mobile-dock {
+    position: fixed;
+    left: 50%;
+    bottom: calc(var(--sp-3) + env(safe-area-inset-bottom));
+    z-index: 35;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    transform: translateX(-50%);
+    padding: var(--sp-2);
+    border: 1px solid rgba(173, 196, 214, 0.8);
+    border-radius: var(--r-lg);
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 12px 30px rgba(13, 31, 58, 0.18);
+    backdrop-filter: blur(10px);
+  }
+
+  .sim-mobile-dock .icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 560px) {
+  .sim-title {
+    font-size: 14px;
+  }
+
+  .sim-toolbar-group {
+    gap: var(--sp-1);
+  }
+
+  .sim-runner-top-bar .icon-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .panel-action-btn {
+    font-size: 0;
+  }
+
+  .panel-action-btn svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .sim-side-panel {
+    height: 76dvh;
+  }
+
+  .sim-side-tab {
+    font-size: 0;
+  }
+
+  .sim-side-tab svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .data-readout {
+    top: var(--sp-2);
+    width: calc(100vw - 24px);
+    font-size: 10px;
+  }
+
+  .topics-track-container {
+    width: 100%;
+    padding: var(--sp-6) var(--sp-3) var(--sp-10);
+  }
+
+  .topics-page-header {
+    align-items: flex-start;
+    gap: var(--sp-3);
+    padding-left: 54px;
+  }
+
+  .topics-back-btn {
+    top: 14px;
+    left: 12px;
+    width: 42px;
+    height: 42px;
+    min-height: 42px;
+  }
+
+  .topics-page-subtitle {
+    font-size: 15px;
+  }
+
+  .topic-filter {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: var(--sp-1);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .topic-filter-btn {
+    flex: 0 0 auto;
+  }
+
+  .topic-track-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--sp-1);
+  }
+
+  .topic-track-slider {
+    grid-template-columns: 1fr;
+  }
+
+  .sim-card {
+    min-height: 0;
   }
 }
