@@ -124,12 +124,21 @@ export const scenarios = [
   },
 ];
 
-export function create(canvas, initParams = {}) {
+export function create(canvas, initParams = {}, options = {}) {
   const ctx = canvas.getContext('2d');
   const p = { ...DEFAULTS, ...initParams };
 
   let r, theta, dr, dtheta, simTime;
   let trail = [];
+  let draggingBob = false;
+
+  function getView() {
+    return {
+      centerX: canvas.width / 2 + (p.panX || 0),
+      centerY: canvas.height * 0.2 + (p.panY || 0),
+      scale: Math.min(canvas.width, canvas.height) * 0.15 * (p.viewScale ?? 1.0),
+    };
+  }
 
   function initState() {
     r = p.r0;
@@ -181,9 +190,7 @@ export function create(canvas, initParams = {}) {
     ctx.fillStyle = '#0B0F14';
     ctx.fillRect(0, 0, W, H);
 
-    const centerX = W / 2 + (p.panX || 0);
-    const centerY = H * 0.2 + (p.panY || 0);
-    const scale = Math.min(W, H) * 0.15 * (p.viewScale ?? 1.0);
+    const { centerX, centerY, scale } = getView();
 
     // Draw Trail
     if (trail.length > 2) {
@@ -243,6 +250,68 @@ export function create(canvas, initParams = {}) {
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 2;
     ctx.stroke();
+
+    if (draggingBob) {
+      ctx.beginPath();
+      ctx.arc(px, py, 24, 0, Math.PI * 2);
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  function pointerPosition(event) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: ((event.clientX - rect.left) / rect.width) * canvas.width,
+      y: ((event.clientY - rect.top) / rect.height) * canvas.height,
+    };
+  }
+
+  function bobScreenPosition() {
+    const { centerX, centerY, scale } = getView();
+    return {
+      x: centerX + r * Math.sin(theta) * scale,
+      y: centerY + r * Math.cos(theta) * scale,
+    };
+  }
+
+  function setBobFromPointer(event) {
+    const pt = pointerPosition(event);
+    const { centerX, centerY, scale } = getView();
+    const dx = pt.x - centerX;
+    const dy = pt.y - centerY;
+    const nextR = Math.hypot(dx, dy) / scale;
+    r = Math.max(0.3, Math.min(4.5, nextR));
+    theta = Math.atan2(dx, dy);
+    dr = 0;
+    dtheta = 0;
+    trail = [];
+    options.onParamChange?.({ r0: r, theta0: theta });
+    render();
+  }
+
+  function handlePointerDown(event) {
+    const pt = pointerPosition(event);
+    const bob = bobScreenPosition();
+    if (Math.hypot(pt.x - bob.x, pt.y - bob.y) > 28) return;
+    draggingBob = true;
+    canvas.setPointerCapture?.(event.pointerId);
+    setBobFromPointer(event);
+  }
+
+  function handlePointerMove(event) {
+    if (!draggingBob) return;
+    setBobFromPointer(event);
+  }
+
+  function handlePointerUp(event) {
+    if (!draggingBob) return;
+    draggingBob = false;
+    canvas.releasePointerCapture?.(event.pointerId);
+    render();
   }
 
   let rafId,
@@ -259,6 +328,10 @@ export function create(canvas, initParams = {}) {
   }
 
   initState();
+  canvas.addEventListener('pointerdown', handlePointerDown);
+  canvas.addEventListener('pointermove', handlePointerMove);
+  canvas.addEventListener('pointerup', handlePointerUp);
+  canvas.addEventListener('pointercancel', handlePointerUp);
   render();
 
   return {
@@ -284,6 +357,10 @@ export function create(canvas, initParams = {}) {
     },
     destroy() {
       this.stop();
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      canvas.removeEventListener('pointermove', handlePointerMove);
+      canvas.removeEventListener('pointerup', handlePointerUp);
+      canvas.removeEventListener('pointercancel', handlePointerUp);
     },
     getData() {
       const kinetic = 0.5 * p.mass * (dr * dr + r * r * dtheta * dtheta);

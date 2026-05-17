@@ -91,9 +91,9 @@ export const controls = [
   { key: 'plateSep', label: 'Separation d [px]', min: 40, max: 350, step: 1 },
   { key: 'dielectricK', label: 'Dielectric κ', min: 1, max: 10, step: 0.1 },
   { key: 'dielectricInserted', label: 'Dielectric Insertion', min: 0, max: 1, step: 0.01 },
-  { key: 'batteryConnected', label: 'Battery Connected', min: 0, max: 1, step: 1 },
-  { key: 'showFieldLines', label: 'Field Lines', min: 0, max: 1, step: 1 },
-  { key: 'showCharges', label: 'Show Charges', min: 0, max: 1, step: 1 },
+  { key: 'batteryConnected', label: 'Battery Connected', type: 'toggle' },
+  { key: 'showFieldLines', label: 'Field Lines', type: 'toggle' },
+  { key: 'showCharges', label: 'Show Charges', type: 'toggle' },
 ];
 
 export const scenarios = [
@@ -156,7 +156,6 @@ export function create(canvas, initParams = {}) {
   let dragTarget = null; // 'plate' or 'dielectric'
   let leftPlateX = 0;
   let rightPlateX = 0;
-  let rightPlateY = 0;
   let dielectricPxX = 0;
   let dielectricPxY = 0;
   let dielectricPxW = 0;
@@ -219,7 +218,6 @@ export function create(canvas, initParams = {}) {
 
     leftPlateX = cx - sep / 2;
     rightPlateX = cx + sep / 2;
-    rightPlateY = cy;
 
     const { C, V, Q, U } = getState();
     const chargeDensity = Math.min(1, Math.abs(Q) / 5000);
@@ -486,7 +484,6 @@ export function create(canvas, initParams = {}) {
     const rect = canvas.getBoundingClientRect();
     const hitX = e.clientX - rect.left;
     const hitY = e.clientY - rect.top;
-    const cx = canvas.width / 2;
     const scale = p.viewScale ?? 1.0;
 
     if (dragTarget === 'plate') {

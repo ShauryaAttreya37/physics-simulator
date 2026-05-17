@@ -376,6 +376,76 @@ export function render(ctx, state, p, canvas) {
   }
 }
 
+export function handlePointerEvent({ type, event, state, params, canvas, interaction }) {
+  if (!state) return null;
+  const viewScale = params.viewScale ?? 1.0;
+  const scale = params.scale * viewScale;
+  const rect = canvas.getBoundingClientRect();
+  const sx = ((event.clientX - rect.left) / rect.width) * canvas.width;
+  const sy = ((event.clientY - rect.top) / rect.height) * canvas.height;
+  const toWorld = () => [(sx - canvas.width / 2) / scale, (sy - canvas.height / 2) / scale];
+  const toScreen = (x, y) => [canvas.width / 2 + x * scale, canvas.height / 2 + y * scale];
+
+  if (type === 'down') {
+    let bodyIndex = -1;
+    for (let i = 0; i < state.q.length; i++) {
+      const [bx, by] = toScreen(state.q[i][0], state.q[i][1]);
+      if (Math.hypot(sx - bx, sy - by) <= BODY_RADIUS + 8) {
+        bodyIndex = i;
+        break;
+      }
+    }
+    if (bodyIndex === -1) return null;
+    const [wx, wy] = toWorld();
+    return {
+      capture: true,
+      interaction: {
+        bodyIndex,
+        lastWorld: [wx, wy],
+        lastVelocity: [0, 0],
+      },
+      state,
+    };
+  }
+
+  if (type === 'move' && interaction?.bodyIndex !== undefined) {
+    const [wx, wy] = toWorld();
+    const nextQ = state.q.map((body) => [...body]);
+    const nextV = state.v.map((body) => [...body]);
+    const bodyIndex = interaction.bodyIndex;
+    const prev = interaction.lastWorld ?? [wx, wy];
+    const dragVelocity = [(wx - prev[0]) * 8, (wy - prev[1]) * 8];
+    nextQ[bodyIndex] = [wx, wy];
+    nextV[bodyIndex] = dragVelocity;
+    correctCOM(nextQ, nextV);
+    const nextState = {
+      ...state,
+      q: nextQ,
+      v: nextV,
+      trails: state.trails.map((trail, i) => (i === bodyIndex ? [] : trail)),
+      E0: computeEnergy(nextQ, nextV, params.g).total,
+    };
+    return {
+      interaction: {
+        ...interaction,
+        lastWorld: [wx, wy],
+        lastVelocity: dragVelocity,
+      },
+      state: nextState,
+    };
+  }
+
+  if (type === 'up' && interaction?.bodyIndex !== undefined) {
+    return {
+      release: true,
+      interaction: null,
+      state,
+    };
+  }
+
+  return null;
+}
+
 export function getData(state, p) {
   const e = computeEnergy(state.q, state.v, p.g);
   const L = computeAngularMomentum(state.q, state.v);

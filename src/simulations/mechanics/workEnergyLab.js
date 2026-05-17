@@ -107,12 +107,52 @@ export function create(canvas, initParams = {}) {
 
   let x, v, simTime;
   let thermalEnergy;
+  let draggingBlock = false;
 
   function initState() {
     x = -4; // Start near bottom-left of ramp
     v = 0;
     simTime = 0;
     thermalEnergy = 0;
+  }
+
+  function getTrackView() {
+    return {
+      centerX: canvas.width / 2,
+      centerY: canvas.height * 0.55,
+      scale: Math.min(canvas.width, canvas.height) * 0.05,
+    };
+  }
+
+  function pointerPosition(event) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: ((event.clientX - rect.left) / rect.width) * canvas.width,
+      y: ((event.clientY - rect.top) / rect.height) * canvas.height,
+    };
+  }
+
+  function pointerToTrackX(event) {
+    const pt = pointerPosition(event);
+    const { centerX, centerY, scale } = getTrackView();
+    const dx = pt.x - centerX;
+    const dy = pt.y - centerY;
+    const localX = dx * Math.cos(p.angle) - dy * Math.sin(p.angle);
+    return Math.max(-8, Math.min(8, localX / scale));
+  }
+
+  function blockScreenBounds() {
+    const { centerX, centerY, scale } = getTrackView();
+    const trackH = 15;
+    const blockW = 1.2 * scale;
+    const blockH = 0.8 * scale;
+    const localX = x * scale;
+    const localY = -trackH / 2 - blockH / 2 - 2;
+    const cos = Math.cos(-p.angle);
+    const sin = Math.sin(-p.angle);
+    const cx = centerX + localX * cos - localY * sin;
+    const cy = centerY + localX * sin + localY * cos;
+    return { cx, cy, radius: Math.max(blockW, blockH) * 0.8 };
   }
 
   function tick(dt) {
@@ -190,9 +230,7 @@ export function create(canvas, initParams = {}) {
     }
     ctx.globalAlpha = 1.0;
 
-    const centerX = W / 2;
-    const centerY = H * 0.55;
-    const scale = Math.min(W, H) * 0.05; // ~40-50 pixels per meter
+    const { centerX, centerY, scale } = getTrackView(); // ~40-50 pixels per meter
 
     // 3. Twin Suns (Symmetrical composition)
     ctx.save();
@@ -308,11 +346,11 @@ export function create(canvas, initParams = {}) {
     }
 
     ctx.shadowBlur = 20;
-    ctx.shadowColor = '#00ffff';
+    ctx.shadowColor = draggingBlock ? '#fbbf24' : '#00ffff';
     ctx.fillStyle = '#e0ffff';
     ctx.fillRect(bx - blockW / 2, by - blockH / 2, blockW, blockH);
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = '#00ffff';
+    ctx.strokeStyle = draggingBlock ? '#fbbf24' : '#00ffff';
     ctx.lineWidth = 2;
     ctx.strokeRect(bx - blockW / 2, by - blockH / 2, blockW, blockH);
 
@@ -444,6 +482,31 @@ export function create(canvas, initParams = {}) {
     ctx.fillText(label, x, y + 25);
   }
 
+  function handlePointerDown(event) {
+    const pt = pointerPosition(event);
+    const block = blockScreenBounds();
+    if (Math.hypot(pt.x - block.cx, pt.y - block.cy) > block.radius) return;
+    draggingBlock = true;
+    canvas.setPointerCapture?.(event.pointerId);
+    x = pointerToTrackX(event);
+    v = 0;
+    render();
+  }
+
+  function handlePointerMove(event) {
+    if (!draggingBlock) return;
+    x = pointerToTrackX(event);
+    v = 0;
+    render();
+  }
+
+  function handlePointerUp(event) {
+    if (!draggingBlock) return;
+    draggingBlock = false;
+    canvas.releasePointerCapture?.(event.pointerId);
+    render();
+  }
+
   let rafId,
     lastTs,
     running = false;
@@ -458,6 +521,10 @@ export function create(canvas, initParams = {}) {
   }
 
   initState();
+  canvas.addEventListener('pointerdown', handlePointerDown);
+  canvas.addEventListener('pointermove', handlePointerMove);
+  canvas.addEventListener('pointerup', handlePointerUp);
+  canvas.addEventListener('pointercancel', handlePointerUp);
   render();
 
   return {
@@ -483,6 +550,10 @@ export function create(canvas, initParams = {}) {
     },
     destroy() {
       this.stop();
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      canvas.removeEventListener('pointermove', handlePointerMove);
+      canvas.removeEventListener('pointerup', handlePointerUp);
+      canvas.removeEventListener('pointercancel', handlePointerUp);
     },
     getData() {
       const ke = 0.5 * p.mass * v * v;

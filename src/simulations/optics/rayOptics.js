@@ -4,8 +4,6 @@
  * Geometric optics simulation for lenses, mirrors, and a parallel glass slab.
  * Uses paraxial ray tracing for calculations but renders rays hitting the curved surfaces.
  */
-import { drawArrow } from '../../utils/canvas';
-
 const ELEMENTS = [
   { id: 'convex-lens', name: 'Convex Lens', kind: 'lens', focalSign: 1, color: '#38bdf8' },
   { id: 'concave-lens', name: 'Concave Lens', kind: 'lens', focalSign: -1, color: '#a78bfa' },

@@ -152,14 +152,61 @@ function coolwarm(t) {
 }
 
 // ── Simulation ─────────────────────────────────────────────────────────
-export function create(canvas, initParams = {}) {
+export function create(canvas, initParams = {}, options = {}) {
   const ctx = canvas.getContext('2d');
   const p = { ...DEFAULTS, ...initParams };
 
   let simTime = 0;
   let trail = [];
+  let shapingState = false;
   const N_POINTS = 400;
   const X_RANGE = 5; // in natural units
+
+  function getPlotBounds() {
+    const W = canvas.width;
+    const H = canvas.height;
+    const margin = 20;
+    const leftW = W * 0.5;
+    return {
+      x: margin + 14,
+      y: margin,
+      w: leftW - margin - 20,
+      h: H * 0.42,
+    };
+  }
+
+  function pointerPosition(event) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: ((event.clientX - rect.left) / rect.width) * canvas.width,
+      y: ((event.clientY - rect.top) / rect.height) * canvas.height,
+    };
+  }
+
+  function pointInRect(pt, rect) {
+    return pt.x >= rect.x && pt.x <= rect.x + rect.w && pt.y >= rect.y && pt.y <= rect.y + rect.h;
+  }
+
+  function shapeStateFromPointer(event) {
+    const pt = pointerPosition(event);
+    const plot = getPlotBounds();
+    const xNorm = Math.max(-1, Math.min(1, ((pt.x - plot.x) / plot.w) * 2 - 1));
+    const yNorm = Math.max(0, Math.min(1, 1 - (pt.y - plot.y) / plot.h));
+    const spread = Math.max(0, Math.min(1, yNorm));
+    const oddMix = Math.abs(xNorm);
+    p.n0Amp = Math.max(0.05, 1 - spread * 0.65);
+    p.n1Amp = Math.max(0, Math.min(1, oddMix * (0.25 + spread * 0.75)));
+    p.n2Amp = Math.max(0, Math.min(1, spread * (1 - oddMix * 0.35)));
+    p.n3Amp = Math.max(0, Math.min(1, spread * oddMix * 0.8));
+    options.onParamChange?.({
+      n0Amp: p.n0Amp,
+      n1Amp: p.n1Amp,
+      n2Amp: p.n2Amp,
+      n3Amp: p.n3Amp,
+    });
+    trail = [];
+    render();
+  }
 
   function getCoeffs() {
     const raw = [p.n0Amp, p.n1Amp, p.n2Amp, p.n3Amp];
@@ -428,6 +475,14 @@ export function create(canvas, initParams = {}) {
     drawFilledProb(ctx, probPts, plotY + plotH);
     drawGlowLine(ctx, probPts, '#4FC3F7', 2, 10);
 
+    if (shapingState) {
+      ctx.strokeStyle = '#FFD166';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 5]);
+      ctx.strokeRect(plotX + 4, plotY + 4, plotW - 8, plotH - 8);
+      ctx.setLineDash([]);
+    }
+
     // ⟨x⟩ marker
     const expectXnorm = (exp.expectX + X_RANGE) / (2 * X_RANGE);
     const expectXpx = plotX + expectXnorm * plotW;
@@ -568,6 +623,27 @@ export function create(canvas, initParams = {}) {
     if (trail.length > p.trailMax) trail.shift();
   }
 
+  function handlePointerDown(event) {
+    const pt = pointerPosition(event);
+    const plot = getPlotBounds();
+    if (!pointInRect(pt, plot)) return;
+    shapingState = true;
+    canvas.setPointerCapture?.(event.pointerId);
+    shapeStateFromPointer(event);
+  }
+
+  function handlePointerMove(event) {
+    if (!shapingState) return;
+    shapeStateFromPointer(event);
+  }
+
+  function handlePointerUp(event) {
+    if (!shapingState) return;
+    shapingState = false;
+    canvas.releasePointerCapture?.(event.pointerId);
+    render();
+  }
+
   let rafId,
     lastTs,
     running = false;
@@ -583,6 +659,10 @@ export function create(canvas, initParams = {}) {
 
   simTime = 0;
   trail = [];
+  canvas.addEventListener('pointerdown', handlePointerDown);
+  canvas.addEventListener('pointermove', handlePointerMove);
+  canvas.addEventListener('pointerup', handlePointerUp);
+  canvas.addEventListener('pointercancel', handlePointerUp);
   render();
 
   return {
@@ -609,6 +689,10 @@ export function create(canvas, initParams = {}) {
     },
     destroy() {
       this.stop();
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      canvas.removeEventListener('pointermove', handlePointerMove);
+      canvas.removeEventListener('pointerup', handlePointerUp);
+      canvas.removeEventListener('pointercancel', handlePointerUp);
     },
     getData() {
       const wf = computeWavefunction(simTime);

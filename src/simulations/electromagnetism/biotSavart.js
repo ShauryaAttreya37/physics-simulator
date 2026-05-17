@@ -58,8 +58,8 @@ export const graphParams = [
 export const controls = [
   { key: 'current', label: 'Current I [A]', min: -10, max: 10, step: 0.1 },
   { key: 'compassDensity', label: 'Compass Grid', min: 3, max: 10, step: 1 },
-  { key: 'showMagnitude', label: 'Show |B| Color', min: 0, max: 1, step: 1 },
-  { key: 'showFieldCircles', label: 'Field Circles', min: 0, max: 1, step: 1 },
+  { key: 'showMagnitude', label: 'Show |B| Color', type: 'toggle' },
+  { key: 'showFieldCircles', label: 'Field Circles', type: 'toggle' },
 ];
 
 export const scenarios = [
@@ -173,8 +173,7 @@ export function create(canvas, initParams = {}) {
     }
 
     // Grid of compasses
-    const n = p.compassDensity;
-    const step = 60;
+    const step = Math.max(35, 100 - p.compassDensity * 7);
     for (let gx = step / 2; gx < W; gx += step) {
       for (let gy = step / 2; gy < H; gy += step) {
         const dx = (gx - cx) / scale,

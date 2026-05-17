@@ -113,10 +113,10 @@ export const controls = [
   { key: 'damping', label: 'Damping c', min: 0, max: 2, step: 0.01 },
   { key: 'theta0', label: 'Initial θ [rad]', min: -3.14, max: 3.14, step: 0.01 },
   { key: 'theta0Deg', label: 'Initial θ [deg]', min: -180, max: 180, step: 1 },
-  { key: 'showForces', label: 'Show Forces', min: 0, max: 1, step: 1 },
-  { key: 'showTrail', label: 'Show Trail', min: 0, max: 1, step: 1 },
-  { key: 'showEnergy', label: 'Show Energy', min: 0, max: 1, step: 1 },
-  { key: 'showAngleArc', label: 'Show Angle Arc', min: 0, max: 1, step: 1 },
+  { key: 'showForces', label: 'Show Forces', type: 'toggle' },
+  { key: 'showTrail', label: 'Show Trail', type: 'toggle' },
+  { key: 'showEnergy', label: 'Show Energy', type: 'toggle' },
+  { key: 'showAngleArc', label: 'Show Angle Arc', type: 'toggle' },
 ];
 
 export const method = 'rk4';
@@ -149,7 +149,7 @@ export const scenarios = [
   },
 ];
 
-export function create(canvas, initParams = {}) {
+export function create(canvas, initParams = {}, options = {}) {
   const ctx = canvas.getContext('2d');
   const p = { ...DEFAULTS, ...initParams };
 
@@ -318,46 +318,6 @@ export function create(canvas, initParams = {}) {
     ctx.lineWidth = 3;
     ctx.stroke();
 
-    // Force vectors
-    if (p.showForces && simTime > 0) {
-      const v = p.length * omega;
-      const gForce = p.mass * p.gravity;
-      const tension = gForce * Math.cos(theta) + (p.mass * v * v) / p.length;
-      const tangentialF = -gForce * Math.sin(theta);
-      const vecScale = scale * 0.012;
-
-      // Gravity (always straight down) — purple
-      const gLen = gForce * vecScale;
-      drawArrow(ctx, px, py, px, py + gLen, {
-        color: '#a78bfa',
-        lineWidth: 2.5,
-        headLength: 8,
-        label: 'mg',
-      });
-
-      // Tension (along rod toward pivot) — cyan
-      const rodAngle = Math.atan2(centerY - py, centerX - px);
-      const tLen = tension * vecScale;
-      drawArrow(ctx, px, py, px + tLen * Math.cos(rodAngle), py + tLen * Math.sin(rodAngle), {
-        color: '#22d3ee',
-        lineWidth: 2.5,
-        headLength: 8,
-        label: 'T',
-      });
-
-      // Tangential component (perpendicular to rod) — green
-      const tanAngle = rodAngle + Math.PI / 2;
-      const tanLen = tangentialF * vecScale;
-      if (Math.abs(tanLen) > 2) {
-        drawArrow(ctx, px, py, px + tanLen * Math.cos(tanAngle), py + tanLen * Math.sin(tanAngle), {
-          color: '#4ade80',
-          lineWidth: 2,
-          headLength: 7,
-          label: 'Ftan',
-        });
-      }
-    }
-
     // Pivot mount (bracket)
     ctx.fillStyle = '#e2e8f0';
     ctx.fillRect(centerX - 30, centerY - 8, 60, 8);
@@ -405,6 +365,46 @@ export function create(canvas, initParams = {}) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(`${p.mass.toFixed(1)}`, px, py);
+
+    // Force vectors (Drawn on top of bob)
+    if (p.showForces && simTime > 0) {
+      const v = p.length * omega;
+      const gForce = p.mass * p.gravity;
+      const tension = gForce * Math.cos(theta) + (p.mass * v * v) / p.length;
+      const tangentialF = -gForce * Math.sin(theta);
+      const vecScale = scale * 0.05;
+
+      // Gravity (always straight down) — purple
+      const gLen = gForce * vecScale;
+      drawArrow(ctx, px, py, px, py + gLen, {
+        color: '#a78bfa',
+        lineWidth: 3.5,
+        headLength: 10,
+        label: 'mg',
+      });
+
+      // Tension (along rod toward pivot) — cyan
+      const rodAngle = Math.atan2(centerY - py, centerX - px);
+      const tLen = tension * vecScale;
+      drawArrow(ctx, px, py, px + tLen * Math.cos(rodAngle), py + tLen * Math.sin(rodAngle), {
+        color: '#22d3ee',
+        lineWidth: 3.5,
+        headLength: 10,
+        label: 'T',
+      });
+
+      // Tangential component (perpendicular to rod) — green
+      const tanAngle = rodAngle + Math.PI / 2;
+      const tanLen = tangentialF * vecScale;
+      if (Math.abs(tanLen) > 2) {
+        drawArrow(ctx, px, py, px + tanLen * Math.cos(tanAngle), py + tanLen * Math.sin(tanAngle), {
+          color: '#4ade80',
+          lineWidth: 3,
+          headLength: 9,
+          label: 'Ftan',
+        });
+      }
+    }
 
     // Energy bars
     if (p.showEnergy) {
@@ -575,12 +575,11 @@ export function create(canvas, initParams = {}) {
 
   function handlePointerDown(e) {
     const rect = canvas.getBoundingClientRect();
-    // Normalize coordinates for device pixel ratio if necessary, assuming 1:1 for simplicity
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const y = (e.clientY - rect.top) * (canvas.height / rect.height);
     const dx = x - currentBobX;
     const dy = y - currentBobY;
-    if (Math.sqrt(dx * dx + dy * dy) <= currentBobR + 15) {
+    if (Math.sqrt(dx * dx + dy * dy) <= currentBobR + 25) {
       // +15 for easier grabbing
       isDragging = true;
       omega = 0; // stop motion
@@ -591,14 +590,18 @@ export function create(canvas, initParams = {}) {
   function handlePointerMove(e) {
     if (!isDragging) return;
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const y = (e.clientY - rect.top) * (canvas.height / rect.height);
 
     const dx = x - currentCenterX;
     const dy = y - currentCenterY;
 
     theta = Math.atan2(dx, dy);
     omega = 0;
+
+    p.theta0 = theta;
+    p.theta0Deg = (theta * 180) / Math.PI;
+    options.onParamChange?.({ theta0: p.theta0, theta0Deg: p.theta0Deg });
 
     // Reset period measurement
     lastCrossTime = null;
@@ -653,7 +656,15 @@ export function create(canvas, initParams = {}) {
       } else if ('theta0' in next && !('theta0Deg' in next)) {
         next.theta0Deg = (next.theta0 * 180) / Math.PI;
       }
+
+      const angleChanged = 'theta0' in next && Math.abs(next.theta0 - p.theta0) > 0.001;
       Object.assign(p, next);
+
+      if (angleChanged && !isDragging) {
+        theta = p.theta0;
+        omega = p.omega0 || 0;
+        trail = [];
+      }
       render();
     },
     destroy() {

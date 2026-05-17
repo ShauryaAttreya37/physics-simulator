@@ -67,8 +67,8 @@ export const controls = [
   { key: 'charge', label: 'Charge [e]', min: 1, max: 5, step: 1 },
   { key: 'velocity', label: 'Velocity v', min: 1, max: 20, step: 0.5 },
   { key: 'bField', label: 'B-field [T]', min: 0.2, max: 5, step: 0.1 },
-  { key: 'showRadius', label: 'Show Radius', min: 0, max: 1, step: 1 },
-  { key: 'showForceVectors', label: 'Show Force', min: 0, max: 1, step: 1 },
+  { key: 'showRadius', label: 'Show Radius', type: 'toggle' },
+  { key: 'showForceVectors', label: 'Show Force', type: 'toggle' },
 ];
 
 export const scenarios = [

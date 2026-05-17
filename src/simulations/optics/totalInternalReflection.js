@@ -98,11 +98,10 @@ export const graphParams = [
   { key: 'theta2', label: 'Refracted Angle' },
 ];
 
-export function create(canvas, initialParams) {
+export function create(canvas, initialParams, options = {}) {
   let ctx = canvas.getContext('2d');
   let p = { ...initialParams };
-  let running = false;
-  let raf;
+  let draggingLaser = false;
 
   function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -408,8 +407,7 @@ export function create(canvas, initialParams) {
     }
   }
 
-  function onPointerMove(e) {
-    if (e.buttons !== 1) return;
+  function aimLaserFromPointer(e) {
     const rect = canvas.getBoundingClientRect();
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
@@ -421,26 +419,48 @@ export function create(canvas, initialParams) {
       const angle = Math.atan2(Math.abs(my - midY), fiberStart - mx);
       const deg = (angle * 180) / Math.PI;
       p.incidentAngle = Math.max(0, Math.min(85, deg));
+      options.onParamChange?.({ incidentAngle: p.incidentAngle });
       render();
     } else if (my < midY) {
       const angle = Math.atan2(mx - midX, midY - my);
       const deg = Math.abs((angle * 180) / Math.PI);
       if (deg <= 90) {
         p.incidentAngle = deg;
+        options.onParamChange?.({ incidentAngle: p.incidentAngle });
         render();
       }
     }
   }
 
+  function onPointerDown(e) {
+    draggingLaser = true;
+    canvas.setPointerCapture?.(e.pointerId);
+    aimLaserFromPointer(e);
+  }
+
+  function onPointerMove(e) {
+    if (!draggingLaser) return;
+    aimLaserFromPointer(e);
+  }
+
+  function onPointerUp(e) {
+    if (!draggingLaser) return;
+    draggingLaser = false;
+    canvas.releasePointerCapture?.(e.pointerId);
+  }
+
+  canvas.addEventListener('pointerdown', onPointerDown);
   canvas.addEventListener('pointermove', onPointerMove);
+  canvas.addEventListener('pointerup', onPointerUp);
+  canvas.addEventListener('pointercancel', onPointerUp);
   render();
 
   return {
     start: () => {
-      running = true;
+      render();
     },
     stop: () => {
-      running = false;
+      render();
     },
     reset: () => {
       render();
@@ -454,7 +474,10 @@ export function create(canvas, initialParams) {
       mode: p.viewMode === 'fiber' ? 1 : 0,
     }),
     destroy: () => {
+      canvas.removeEventListener('pointerdown', onPointerDown);
       canvas.removeEventListener('pointermove', onPointerMove);
+      canvas.removeEventListener('pointerup', onPointerUp);
+      canvas.removeEventListener('pointercancel', onPointerUp);
     },
   };
 }

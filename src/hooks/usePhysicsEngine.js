@@ -16,6 +16,7 @@ export function usePhysicsEngine(sim, params, canvasRef) {
   const lastTsRef = useRef(0);
   const rafRef = useRef(null);
   const speedRef = useRef(1);
+  const interactionRef = useRef(null);
 
   // Sync refs
   useEffect(() => {
@@ -107,6 +108,50 @@ export function usePhysicsEngine(sim, params, canvasRef) {
   const setSpeed = useCallback((s) => {
     speedRef.current = s;
   }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !sim?.handlePointerEvent) return undefined;
+
+    function dispatchInteraction(type, event) {
+      const next = sim.handlePointerEvent({
+        type,
+        event,
+        state: stateRef.current,
+        params,
+        canvas,
+        interaction: interactionRef.current,
+      });
+      if (!next) return;
+      if (Object.prototype.hasOwnProperty.call(next, 'interaction')) {
+        interactionRef.current = next.interaction;
+      }
+      if (next.state) {
+        stateRef.current = next.state;
+        setState(next.state);
+        const ctx = canvas.getContext('2d');
+        sim.render?.(ctx, next.state, params, canvas);
+      }
+      if (next.capture) canvas.setPointerCapture?.(event.pointerId);
+      if (next.release) canvas.releasePointerCapture?.(event.pointerId);
+    }
+
+    const onPointerDown = (event) => dispatchInteraction('down', event);
+    const onPointerMove = (event) => dispatchInteraction('move', event);
+    const onPointerUp = (event) => dispatchInteraction('up', event);
+
+    canvas.addEventListener('pointerdown', onPointerDown);
+    canvas.addEventListener('pointermove', onPointerMove);
+    canvas.addEventListener('pointerup', onPointerUp);
+    canvas.addEventListener('pointercancel', onPointerUp);
+    return () => {
+      canvas.removeEventListener('pointerdown', onPointerDown);
+      canvas.removeEventListener('pointermove', onPointerMove);
+      canvas.removeEventListener('pointerup', onPointerUp);
+      canvas.removeEventListener('pointercancel', onPointerUp);
+      interactionRef.current = null;
+    };
+  }, [canvasRef, params, sim]);
 
   // Initialize
   useEffect(() => {

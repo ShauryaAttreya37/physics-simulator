@@ -49,7 +49,7 @@ export const equationSections = [
 export const equations = equationSections;
 
 export const controls = [
-  { key: 'count', label: 'Ball Count', min: 3, max: 8, step: 1 },
+  { key: 'count', label: 'Ball Count', type: 'counter', min: 3, max: 8, step: 1 },
   { key: 'radius', label: 'Ball Radius', min: 15, max: 30, step: 1 },
   { key: 'restitution', label: 'Restitution', min: 0.9, max: 1, step: 0.001 },
   { key: 'airFriction', label: 'Air Friction', min: 0, max: 0.002, step: 0.0001 },

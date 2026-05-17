@@ -324,11 +324,63 @@ export function create(canvas, initParams = {}) {
   let state;
   let time;
   let maxDisp = 2;
+  let dragTarget = null;
 
   function initState() {
     state = [0, 0, 0, 0];
     time = 0;
     maxDisp = 2;
+  }
+
+  function getLayout() {
+    const W = canvas.width;
+    const H = canvas.height;
+    const groundY = H * 0.7;
+    const wallX = Math.max(50, W * 0.1);
+    const m1Equil = wallX + (W - wallX) * 0.4;
+    const maxSafePx = (W - wallX) * 0.35;
+    const pxPerUnit = Math.min(100, maxSafePx / maxDisp);
+    const m1X = m1Equil + state[0] * pxPerUnit;
+    const m1W = 140;
+    const m1H = 90;
+    const m1Y = groundY - m1H / 2 - 12;
+    const m2W = 60;
+    const m2H = 40;
+    const m2X = m1Equil + state[2] * pxPerUnit;
+    const m2Y = m1Y - m1H / 2 - m2H / 2 - 10;
+    return { m1Equil, pxPerUnit, m1X, m1Y, m1W, m1H, m2X, m2Y, m2W, m2H };
+  }
+
+  function pointerPosition(event) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: ((event.clientX - rect.left) / rect.width) * canvas.width,
+      y: ((event.clientY - rect.top) / rect.height) * canvas.height,
+    };
+  }
+
+  function hitBox(pt, cx, cy, width, height) {
+    return (
+      pt.x >= cx - width / 2 &&
+      pt.x <= cx + width / 2 &&
+      pt.y >= cy - height / 2 &&
+      pt.y <= cy + height / 2
+    );
+  }
+
+  function setDisplacementFromPointer(event) {
+    const pt = pointerPosition(event);
+    const layout = getLayout();
+    const nextX = Math.max(-5, Math.min(5, (pt.x - layout.m1Equil) / layout.pxPerUnit));
+    if (dragTarget === 'm1') {
+      state[0] = nextX;
+      state[1] = 0;
+    } else if (dragTarget === 'm2') {
+      state[2] = nextX;
+      state[3] = 0;
+    }
+    maxDisp = Math.max(2, Math.abs(state[0]), p.damperOn ? Math.abs(state[2]) : 0);
+    render();
   }
 
   function tick(dt) {
@@ -425,6 +477,14 @@ export function create(canvas, initParams = {}) {
     ctx.textAlign = 'center';
     ctx.fillText('m₁', m1X, m1Y + 6);
 
+    if (dragTarget === 'm1') {
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([6, 5]);
+      ctx.strokeRect(m1X - m1W / 2 - 6, m1Y - m1H / 2 - 6, m1W + 12, m1H + 12);
+      ctx.setLineDash([]);
+    }
+
     // Damper Bracket on M1
     ctx.fillStyle = '#475569';
     const bracketX = m1X - m1W / 2 + 10;
@@ -458,6 +518,14 @@ export function create(canvas, initParams = {}) {
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 16px "Inter", sans-serif';
       ctx.fillText('m₂', m2X, m2Y + 6);
+
+      if (dragTarget === 'm2') {
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([6, 5]);
+        ctx.strokeRect(m2X - m2W / 2 - 6, m2Y - m2H / 2 - 6, m2W + 12, m2H + 12);
+        ctx.setLineDash([]);
+      }
     }
 
     // Driving Force Vector
@@ -489,6 +557,32 @@ export function create(canvas, initParams = {}) {
     }
   }
 
+  function handlePointerDown(event) {
+    const pt = pointerPosition(event);
+    const layout = getLayout();
+    if (p.damperOn && hitBox(pt, layout.m2X, layout.m2Y, layout.m2W, layout.m2H)) {
+      dragTarget = 'm2';
+    } else if (hitBox(pt, layout.m1X, layout.m1Y, layout.m1W, layout.m1H)) {
+      dragTarget = 'm1';
+    } else {
+      return;
+    }
+    canvas.setPointerCapture?.(event.pointerId);
+    setDisplacementFromPointer(event);
+  }
+
+  function handlePointerMove(event) {
+    if (!dragTarget) return;
+    setDisplacementFromPointer(event);
+  }
+
+  function handlePointerUp(event) {
+    if (!dragTarget) return;
+    dragTarget = null;
+    canvas.releasePointerCapture?.(event.pointerId);
+    render();
+  }
+
   let rafId;
   let lastTs;
   let running = false;
@@ -503,6 +597,10 @@ export function create(canvas, initParams = {}) {
   }
 
   initState();
+  canvas.addEventListener('pointerdown', handlePointerDown);
+  canvas.addEventListener('pointermove', handlePointerMove);
+  canvas.addEventListener('pointerup', handlePointerUp);
+  canvas.addEventListener('pointercancel', handlePointerUp);
   render();
 
   return {
@@ -527,6 +625,10 @@ export function create(canvas, initParams = {}) {
     },
     destroy() {
       this.stop();
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      canvas.removeEventListener('pointermove', handlePointerMove);
+      canvas.removeEventListener('pointerup', handlePointerUp);
+      canvas.removeEventListener('pointercancel', handlePointerUp);
     },
     getData() {
       return {

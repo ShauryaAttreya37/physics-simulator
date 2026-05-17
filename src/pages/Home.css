@@ -492,6 +492,10 @@
     padding: 0 12px;
   }
 
+  .nav-btn-text {
+    display: none;
+  }
+
   .nav-btn svg {
     width: 18px;
     height: 18px;
@@ -521,5 +525,22 @@
   .hero-search kbd {
     grid-column: 1 / -1;
     width: fit-content;
+  }
+
+  .subject-pill {
+    min-height: 32px;
+    padding: 0 8px 0 10px;
+    font-size: 12px;
+  }
+
+  .subject-pill svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .subject-pill strong {
+    min-width: 22px;
+    min-height: 22px;
+    font-size: 10px;
   }
 }

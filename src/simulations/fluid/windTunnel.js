@@ -6,9 +6,9 @@
 const SHAPES = [
   { id: 'circle', name: 'Cylinder', cd: 1.2, cl: 0, st: 0.2 },
   { id: 'box', name: 'Flat Plate', cd: 1.98, cl: 0, st: 0.15 },
-  { id: 'sphere3d', name: 'Sphere 3D', cd: 0.47, cl: 0, st: 0.19 }, // Rendered similarly to cylinder but different aero
+  { id: 'sphere3d', name: 'Sphere 3D', cd: 0.47, cl: 0, st: 0.19 },
   { id: 'airfoil', name: 'Airfoil', cd: 0.008, cl: 0.3, st: 0.0 },
-  { id: 'diamond', name: 'Diamond', cd: 1.5, cl: 0, st: 0.18 },
+  { id: 'f1car', name: 'F1 Car', cd: 0.8, cl: -1.5, st: 0.1 },
 ];
 
 const AIR_DENSITY = 1.225;
@@ -58,7 +58,7 @@ function characteristicLength(shapeSize = DEFAULT_SHAPE_SIZE) {
 function referenceArea(shape, diameter) {
   if (shape.id === 'airfoil') return diameter * 0.24;
   if (shape.id === 'box') return diameter * 0.55;
-  if (shape.id === 'diamond') return diameter * 0.7;
+  if (shape.id === 'f1car') return diameter * 0.4;
   return diameter;
 }
 
@@ -111,6 +111,16 @@ export const equationSections = [
     title: 'What You Are Seeing',
     content:
       'This wind tunnel shows a 2D incompressible flow field. Drag the model to see how the wake changes when the object moves closer to a wall. Use Speed view to compare fast and slow air, Wake view to see energy loss behind the model, and Vorticity view to spot rotating shear layers.',
+  },
+  {
+    title: 'Velocity Heatmap Legend',
+    content:
+      'The Speed view shows local wind velocity using a color scale:\n\n• **Dark Blue:** Near zero speed (stagnation points in front of objects, or slow moving wake behind them).\n• **Light Blue/Cyan:** Baseline incoming wind speed.\n• **Green/Yellow:** Accelerated flow (air speeds up as it squeezes past the object).\n• **Red:** Maximum velocity (found at sharp corners or highly constricted areas).',
+  },
+  {
+    title: 'Shape Aerodynamics & Vortex Shedding',
+    content:
+      'Different shapes dramatically alter the flow behavior:\n\n• **Bluff Bodies (Cylinder, Flat Plate):** Air struggles to follow the sharp curves or edges, causing it to "separate" from the surface. This creates a large, chaotic low-pressure wake behind the object, resulting in very high aerodynamic drag.\n• **Von Kármán Vortex Street:** When observing bluff bodies, you will notice an oscillating, snake-like pattern of alternating swirling vortices in the wake. This is called a Von Kármán vortex street. It happens because the shear layers on either side of the object become unstable, rolling up into vortices that detach (or "shed") in an alternating pattern. This phenomenon is critical in engineering, as it can cause dangerous structural vibrations (like singing power lines or bridge oscillations).\n• **Streamlined Bodies (Airfoil):** The smooth, tapering tail allows the high-speed air to gracefully decelerate and rejoin smoothly. This prevents flow separation, nearly eliminating the turbulent wake and drastically reducing form drag.\n• **F1 Car:** Engineered with complex geometries to cut through the air efficiently while generating downforce, balancing drag with grip.',
   },
   {
     title: 'Forces And Flow Numbers',
@@ -204,9 +214,20 @@ uniform vec2 texelSize;
 uniform float dt;
 uniform float dissipation;
 
+vec4 bilerp(sampler2D sam, vec2 uv, vec2 tsize) {
+    vec2 st = uv / tsize - 0.5;
+    vec2 iuv = floor(st);
+    vec2 f = fract(st);
+    vec4 a = texture(sam, (iuv + vec2(0.5, 0.5)) * tsize);
+    vec4 b = texture(sam, (iuv + vec2(1.5, 0.5)) * tsize);
+    vec4 c = texture(sam, (iuv + vec2(0.5, 1.5)) * tsize);
+    vec4 d = texture(sam, (iuv + vec2(1.5, 1.5)) * tsize);
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
 void main() {
-    vec2 coord = vUv - dt * texture(uVelocity, vUv).xy * texelSize;
-    fragColor = dissipation * texture(uSource, coord);
+    vec2 coord = vUv - dt * bilerp(uVelocity, vUv, texelSize).xy * texelSize;
+    fragColor = dissipation * bilerp(uSource, coord, texelSize);
 }`;
 
 const fshDivergence = `#version 300 es
@@ -224,8 +245,8 @@ void main() {
     float B = texture(uVelocity, vUv - vec2(0.0, texelSize.y)).y;
     vec2 C = texture(uVelocity, vUv).xy;
     
-    if (vUv.x - texelSize.x < 0.0) L = -C.x;
-    if (vUv.x + texelSize.x > 1.0) R = -C.x;
+    if (vUv.x - texelSize.x < 0.0) L = C.x;
+    if (vUv.x + texelSize.x > 1.0) R = C.x;
     if (vUv.y - texelSize.y < 0.0) B = -C.y;
     if (vUv.y + texelSize.y > 1.0) T = -C.y;
 
@@ -291,6 +312,7 @@ precision highp sampler2D;
 in vec2 vUv;
 out vec4 fragColor;
 uniform sampler2D uTarget;
+uniform sampler2D uShapeTex;
 uniform int uShape;
 uniform float uAspect;
 uniform vec2 uShapePos;
@@ -315,6 +337,14 @@ float shapeDistance(vec2 d, int shape, float size) {
         float airfoil = abs(d.y - camber) - halfThickness;
         float cap = min(abs(d.x + W * 0.38), abs(d.x - W * 0.62)) + H;
         return chordMask > 0.5 ? airfoil : cap;
+    }
+    if (shape == 4) {
+        vec2 texUv = vec2((d.x + size * 1.5) / (size * 3.0), (d.y + size * 0.5) / (size * 1.0));
+        if (texUv.x >= 0.0 && texUv.x <= 1.0 && texUv.y >= 0.0 && texUv.y <= 1.0) {
+            float alpha = texture(uShapeTex, vec2(texUv.x, texUv.y)).a;
+            if (alpha > 0.9) return -1.0;
+        }
+        return 1.0;
     }
     return abs(d.x) + abs(d.y) - size * 0.82;
 }
@@ -388,6 +418,7 @@ uniform float uAspect;
 uniform float uShapeSize;
 uniform float uWindSpeed;
 uniform int uDragging;
+uniform sampler2D uShapeTex;
 
 vec3 speedPalette(float v) {
     float t = clamp(v, 0.0, 1.0);
@@ -420,6 +451,14 @@ float shapeDistance(vec2 d, int shape, float size) {
         float airfoil = abs(d.y - camber) - halfThickness;
         float cap = min(abs(d.x + W * 0.38), abs(d.x - W * 0.62)) + H;
         return chordMask > 0.5 ? airfoil : cap;
+    }
+    if (shape == 4) {
+        vec2 texUv = vec2((d.x + size * 1.5) / (size * 3.0), (d.y + size * 0.5) / (size * 1.0));
+        if (texUv.x >= 0.0 && texUv.x <= 1.0 && texUv.y >= 0.0 && texUv.y <= 1.0) {
+            float alpha = texture(uShapeTex, vec2(texUv.x, texUv.y)).a;
+            if (alpha > 0.9) return -1.0;
+        }
+        return 1.0;
     }
     return abs(d.x) + abs(d.y) - size * 0.82;
 }
@@ -475,14 +514,29 @@ void main() {
     bool inside = sdf < 0.0;
     
     if (inside) {
-        vec2 n = normalize(d + vec2(0.0001, 0.0002));
-        float light = 0.55 + 0.45 * dot(normalize(vec2(-0.7, 0.9)), n);
-        vec3 steel = mix(vec3(0.18, 0.24, 0.30), vec3(0.82, 0.90, 0.94), light);
-        color = uDragging == 1 ? mix(steel, vec3(1.0, 0.78, 0.28), 0.24) : steel;
+        if (uShape != 4) {
+            vec2 n = normalize(d + vec2(0.0001, 0.0002));
+            float light = 0.55 + 0.45 * dot(normalize(vec2(-0.7, 0.9)), n);
+            vec3 steel = mix(vec3(0.18, 0.24, 0.30), vec3(0.82, 0.90, 0.94), light);
+            color = uDragging == 1 ? mix(steel, vec3(1.0, 0.78, 0.28), 0.24) : steel;
+        }
     } else {
-        float outline = 1.0 - smoothstep(0.0, 0.012, abs(sdf));
-        vec3 outlineColor = uDragging == 1 ? vec3(1.0, 0.76, 0.24) : vec3(0.80, 0.93, 1.0);
-        color = mix(color, outlineColor, outline * 0.55);
+        if (uShape != 4) {
+            float outline = 1.0 - smoothstep(0.0, 0.012, abs(sdf));
+            vec3 outlineColor = uDragging == 1 ? vec3(1.0, 0.76, 0.24) : vec3(0.80, 0.93, 1.0);
+            color = mix(color, outlineColor, outline * 0.55);
+        }
+    }
+    
+    if (uShape == 4) {
+        vec2 texUv = vec2((d.x + uShapeSize * 1.5) / (uShapeSize * 3.0), (d.y + uShapeSize * 0.5) / (uShapeSize * 1.0));
+        if (texUv.x >= 0.0 && texUv.x <= 1.0 && texUv.y >= 0.0 && texUv.y <= 1.0) {
+            vec4 tc = texture(uShapeTex, texUv);
+            color = mix(color, tc.rgb, tc.a);
+            if (uDragging == 1 && tc.a > 0.5) {
+               color = mix(color, vec3(1.0, 0.76, 0.24), 0.2);
+            }
+        }
     }
     
     fragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
@@ -642,7 +696,7 @@ export function create(canvas, initParams = {}, options = {}) {
     };
   }
 
-  const SIM_RES = 512; // High-res simulation grid
+  const SIM_RES = 256; // Balanced simulation grid for stability
   let simRes = { w: SIM_RES, h: SIM_RES };
   let velocity, dye, pressure, divergence;
   let lastW = 0,
@@ -764,6 +818,28 @@ export function create(canvas, initParams = {}, options = {}) {
 
   let simTime = 0;
   let isDraggingObstacle = false;
+  let currentPointerUv = null;
+  let currentPointerClient = null;
+  let isPointerInCanvas = false;
+
+  const probeEl = document.createElement('div');
+  probeEl.style.position = 'absolute';
+  probeEl.style.pointerEvents = 'none';
+  probeEl.style.background = 'rgba(15, 23, 42, 0.85)';
+  probeEl.style.color = '#fff';
+  probeEl.style.padding = '4px 8px';
+  probeEl.style.borderRadius = '6px';
+  probeEl.style.fontSize = '12px';
+  probeEl.style.fontFamily = 'monospace';
+  probeEl.style.transform = 'translate(-50%, -100%)';
+  probeEl.style.marginTop = '-15px';
+  probeEl.style.display = 'none';
+  probeEl.style.zIndex = '100';
+  probeEl.style.whiteSpace = 'nowrap';
+  probeEl.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+  probeEl.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+
+  // Will append to parent after init
 
   function getShapePosition() {
     return [
@@ -800,6 +876,14 @@ export function create(canvas, initParams = {}, options = {}) {
     if (shape.id === 'airfoil') {
       return dx >= -shapeSize * 0.9 && dx <= shapeSize * 1.25 && Math.abs(dy) <= shapeSize * 0.36;
     }
+    if (shape.id === 'f1car') {
+      return (
+        dx >= -shapeSize * 1.5 &&
+        dx <= shapeSize * 1.5 &&
+        dy >= -shapeSize * 0.5 &&
+        dy <= shapeSize * 0.5
+      );
+    }
     return Math.abs(dx) + Math.abs(dy) <= shapeSize * 1.05;
   }
 
@@ -833,12 +917,24 @@ export function create(canvas, initParams = {}, options = {}) {
 
   function handlePointerMove(event) {
     const uv = canvasEventToUv(event);
+    currentPointerUv = uv;
+    currentPointerClient = { x: event.clientX, y: event.clientY };
+
     if (isDraggingObstacle) {
       event.preventDefault();
       setObstaclePosition(uv, true);
       return;
     }
     canvas.style.cursor = pointInObstacle(uv) ? 'grab' : 'crosshair';
+  }
+
+  function handlePointerLeave(event) {
+    isPointerInCanvas = false;
+    probeEl.style.display = 'none';
+  }
+
+  function handlePointerEnter(event) {
+    isPointerInCanvas = true;
   }
 
   function handlePointerUp(event) {
@@ -924,6 +1020,7 @@ export function create(canvas, initParams = {}, options = {}) {
     // Apply Obstacle to Velocity BEFORE Divergence
     setUniforms(programs.boundary, {
       uTarget: bindTexture(velocity.read.texture, 0),
+      uShapeTex: bindTexture(f1Tex, 1),
       uShape: { type: 'int', value: p.shapeIdx },
       uAspect: aspect,
       uShapePos: shapePos,
@@ -946,7 +1043,7 @@ export function create(canvas, initParams = {}, options = {}) {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     // 7. Jacobi Iteration (Pressure solver)
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 40; i++) {
       setUniforms(programs.jacobi, {
         uPressure: bindTexture(pressure.read.texture, 0),
         uDivergence: bindTexture(divergence.texture, 1),
@@ -968,6 +1065,7 @@ export function create(canvas, initParams = {}, options = {}) {
     // Enforce No-Slip Obstacle Boundary AFTER projection
     setUniforms(programs.boundary, {
       uTarget: bindTexture(velocity.read.texture, 0),
+      uShapeTex: bindTexture(f1Tex, 1),
       uShape: { type: 'int', value: p.shapeIdx },
       uAspect: aspect,
       uShapePos: shapePos,
@@ -980,6 +1078,7 @@ export function create(canvas, initParams = {}, options = {}) {
     // Enforce Dye Boundary
     setUniforms(programs.boundary, {
       uTarget: bindTexture(dye.read.texture, 0),
+      uShapeTex: bindTexture(f1Tex, 1),
       uShape: { type: 'int', value: p.shapeIdx },
       uAspect: aspect,
       uShapePos: shapePos,
@@ -993,6 +1092,7 @@ export function create(canvas, initParams = {}, options = {}) {
     setUniforms(programs.display, {
       uVelocity: bindTexture(velocity.read.texture, 0),
       uDye: bindTexture(dye.read.texture, 1),
+      uShapeTex: bindTexture(f1Tex, 2),
       texelSize,
       uViewMode: { type: 'int', value: p.viewMode },
       uShowStreamlines: { type: 'int', value: p.showStreamlines },
@@ -1004,6 +1104,34 @@ export function create(canvas, initParams = {}, options = {}) {
       uDragging: { type: 'int', value: isDraggingObstacle ? 1 : 0 },
     });
     blit(null);
+
+    if (isPointerInCanvas && currentPointerUv) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, velocity.read.fbo);
+      const px = Math.floor(currentPointerUv[0] * simRes.w);
+      const py = Math.floor(currentPointerUv[1] * simRes.h);
+
+      const data = new Float32Array(4);
+      gl.readPixels(px, py, 1, 1, gl.RGBA, gl.FLOAT, data);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+      const vx = data[0];
+      const vy = data[1];
+      const speed = Math.hypot(vx, vy);
+      const isInside = pointInObstacle(currentPointerUv);
+
+      probeEl.style.display = 'block';
+      const rect = canvas.getBoundingClientRect();
+      probeEl.style.left = `${currentPointerClient.x - rect.left}px`;
+      probeEl.style.top = `${currentPointerClient.y - rect.top}px`;
+
+      if (isInside) {
+        probeEl.innerText = 'Boundary / Solid';
+        probeEl.style.color = '#94a3b8';
+      } else {
+        probeEl.innerText = `${(speed * 0.1).toFixed(1)} m/s`;
+        probeEl.style.color = '#10b981';
+      }
+    }
   }
 
   let rafId,
@@ -1018,10 +1146,44 @@ export function create(canvas, initParams = {}, options = {}) {
   }
 
   canvas.style.cursor = 'crosshair';
+
+  if (canvas.parentElement) {
+    canvas.parentElement.style.position = 'relative';
+    canvas.parentElement.appendChild(probeEl);
+  }
+
   canvas.addEventListener('pointerdown', handlePointerDown);
   canvas.addEventListener('pointermove', handlePointerMove);
   canvas.addEventListener('pointerup', handlePointerUp);
   canvas.addEventListener('pointercancel', handlePointerUp);
+  canvas.addEventListener('pointerleave', handlePointerLeave);
+  canvas.addEventListener('pointerenter', handlePointerEnter);
+
+  let f1Tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, f1Tex);
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGBA,
+    1,
+    1,
+    0,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    new Uint8Array([0, 0, 0, 0]),
+  );
+  const f1Img = new Image();
+  f1Img.src = '/f1_car.png';
+  f1Img.onload = () => {
+    gl.bindTexture(gl.TEXTURE_2D, f1Tex);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, f1Img);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+  };
 
   // Pre-initialization check
   checkResize();
@@ -1057,6 +1219,11 @@ export function create(canvas, initParams = {}, options = {}) {
       canvas.removeEventListener('pointermove', handlePointerMove);
       canvas.removeEventListener('pointerup', handlePointerUp);
       canvas.removeEventListener('pointercancel', handlePointerUp);
+      canvas.removeEventListener('pointerleave', handlePointerLeave);
+      canvas.removeEventListener('pointerenter', handlePointerEnter);
+      if (probeEl && probeEl.parentElement) {
+        probeEl.parentElement.removeChild(probeEl);
+      }
       canvas.style.cursor = '';
       releaseFBOs();
       gl.deleteBuffer(quadVBO);

@@ -8,7 +8,7 @@
 const DEFAULTS = {
   waterFlow: 0.5, // 0 to 1
   magnetStrength: 3.0,
-  coilTurns: 60,
+  coilTurns: 20,
   showFieldGrid: 1,
 };
 
@@ -41,8 +41,8 @@ export const graphParams = [
 export const controls = [
   { key: 'waterFlow', label: 'Water Flow', min: 0, max: 1, step: 0.05 },
   { key: 'magnetStrength', label: 'Magnet', min: 1, max: 5, step: 0.5 },
-  { key: 'coilTurns', label: 'Coil Turns', min: 10, max: 100, step: 10 },
-  { key: 'showFieldGrid', label: 'Field Grid', min: 0, max: 1, step: 1 },
+  { key: 'coilTurns', label: 'Coil Turns', type: 'counter', min: 5, max: 50, step: 5 },
+  { key: 'showFieldGrid', label: 'Field Grid', type: 'toggle' },
 ];
 
 export const scenarios = [];
@@ -84,9 +84,11 @@ export function create(canvas, initParams = {}) {
     angle += (rpm / 60) * Math.PI * 2 * dt;
 
     // Dist between wheel and coil centers
-    const dist = canvas.width * 0.35;
+    const scale = Math.min(1, canvas.width / 600);
+    const vW = canvas.width / scale;
+    const dist = vW * 0.35;
     const { bx } = getB(dist, 0, angle);
-    const flux = p.coilTurns * bx * 80; // scaled area
+    const flux = p.coilTurns * bx * 240; // scaled area (increased so bulb glows nicely at lower turns)
     emf = emf * 0.5 + 0.5 * (-(flux - prevFlux) / Math.max(dt, 0.001));
     current = emf / 20; // 20 ohms
     prevFlux = flux;
@@ -98,15 +100,22 @@ export function create(canvas, initParams = {}) {
     ctx.fillStyle = '#ffffff'; // Light theme background
     ctx.fillRect(0, 0, W, H);
 
+    const scale = Math.min(1, W / 600);
+    ctx.save();
+    ctx.scale(scale, scale);
+
+    const vW = W / scale;
+    const vH = H / scale;
+
     // Centers
-    const cx = W * 0.35;
-    const cy = H * 0.55;
-    const cX = W * 0.7;
+    const cx = vW * 0.35;
+    const cy = vH * 0.55;
+    const cX = vW * 0.7;
 
     // Background Grid
     if (p.showFieldGrid) {
-      for (let x = 30; x < W; x += 50) {
-        for (let y = 30; y < H; y += 50) {
+      for (let x = 30; x < vW; x += 50) {
+        for (let y = 30; y < vH; y += 50) {
           const { bx, by, mag } = getB(x - cx, y - cy, angle);
           if (mag > 0.01) {
             const ang = Math.atan2(by, bx);
@@ -314,15 +323,18 @@ export function create(canvas, initParams = {}) {
     // --- COIL ---
     const coilR = 40;
     const coilH = 120;
-    const numLoops = 10;
+    const numLoops = p.coilTurns;
+    const spacing = 120 / Math.max(1, numLoops);
+    const backLw = Math.max(1, Math.min(4, spacing * 1.2));
+    const frontLw = Math.max(1.5, Math.min(6, spacing * 1.5));
 
     // Draw back of loops
     ctx.strokeStyle = '#b45309'; // Darker copper
-    ctx.lineWidth = 4;
+    ctx.lineWidth = backLw;
     for (let i = 0; i < numLoops; i++) {
       ctx.beginPath();
       ctx.ellipse(
-        cX + (i - numLoops / 2) * 12,
+        cX + (i - numLoops / 2) * spacing,
         cy,
         coilR,
         coilH / 2,
@@ -335,10 +347,18 @@ export function create(canvas, initParams = {}) {
 
     // Draw front of loops
     ctx.strokeStyle = '#f59e0b'; // Bright copper
-    ctx.lineWidth = 6;
+    ctx.lineWidth = frontLw;
     for (let i = 0; i < numLoops; i++) {
       ctx.beginPath();
-      ctx.ellipse(cX + (i - numLoops / 2) * 12, cy, coilR, coilH / 2, 0, -Math.PI / 2, Math.PI / 2);
+      ctx.ellipse(
+        cX + (i - numLoops / 2) * spacing,
+        cy,
+        coilR,
+        coilH / 2,
+        0,
+        -Math.PI / 2,
+        Math.PI / 2,
+      );
       ctx.stroke();
     }
 
@@ -348,7 +368,7 @@ export function create(canvas, initParams = {}) {
       const offset = (simTime * speed) % (Math.PI * 2);
       ctx.fillStyle = '#2563eb'; // Clear blue electrons
       for (let i = 0; i < numLoops; i++) {
-        const px = cX + (i - numLoops / 2) * 12 + coilR * Math.cos(offset + i);
+        const px = cX + (i - numLoops / 2) * spacing + coilR * Math.cos(offset + i);
         // Only draw electrons on the front half of the coil
         if (Math.cos(offset + i) > 0) {
           const py = cy + (coilH / 2) * Math.sin(offset + i);
@@ -492,6 +512,7 @@ export function create(canvas, initParams = {}) {
     ctx.restore();
 
     // --- HUD Overlay (Clean Light Theme) ---
+    ctx.restore(); // Restore global scale
     ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
     ctx.beginPath();
     ctx.roundRect(W - 170, 20, 150, 80, 8);
@@ -512,14 +533,21 @@ export function create(canvas, initParams = {}) {
 
   function handlePointerDown(e) {
     const rect = canvas.getBoundingClientRect();
-    const hX = e.clientX - rect.left;
-    const hY = e.clientY - rect.top;
+    let hX = e.clientX - rect.left;
+    let hY = e.clientY - rect.top;
     const W = canvas.width,
       H = canvas.height;
 
+    const scale = Math.min(1, W / 600);
+    const vW = W / scale;
+    const vH = H / scale;
+
+    hX /= scale;
+    hY /= scale;
+
     // Faucet handle bounds check
-    const cx = W * 0.35,
-      cy = H * 0.55;
+    const cx = vW * 0.35,
+      cy = vH * 0.55;
     const fX = cx + 65,
       fY = cy - 220;
     const handleY = fY - 25;
@@ -532,9 +560,14 @@ export function create(canvas, initParams = {}) {
   function handlePointerMove(e) {
     if (!isDraggingFaucet) return;
     const rect = canvas.getBoundingClientRect();
-    const hX = e.clientX - rect.left;
+    let hX = e.clientX - rect.left;
     const W = canvas.width;
-    const cx = W * 0.35;
+
+    const scale = Math.min(1, W / 600);
+    const vW = W / scale;
+    hX /= scale;
+
+    const cx = vW * 0.35;
     const fX = cx + 65;
 
     // Map hX to flow 0..1 (range of 40px)

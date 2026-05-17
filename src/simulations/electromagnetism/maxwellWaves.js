@@ -146,7 +146,7 @@ export function create(canvas, initParams = {}) {
 
   let running = false,
     rafId;
-  function loop(ts) {
+  function loop() {
     if (!running) return;
     simTime += 0.016;
     render();

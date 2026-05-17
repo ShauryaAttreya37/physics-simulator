@@ -10,8 +10,8 @@ const DEFAULTS = {
   q1: 3,
   q2: -2,
   k: 500, // Coulomb constant (visual scale)
-  showFieldLines: 1,
-  showForceDecomp: 1,
+  showFieldLines: true,
+  showForceDecomp: true,
   viewScale: 1.0,
 };
 
@@ -85,8 +85,8 @@ export const controls = [
   { key: 'q1', label: 'Charge Q₁', min: -5, max: 5, step: 0.1 },
   { key: 'q2', label: 'Charge Q₂', min: -5, max: 5, step: 0.1 },
   { key: 'k', label: 'Force Scale k', min: 100, max: 2000, step: 10 },
-  { key: 'showFieldLines', label: 'Field Lines', min: 0, max: 1, step: 1 },
-  { key: 'showForceDecomp', label: 'Show Annotations', min: 0, max: 1, step: 1 },
+  { key: 'showFieldLines', label: 'Field Lines', type: 'toggle' },
+  { key: 'showForceDecomp', label: 'Show Annotations', type: 'toggle' },
 ];
 
 export const scenarios = [
@@ -133,14 +133,22 @@ export function create(canvas, initParams = {}) {
     return F;
   }
 
-  function drawFieldLines(W, H, cx, cy) {
+  function pointerPosition(e) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: ((e.clientX - rect.left) / rect.width) * canvas.width,
+      y: ((e.clientY - rect.top) / rect.height) * canvas.height,
+    };
+  }
+
+  function drawFieldLines(W, H, cx, cy, scale) {
     const nLines = 16;
     ctx.lineWidth = 1;
 
     // We draw from both charges
     const sources = [
-      { x: cx + pos1.x, y: cy + pos1.y, q: p.q1 },
-      { x: cx + pos2.x, y: cy + pos2.y, q: p.q2 },
+      { x: cx + pos1.x * scale, y: cy + pos1.y * scale, q: p.q1 },
+      { x: cx + pos2.x * scale, y: cy + pos2.y * scale, q: p.q2 },
     ];
 
     for (const source of sources) {
@@ -259,7 +267,7 @@ export function create(canvas, initParams = {}) {
 
     // Field lines
     if (p.showFieldLines) {
-      drawFieldLines(W, H, cx, cy);
+      drawFieldLines(W, H, cx, cy, scale);
     }
 
     // Distance line (dashed)
@@ -287,7 +295,8 @@ export function create(canvas, initParams = {}) {
     const isRepulsive = F > 0;
 
     // Force arrows
-    if (absF > 0.01) {
+    const chargeSeparation = Math.hypot(c2x - c1x, c2y - c1y);
+    if (absF > 0.01 && chargeSeparation >= 1) {
       const dx = c2x - c1x;
       const dy = c2y - c1y;
       const len = Math.hypot(dx, dy);
@@ -450,9 +459,9 @@ export function create(canvas, initParams = {}) {
   }
 
   function handlePointerDown(e) {
-    const rect = canvas.getBoundingClientRect();
-    const hitX = (e.clientX - rect.left - canvas.width / 2) / (p.viewScale ?? 1);
-    const hitY = (e.clientY - rect.top - canvas.height / 2) / (p.viewScale ?? 1);
+    const pt = pointerPosition(e);
+    const hitX = (pt.x - canvas.width / 2) / (p.viewScale ?? 1);
+    const hitY = (pt.y - canvas.height / 2) / (p.viewScale ?? 1);
 
     const d1 = Math.hypot(hitX - pos1.x, hitY - pos1.y);
     const d2 = Math.hypot(hitX - pos2.x, hitY - pos2.y);
@@ -467,32 +476,45 @@ export function create(canvas, initParams = {}) {
       dragTarget = 'q2';
       dragOffset = { x: hitX - pos2.x, y: hitY - pos2.y };
     }
+
+    if (dragTarget) {
+      canvas.setPointerCapture?.(e.pointerId);
+      render();
+    }
   }
 
   function handlePointerMove(e) {
     if (!dragTarget) return;
-    const rect = canvas.getBoundingClientRect();
-    const hitX = (e.clientX - rect.left - canvas.width / 2) / (p.viewScale ?? 1);
-    const hitY = (e.clientY - rect.top - canvas.height / 2) / (p.viewScale ?? 1);
+    const pt = pointerPosition(e);
+    const scale = p.viewScale ?? 1;
+    const hitX = (pt.x - canvas.width / 2) / scale;
+    const hitY = (pt.y - canvas.height / 2) / scale;
+    const margin = 48 / scale;
+    const maxX = canvas.width / (2 * scale) - margin;
+    const maxY = canvas.height / (2 * scale) - margin;
+    const nextX = Math.max(-maxX, Math.min(maxX, hitX - dragOffset.x));
+    const nextY = Math.max(-maxY, Math.min(maxY, hitY - dragOffset.y));
 
     if (dragTarget === 'q1') {
-      pos1.x = hitX - dragOffset.x;
-      pos1.y = hitY - dragOffset.y;
+      pos1.x = nextX;
+      pos1.y = nextY;
     } else {
-      pos2.x = hitX - dragOffset.x;
-      pos2.y = hitY - dragOffset.y;
+      pos2.x = nextX;
+      pos2.y = nextY;
     }
     render();
   }
 
-  function handlePointerUp() {
+  function handlePointerUp(e) {
+    if (dragTarget) canvas.releasePointerCapture?.(e.pointerId);
     dragTarget = null;
     render();
   }
 
   canvas.addEventListener('pointerdown', handlePointerDown);
-  window.addEventListener('pointermove', handlePointerMove);
-  window.addEventListener('pointerup', handlePointerUp);
+  canvas.addEventListener('pointermove', handlePointerMove);
+  canvas.addEventListener('pointerup', handlePointerUp);
+  canvas.addEventListener('pointercancel', handlePointerUp);
 
   let running = false;
   let rafId;
@@ -530,8 +552,9 @@ export function create(canvas, initParams = {}) {
     destroy() {
       this.stop();
       canvas.removeEventListener('pointerdown', handlePointerDown);
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', handlePointerUp);
+      canvas.removeEventListener('pointermove', handlePointerMove);
+      canvas.removeEventListener('pointerup', handlePointerUp);
+      canvas.removeEventListener('pointercancel', handlePointerUp);
     },
     getData() {
       const r = Math.max(1, computeDistance());

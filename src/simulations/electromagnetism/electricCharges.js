@@ -98,8 +98,8 @@ export const controls = [
   { key: 'energy', label: 'Energy [MeV]', min: 0.5, max: 20, step: 0.1 },
   { key: 'nParticles', label: 'Particle Count', min: 1, max: 24, step: 1 },
   { key: 'bMax', label: 'Max Impact b [px]', min: 30, max: 250, step: 5 },
-  { key: 'showField', label: 'Show Field', min: 0, max: 1, step: 1 },
-  { key: 'showTrails', label: 'Show Trails', min: 0, max: 1, step: 1 },
+  { key: 'showField', label: 'Show Field', type: 'toggle' },
+  { key: 'showTrails', label: 'Show Trails', type: 'toggle' },
   { key: 'timeScale', label: 'Speed', min: 0.2, max: 3, step: 0.1 },
 ];
 

@@ -64,11 +64,11 @@ export default function Home({ onNavigate }) {
               className="nav-btn discord-nav-btn"
             >
               <DiscordIcon size={16} />
-              Join Our Discord!
+              <span className="nav-btn-text">Join Our Discord!</span>
             </a>
             <button className="nav-btn" onClick={() => handleNavigate('topics')}>
               <FlaskConical size={16} />
-              Open Lab
+              <span className="nav-btn-text">Open Lab</span>
             </button>
           </div>
         </div>

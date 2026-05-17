@@ -92,6 +92,54 @@ function ParamControl({ control, value, onChange }) {
     );
   }
 
+  if (control.type === 'counter') {
+    const step = control.step ?? 1;
+    const tooltip = control.tooltip ?? inferControlTooltip(control);
+    return (
+      <div className="form-group">
+        <label title={tooltip || undefined}>
+          <span>{control.label}</span>
+          <span className="value-pill">{formatValue(value, step)}</span>
+        </label>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            className="btn panel-action-btn"
+            style={{ flex: 1 }}
+            onClick={() => {
+              const next = clampControlValue(control, value - step);
+              if (next !== null) onChange(next);
+            }}
+          >
+            -
+          </button>
+          <input
+            type="number"
+            min={control.min}
+            max={control.max}
+            step={step}
+            value={value}
+            className="form-input number-input"
+            style={{ flex: 2, textAlign: 'center' }}
+            onChange={(e) => {
+              const next = clampControlValue(control, e.target.value);
+              if (next !== null) onChange(next);
+            }}
+          />
+          <button
+            className="btn panel-action-btn"
+            style={{ flex: 1 }}
+            onClick={() => {
+              const next = clampControlValue(control, value + step);
+              if (next !== null) onChange(next);
+            }}
+          >
+            +
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const step = control.step ?? 0.01;
   const tooltip = control.tooltip ?? inferControlTooltip(control);
 

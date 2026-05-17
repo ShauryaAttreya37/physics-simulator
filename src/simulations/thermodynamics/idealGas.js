@@ -50,7 +50,7 @@ export const equationSections = [
 
 export const controls = [
   { key: 'temperature', label: 'Temperature [K]', min: 50, max: 2000, step: 10 },
-  { key: 'particleCount', label: 'Particle Count', min: 10, max: 300, step: 1 },
+  { key: 'particleCount', label: 'Particle Count', type: 'counter', min: 10, max: 300, step: 1 },
   { key: 'volume', label: 'Volume (Piston Pos)', min: 0.2, max: 0.95, step: 0.01 },
   { type: 'toggle', key: 'showVectors', label: 'Velocity Vectors' },
 ];

@@ -101,7 +101,7 @@ export const controls = [
 export const method = 'analytical';
 
 // ── Simulation ─────────────────────────────────────────────────────────────
-export function create(canvas, initParams = {}) {
+export function create(canvas, initParams = {}, options = {}) {
   const ctx = canvas.getContext('2d');
   const p = { ...DEFAULTS, ...initParams };
 
@@ -119,6 +119,7 @@ export function create(canvas, initParams = {}) {
   let trail; // [{s, v, t}]
   let E0;
   let stopped;
+  let dragTarget = null;
 
   function accel() {
     const totalM = p.m1 + p.m2;
@@ -148,6 +149,58 @@ export function create(canvas, initParams = {}) {
     trail = [];
     stopped = false;
     E0 = energy();
+  }
+
+  function getLayout() {
+    const W = canvas.width;
+    const H = canvas.height;
+    const simAreaW = W * 0.48;
+    const pulleyX = simAreaW * 0.5;
+    const pulleyY = H * 0.13;
+    const R = p.pulleyRadius;
+    const m1X = pulleyX - R;
+    const m2X = pulleyX + R;
+    const ropeTopY = pulleyY + R + 10;
+    const floorY = H * 0.88;
+    const equilibriumY = ropeTopY + (floorY - ropeTopY) * 0.35;
+    const viewScale = p.viewScale ?? 1.0;
+    const maxUpPx = (equilibriumY - ropeTopY - 5) * viewScale;
+    const maxDownPx = (floorY - equilibriumY - 60) * viewScale;
+    const maxDispPx = Math.min(maxUpPx, maxDownPx);
+    const dispPx = Math.max(-maxDispPx, Math.min(maxDispPx, s * PX_PER_METER * viewScale));
+    const m1Y = equilibriumY - dispPx;
+    const m2Y = equilibriumY + dispPx;
+    const m1W = 28 + Math.sqrt(p.m1) * 10;
+    const m1H = 30 + Math.sqrt(p.m1) * 10;
+    const m2W = 28 + Math.sqrt(p.m2) * 10;
+    const m2H = 30 + Math.sqrt(p.m2) * 10;
+    return { m1X, m1Y, m1W, m1H, m2X, m2Y, m2W, m2H, equilibriumY, maxDispPx, viewScale };
+  }
+
+  function pointerPosition(event) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: ((event.clientX - rect.left) / rect.width) * canvas.width,
+      y: ((event.clientY - rect.top) / rect.height) * canvas.height,
+    };
+  }
+
+  function hitMass(pt, cx, y, width, height) {
+    return pt.x >= cx - width / 2 && pt.x <= cx + width / 2 && pt.y >= y && pt.y <= y + height;
+  }
+
+  function setDisplacementFromPointer(event) {
+    const pt = pointerPosition(event);
+    const layout = getLayout();
+    const signedPx = dragTarget === 'm1' ? layout.equilibriumY - pt.y : pt.y - layout.equilibriumY;
+    const clampedPx = Math.max(-layout.maxDispPx, Math.min(layout.maxDispPx, signedPx));
+    s = clampedPx / (PX_PER_METER * layout.viewScale);
+    v = 0;
+    stopped = false;
+    trail = [];
+    E0 = energy();
+    options.onParamChange?.({});
+    render();
   }
 
   function tick(dt) {
@@ -330,6 +383,19 @@ export function create(canvas, initParams = {}) {
     // --- Draw Masses ---
     const massBlockH1 = drawMassBlock(m1X, m1Y, p.m1, '#60a5fa', '#3b82f6', 'm₁');
     const massBlockH2 = drawMassBlock(m2X, m2Y, p.m2, '#fb7185', '#e11d48', 'm₂');
+
+    if (dragTarget) {
+      const activeX = dragTarget === 'm1' ? m1X : m2X;
+      const activeY = dragTarget === 'm1' ? m1Y : m2Y;
+      const activeH = dragTarget === 'm1' ? massBlockH1 : massBlockH2;
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.roundRect(activeX - 35, activeY - 6, 70, activeH + 12, 7);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
 
     // --- Force Vectors ---
     const a = accel();
@@ -749,6 +815,28 @@ export function create(canvas, initParams = {}) {
     }
   }
 
+  function handlePointerDown(event) {
+    const pt = pointerPosition(event);
+    const layout = getLayout();
+    if (hitMass(pt, layout.m1X, layout.m1Y, layout.m1W, layout.m1H)) dragTarget = 'm1';
+    else if (hitMass(pt, layout.m2X, layout.m2Y, layout.m2W, layout.m2H)) dragTarget = 'm2';
+    else return;
+    canvas.setPointerCapture?.(event.pointerId);
+    setDisplacementFromPointer(event);
+  }
+
+  function handlePointerMove(event) {
+    if (!dragTarget) return;
+    setDisplacementFromPointer(event);
+  }
+
+  function handlePointerUp(event) {
+    if (!dragTarget) return;
+    dragTarget = null;
+    canvas.releasePointerCapture?.(event.pointerId);
+    render();
+  }
+
   let rafId,
     lastTs,
     running = false;
@@ -764,6 +852,10 @@ export function create(canvas, initParams = {}) {
   }
 
   initState();
+  canvas.addEventListener('pointerdown', handlePointerDown);
+  canvas.addEventListener('pointermove', handlePointerMove);
+  canvas.addEventListener('pointerup', handlePointerUp);
+  canvas.addEventListener('pointercancel', handlePointerUp);
   render();
 
   return {
@@ -789,6 +881,10 @@ export function create(canvas, initParams = {}) {
     },
     destroy() {
       this.stop();
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      canvas.removeEventListener('pointermove', handlePointerMove);
+      canvas.removeEventListener('pointerup', handlePointerUp);
+      canvas.removeEventListener('pointercancel', handlePointerUp);
     },
     setSpeed(s) {
       speedScale = s;

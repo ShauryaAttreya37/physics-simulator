@@ -102,7 +102,7 @@ export const graphParams = [
 ];
 
 export const controls = [
-  { key: 'n', label: 'n (Principal: 1s, 2p, 3d...)', min: 1, max: 4, step: 1 },
+  { key: 'n', label: 'n (Principal: 1s, 2p, 3d...)', type: 'counter', min: 1, max: 4, step: 1 },
   { key: 'l', label: 'l (Azimuthal: s=0, p=1, d=2...)', min: 0, max: 3, step: 1 },
   { key: 'm', label: 'm (Magnetic: orientation)', min: -3, max: 3, step: 1 },
 ];
