@@ -46,6 +46,11 @@ export const equationSections = [
       },
     ],
   },
+  {
+    title: 'Visualizing The Microscopic',
+    content:
+      'This simulation uses color to help you see the hidden physics:\n\n• **Speed (Color):** Particles range from deep blue (slow/cold) to bright red (fast/hot), showing their kinetic energy.\n• **Collisions (Flashes):** When particles hit a wall, they flash bright yellow. These microscopic impacts are what create the macroscopic Pressure.\n• **Flow (Trails):** Each particle leaves a short trail, helping you visualize the chaotic random walk of the gas.',
+  },
 ];
 
 export const controls = [
@@ -138,6 +143,8 @@ export function create(canvas, initialParams) {
           vx: speed * Math.cos(angle),
           vy: speed * Math.sin(angle),
           r: p.particleRadius,
+          flashTime: 0,
+          trail: [],
         });
       }
     }
@@ -159,6 +166,11 @@ export function create(canvas, initialParams) {
     const height = canvas.height;
 
     particles.forEach((part) => {
+      if (part.flashTime > 0) part.flashTime -= dt;
+
+      part.trail.push({ x: part.x, y: part.y });
+      if (part.trail.length > 6) part.trail.shift();
+
       part.x += part.vx * dt * 40; // Scale for visual smoothness
       part.y += part.vy * dt * 40;
 
@@ -168,12 +180,14 @@ export function create(canvas, initialParams) {
         part.x = part.r;
         impulseAccumulator += 2 * Math.abs(part.vx) * p.particleMass;
         part.vx *= -1;
+        part.flashTime = 0.15;
       }
       // Right (Piston)
       else if (part.x > width - part.r) {
         part.x = width - part.r;
         impulseAccumulator += 2 * Math.abs(part.vx) * p.particleMass;
         part.vx *= -1;
+        part.flashTime = 0.15;
       }
 
       // Top
@@ -181,12 +195,14 @@ export function create(canvas, initialParams) {
         part.y = part.r;
         impulseAccumulator += 2 * Math.abs(part.vy) * p.particleMass;
         part.vy *= -1;
+        part.flashTime = 0.15;
       }
       // Bottom
       else if (part.y > height - part.r) {
         part.y = height - part.r;
         impulseAccumulator += 2 * Math.abs(part.vy) * p.particleMass;
         part.vy *= -1;
+        part.flashTime = 0.15;
       }
     });
 
@@ -299,14 +315,38 @@ export function create(canvas, initialParams) {
     // --- Particles ---
     particles.forEach((part) => {
       const speed = Math.hypot(part.vx, part.vy);
-      ctx.fillStyle = getParticleColor(speed);
-
-      // Map y to internal container space
       const renderY = padding + (part.y / H) * internalH;
+      const partColor = getParticleColor(speed);
 
+      // Draw Trail
+      if (part.trail.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(part.trail[0].x, padding + (part.trail[0].y / H) * internalH);
+        for (let j = 1; j < part.trail.length; j++) {
+          ctx.lineTo(part.trail[j].x, padding + (part.trail[j].y / H) * internalH);
+        }
+        ctx.strokeStyle = partColor;
+        ctx.lineWidth = part.r * 0.8;
+        ctx.globalAlpha = 0.3;
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+      }
+
+      // Draw Particle
       ctx.beginPath();
       ctx.arc(part.x, renderY, part.r, 0, Math.PI * 2);
+
+      if (part.flashTime > 0) {
+        ctx.fillStyle = '#fbbf24'; // Bright yellow collision flash
+        ctx.shadowColor = '#fbbf24';
+        ctx.shadowBlur = 12;
+      } else {
+        ctx.fillStyle = partColor;
+        ctx.shadowBlur = 0;
+      }
+
       ctx.fill();
+      ctx.shadowBlur = 0;
 
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 0.5;
