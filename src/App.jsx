@@ -1,4 +1,5 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Home from './pages/Home';
 import './App.css';
 
@@ -8,14 +9,18 @@ const IntegratorsPage = lazy(() => import('./pages/IntegratorsPage'));
 const SandboxPage = lazy(() => import('./pages/SandboxPage'));
 
 export default function App() {
-  const [page, setPage] = useState('home');
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleNavigate = (targetPage) => {
-    setPage(targetPage);
+    navigate(targetPage === 'home' ? '/' : `/${targetPage}`);
   };
 
   const renderHeader = () => {
-    if (page === 'home' || page === 'topics') return null;
+    const isHome = location.pathname === '/';
+    const isLab = location.pathname === '/topics' || location.pathname.startsWith('/lab');
+    if (isHome || isLab) return null;
+
     return (
       <header className="app-header">
         <div className="header-left">
@@ -24,23 +29,23 @@ export default function App() {
             onClick={() => handleNavigate('home')}
             title="Home"
           >
-            <img src="/logo-mark.svg" alt="Physics Lab" className="header-logo-mark" />
+            <img src="/logo-mark.svg" alt="Physiverse" className="header-logo-mark" />
           </button>
           <div className="header-nav">
             <button
-              className={`nav-item${page === 'topics' ? ' active' : ''}`}
+              className={`nav-item${location.pathname === '/topics' ? ' active' : ''}`}
               onClick={() => handleNavigate('topics')}
             >
               Lab
             </button>
             <button
-              className={`nav-item${page === 'integrators' ? ' active' : ''}`}
+              className={`nav-item${location.pathname === '/integrators' ? ' active' : ''}`}
               onClick={() => handleNavigate('integrators')}
             >
               Integrators
             </button>
             <button
-              className={`nav-item${page === 'docs' ? ' active' : ''}`}
+              className={`nav-item${location.pathname === '/docs' ? ' active' : ''}`}
               onClick={() => handleNavigate('docs')}
             >
               Docs
@@ -51,18 +56,24 @@ export default function App() {
     );
   };
 
-  if (page === 'home') {
-    return <Home onNavigate={handleNavigate} />;
-  }
-
   return (
     <div className="page-wrapper">
       {renderHeader()}
-      <Suspense fallback={<div className="page-loading">Loading Physics Lab...</div>}>
-        {page === 'topics' && <TopicsPage onBack={() => handleNavigate('home')} />}
-        {page === 'docs' && <DocsPage onBack={() => handleNavigate('home')} />}
-        {page === 'integrators' && <IntegratorsPage onBack={() => handleNavigate('home')} />}
-        {page === 'sandbox' && <SandboxPage onHome={() => handleNavigate('home')} />}
+      <Suspense fallback={<div className="page-loading">Loading Physiverse...</div>}>
+        <Routes>
+          <Route path="/" element={<Home onNavigate={handleNavigate} />} />
+          <Route path="/topics" element={<TopicsPage onBack={() => handleNavigate('home')} />} />
+          <Route
+            path="/lab/:simId"
+            element={<TopicsPage onBack={() => handleNavigate('home')} />}
+          />
+          <Route path="/docs" element={<DocsPage onBack={() => handleNavigate('home')} />} />
+          <Route
+            path="/integrators"
+            element={<IntegratorsPage onBack={() => handleNavigate('home')} />}
+          />
+          <Route path="/sandbox" element={<SandboxPage onHome={() => handleNavigate('home')} />} />
+        </Routes>
       </Suspense>
     </div>
   );

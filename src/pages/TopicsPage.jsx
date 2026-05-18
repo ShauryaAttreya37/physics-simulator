@@ -1,13 +1,21 @@
 import { useMemo, useState } from 'react';
+import { Navigate, useParams, useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { ArrowLeft, Search } from 'lucide-react';
-import { TOPICS } from '../simulations/index';
+import { TOPICS, SIM_BY_ID } from '../simulations/index';
 import SimulationRunner from '../components/SimulationRunner';
+import Seo, { SITE_URL } from '../components/Seo';
 
 export default function TopicsPage({ onBack }) {
-  const [selectedSim, setSelectedSim] = useState(null);
+  const { simId } = useParams();
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [activeTopic, setActiveTopic] = useState('all');
+
+  const selectedSim = useMemo(() => {
+    return simId ? SIM_BY_ID[simId] : null;
+  }, [simId]);
+
   const allSims = useMemo(
     () =>
       Object.entries(TOPICS).flatMap(([key, topic]) =>
@@ -36,18 +44,91 @@ export default function TopicsPage({ onBack }) {
       .filter((topic) => topic.sims.length > 0);
   }, [activeTopic, query]);
 
+  const handleSelectSim = (sim) => {
+    if (sim) {
+      navigate(`/lab/${sim.id}`);
+    } else {
+      navigate('/topics');
+    }
+  };
+
+  if (simId && !selectedSim) {
+    return <Navigate to="/topics" replace />;
+  }
+
   if (selectedSim) {
+    const simKeywords = [
+      selectedSim.title,
+      'physics simulation',
+      'interactive physics simulator',
+      ...selectedSim.tags,
+    ];
+    const simStructuredData = {
+      '@context': 'https://schema.org',
+      '@type': 'LearningResource',
+      '@id': `${SITE_URL}/lab/${selectedSim.id}#simulation`,
+      name: selectedSim.title,
+      url: `${SITE_URL}/lab/${selectedSim.id}`,
+      description: selectedSim.description,
+      educationalUse: 'Simulation',
+      learningResourceType: 'Interactive simulation',
+      isAccessibleForFree: true,
+      keywords: simKeywords.join(', '),
+      provider: {
+        '@type': 'Organization',
+        name: 'Physiverse',
+        url: SITE_URL,
+      },
+    };
+
     return (
-      <SimulationRunner
-        key={selectedSim.id}
-        sim={selectedSim}
-        onBack={() => setSelectedSim(null)}
-      />
+      <>
+        <Seo
+          title={`${selectedSim.title} Simulator`}
+          description={selectedSim.description}
+          path={`/lab/${selectedSim.id}`}
+          keywords={simKeywords}
+          structuredData={simStructuredData}
+        />
+        <SimulationRunner
+          key={selectedSim.id}
+          sim={selectedSim}
+          onBack={() => handleSelectSim(null)}
+        />
+      </>
     );
   }
 
   return (
     <div className="page-content custom-scroll">
+      <Seo
+        title="Physiverse Lab | Simulation Library"
+        description="Browse free interactive physics simulations covering mechanics, fluids, electromagnetism, optics, quantum physics, and thermodynamics."
+        path="/topics"
+        keywords={[
+          'physics simulation library',
+          'interactive physics lab',
+          'mechanics simulations',
+          'electromagnetism simulations',
+          'quantum physics simulations',
+        ]}
+        structuredData={{
+          '@context': 'https://schema.org',
+          '@type': 'CollectionPage',
+          '@id': `${SITE_URL}/topics#collection`,
+          name: 'Physiverse Lab',
+          url: `${SITE_URL}/topics`,
+          description:
+            'A browsable library of free interactive physics simulations with live controls, graphs, equations, and classroom experiments.',
+          hasPart: allSims.map((sim) => ({
+            '@type': 'LearningResource',
+            name: sim.title,
+            url: `${SITE_URL}/lab/${sim.id}`,
+            description: sim.description,
+            learningResourceType: 'Interactive simulation',
+          })),
+        }}
+      />
       <div className="topics-track-container">
         <div className="topics-page-header">
           <button className="topics-back-btn icon-btn" onClick={onBack} title="Back to home">
@@ -55,7 +136,7 @@ export default function TopicsPage({ onBack }) {
           </button>
           <div className="topics-header-text">
             <span className="topics-eyebrow">Interactive simulation library</span>
-            <h1 className="topics-page-title">Physics Lab</h1>
+            <h1 className="topics-page-title">Physiverse Lab</h1>
             <p className="topics-page-subtitle">
               Choose a concept, change the variables, and compare the motion with live data.
             </p>
@@ -109,7 +190,7 @@ export default function TopicsPage({ onBack }) {
             <div className="topic-track-wrapper">
               <div className="topic-track-slider custom-scroll" id={`track-${topic.key}`}>
                 {topic.sims.map((sim) => (
-                  <button key={sim.id} className="sim-card" onClick={() => setSelectedSim(sim)}>
+                  <button key={sim.id} className="sim-card" onClick={() => handleSelectSim(sim)}>
                     <div className="sim-card-preview">
                       <div className="sim-card-preview-icon">
                         {ICONS[sim.id] || ICONS['default']}

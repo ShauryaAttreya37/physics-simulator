@@ -4,11 +4,11 @@ import {
   BookOpen,
   FlaskConical,
   LineChart,
-  MessageCircle,
   PlayCircle,
   Search,
   SlidersHorizontal,
 } from 'lucide-react';
+import Seo, { DEFAULT_DESCRIPTION, SITE_URL } from '../components/Seo';
 import './Home.css';
 
 const DiscordIcon = ({ size = 16 }) => (
@@ -42,11 +42,43 @@ export default function Home({ onNavigate }) {
 
   return (
     <div className="home-wrapper">
+      <Seo
+        title="Physiverse | Interactive Physics Simulators & Virtual Lab"
+        description={DEFAULT_DESCRIPTION}
+        path="/"
+        keywords={[
+          'physics simulators',
+          'physics simulations',
+          'virtual physics lab',
+          'interactive physics',
+          'mechanics simulator',
+          'quantum physics simulation',
+          'online physics experiments',
+          'STEM education',
+        ]}
+        structuredData={{
+          '@context': 'https://schema.org',
+          '@type': 'WebApplication',
+          '@id': `${SITE_URL}/#app`,
+          name: 'Physiverse',
+          url: `${SITE_URL}/`,
+          applicationCategory: 'EducationalApplication',
+          operatingSystem: 'Web',
+          description: DEFAULT_DESCRIPTION,
+          educationalUse: 'Simulation',
+          isAccessibleForFree: true,
+          offers: {
+            '@type': 'Offer',
+            price: '0',
+            priceCurrency: 'USD',
+          },
+        }}
+      />
       <nav className="home-nav" aria-label="Primary navigation">
         <div className="home-nav-inner">
           <button className="nav-brand" onClick={() => handleNavigate('home')}>
-            <img src="/favicon.svg" alt="Physics Lab" className="logo-mark-img" />
-            <span className="logo-text">Physics Lab</span>
+            <img src="/favicon.svg" alt="Physiverse" className="logo-mark-img" />
+            <span className="logo-text">Physiverse</span>
           </button>
           <div className="nav-links">
             <button className="nav-link-btn" onClick={() => handleNavigate('integrators')}>
@@ -77,7 +109,7 @@ export default function Home({ onNavigate }) {
       <main>
         <section className="hero-section">
           <div className="hero-content">
-            <h1 className="hero-title">Physics Lab</h1>
+            <h1 className="hero-title">Physiverse</h1>
 
             <p className="hero-sub">
               Explore mechanics, fields, fluids, optics, thermodynamics, and quantum systems with
@@ -163,6 +195,44 @@ export default function Home({ onNavigate }) {
           ))}
         </section>
       </main>
+
+      <footer className="home-footer">
+        <div className="footer-content">
+          <div className="footer-brand">
+            <div className="footer-logo">
+              <img src="/favicon.svg" alt="Physiverse Logo" className="footer-logo-img" />
+              <span>Physiverse</span>
+            </div>
+            <p>Free, interactive physics simulations for educators and students.</p>
+          </div>
+          <div className="footer-links">
+            <div className="link-group">
+              <strong>Simulations</strong>
+              <button onClick={() => handleNavigate('topics')}>Mechanics</button>
+              <button onClick={() => handleNavigate('topics')}>Electromagnetism</button>
+              <button onClick={() => handleNavigate('topics')}>Quantum Mechanics</button>
+              <button onClick={() => handleNavigate('topics')}>Fluid Dynamics</button>
+            </div>
+            <div className="link-group">
+              <strong>Resources</strong>
+              <button onClick={() => handleNavigate('docs')}>Documentation</button>
+              <button onClick={() => handleNavigate('integrators')}>Numerical Solvers</button>
+              <a href="https://discord.gg/5Tt7uUbDBz" target="_blank" rel="noopener noreferrer">
+                Discord Community
+              </a>
+            </div>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <p>&copy; 2026 Physiverse. All rights reserved. Interactive physics simulators.</p>
+          <div className="footer-keywords">
+            <span>Physics Simulators</span>
+            <span>Virtual Lab</span>
+            <span>STEM Education</span>
+            <span>Interactive Learning</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

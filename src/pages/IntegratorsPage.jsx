@@ -1,8 +1,21 @@
 import { BlockMath, InlineMath } from '../components/KaTeX';
+import Seo from '../components/Seo';
 
 export default function IntegratorsPage() {
   return (
     <div className="page-content">
+      <Seo
+        title="Integrators and Numeric Methods"
+        description="Compare the numerical integration methods behind Physiverse simulations, including symplectic Yoshida methods and adaptive Runge-Kutta RK45."
+        path="/integrators"
+        keywords={[
+          'physics integrators',
+          'numerical methods',
+          'RK45',
+          'Yoshida symplectic integrator',
+          'simulation solvers',
+        ]}
+      />
       <main className="content-page">
         <h1>Integrators and Numeric Methods</h1>
 

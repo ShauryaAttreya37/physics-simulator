@@ -1,9 +1,21 @@
 import { LineChart, Play, Sliders, Video } from 'lucide-react';
 import { BlockMath, InlineMath } from '../components/KaTeX';
+import Seo from '../components/Seo';
 
 export default function DocsPage() {
   return (
     <div className="page-content">
+      <Seo
+        title="Physics Engine Documentation"
+        description="Learn how Physiverse simulations model mechanics, quantum systems, fluids, and electromagnetism with live graphing, equations, and export tools."
+        path="/docs"
+        keywords={[
+          'physics engine documentation',
+          'interactive physics documentation',
+          'physics equations',
+          'simulation documentation',
+        ]}
+      />
       <main className="content-page">
         <h1>Physics Engine Documentation</h1>
 
