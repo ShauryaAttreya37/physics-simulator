@@ -43,12 +43,16 @@ export default function Home({ onNavigate }) {
   return (
     <div className="home-wrapper">
       <Seo
-        title="Physiverse | Interactive Physics Simulators & Virtual Lab"
+        title="Physiverse | Physics Simulator & Educational Physics Tools"
         description={DEFAULT_DESCRIPTION}
         path="/"
         keywords={[
+          'physics-simulator',
+          'physics simulator',
           'physics simulators',
           'physics simulations',
+          'educational physics tools',
+          'educational physics simulations',
           'virtual physics lab',
           'interactive physics',
           'mechanics simulator',
@@ -61,6 +65,12 @@ export default function Home({ onNavigate }) {
           '@type': 'WebApplication',
           '@id': `${SITE_URL}/#app`,
           name: 'Physiverse',
+          alternateName: [
+            'physics-simulator',
+            'Physics Simulator',
+            'Educational Physics Tools',
+            'Interactive Physics Simulators',
+          ],
           url: `${SITE_URL}/`,
           applicationCategory: 'EducationalApplication',
           operatingSystem: 'Web',
@@ -112,8 +122,9 @@ export default function Home({ onNavigate }) {
             <h1 className="hero-title">Physiverse</h1>
 
             <p className="hero-sub">
-              Explore mechanics, fields, fluids, optics, thermodynamics, and quantum systems with
-              interactive simulations, live graphs, guided experiments, and exportable data.
+              A free physics simulator and educational physics tools library for mechanics, fields,
+              fluids, optics, thermodynamics, and quantum systems with interactive simulations, live
+              graphs, guided experiments, and exportable data.
             </p>
 
             <div className="hero-actions">
@@ -226,7 +237,9 @@ export default function Home({ onNavigate }) {
         <div className="footer-bottom">
           <p>&copy; 2026 Physiverse. All rights reserved. Interactive physics simulators.</p>
           <div className="footer-keywords">
+            <span>Physics Simulator</span>
             <span>Physics Simulators</span>
+            <span>Educational Physics Tools</span>
             <span>Virtual Lab</span>
             <span>STEM Education</span>
             <span>Interactive Learning</span>

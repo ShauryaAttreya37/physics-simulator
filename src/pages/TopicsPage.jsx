@@ -59,8 +59,11 @@ export default function TopicsPage({ onBack }) {
   if (selectedSim) {
     const simKeywords = [
       selectedSim.title,
+      'physics-simulator',
+      'physics simulator',
       'physics simulation',
       'interactive physics simulator',
+      'educational physics tools',
       ...selectedSim.tags,
     ];
     const simStructuredData = {
@@ -103,11 +106,15 @@ export default function TopicsPage({ onBack }) {
     <div className="page-content custom-scroll">
       <Seo
         title="Physiverse Lab | Simulation Library"
-        description="Browse free interactive physics simulations covering mechanics, fluids, electromagnetism, optics, quantum physics, and thermodynamics."
+        description="Browse free educational physics tools and interactive physics simulator modules covering mechanics, fluids, electromagnetism, optics, quantum physics, and thermodynamics."
         path="/topics"
         keywords={[
+          'physics-simulator',
+          'physics simulator',
+          'educational physics tools',
           'physics simulation library',
           'interactive physics lab',
+          'interactive physics simulator',
           'mechanics simulations',
           'electromagnetism simulations',
           'quantum physics simulations',
@@ -117,9 +124,10 @@ export default function TopicsPage({ onBack }) {
           '@type': 'CollectionPage',
           '@id': `${SITE_URL}/topics#collection`,
           name: 'Physiverse Lab',
+          alternateName: 'Educational physics tools library',
           url: `${SITE_URL}/topics`,
           description:
-            'A browsable library of free interactive physics simulations with live controls, graphs, equations, and classroom experiments.',
+            'A browsable library of free educational physics tools and interactive physics simulations with live controls, graphs, equations, and classroom experiments.',
           hasPart: allSims.map((sim) => ({
             '@type': 'LearningResource',
             name: sim.title,

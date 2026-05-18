@@ -6,9 +6,12 @@ export default function IntegratorsPage() {
     <div className="page-content">
       <Seo
         title="Integrators and Numeric Methods"
-        description="Compare the numerical integration methods behind Physiverse simulations, including symplectic Yoshida methods and adaptive Runge-Kutta RK45."
+        description="Compare the numerical integration methods behind the Physiverse physics simulator and its educational physics tools, including symplectic Yoshida methods and adaptive Runge-Kutta RK45."
         path="/integrators"
         keywords={[
+          'physics-simulator',
+          'physics simulator solvers',
+          'educational physics tools',
           'physics integrators',
           'numerical methods',
           'RK45',

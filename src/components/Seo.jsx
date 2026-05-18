@@ -5,7 +5,7 @@ const SITE_URL = 'https://physiverse.org';
 const SITE_NAME = 'Physiverse';
 const DEFAULT_IMAGE = `${SITE_URL}/images/physics-lab-classroom.jpg`;
 const DEFAULT_DESCRIPTION =
-  'Free interactive physics simulations for mechanics, fluids, electromagnetism, optics, thermodynamics, and quantum systems. Explore concepts with live controls, graphs, equations, and experiments.';
+  'Physiverse is a free physics simulator and educational physics tools library for mechanics, fluids, electromagnetism, optics, thermodynamics, and quantum systems. Explore concepts with live controls, graphs, equations, and experiments.';
 
 export default function Seo({
   title,

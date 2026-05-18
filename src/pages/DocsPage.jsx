@@ -7,9 +7,12 @@ export default function DocsPage() {
     <div className="page-content">
       <Seo
         title="Physics Engine Documentation"
-        description="Learn how Physiverse simulations model mechanics, quantum systems, fluids, and electromagnetism with live graphing, equations, and export tools."
+        description="Learn how the Physiverse physics simulator models mechanics, quantum systems, fluids, and electromagnetism with educational physics tools, live graphing, equations, and exports."
         path="/docs"
         keywords={[
+          'physics-simulator',
+          'physics simulator documentation',
+          'educational physics tools',
           'physics engine documentation',
           'interactive physics documentation',
           'physics equations',
