@@ -215,6 +215,7 @@ export const TOPICS = {
         graphParams: vectorAddition.graphParams,
         guidedExperiments: vectorAddition.guidedExperiments,
         scenarios: vectorAddition.scenarios,
+        classroomGuide: vectorAddition.classroomGuide,
       },
     ],
   },

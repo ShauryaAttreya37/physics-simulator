@@ -12,6 +12,8 @@ import {
   Video,
   Square,
   X,
+  Presentation,
+  ClipboardList,
 } from 'lucide-react';
 import { ArrayBufferTarget, Muxer } from 'mp4-muxer';
 import MakieGraph, { drawMakieGraph } from './MakieGraph';
@@ -193,6 +195,112 @@ function formatOverlayValue(value) {
   return String(value);
 }
 
+function getClassroomGuide(sim) {
+  if (sim.classroomGuide) return sim.classroomGuide;
+  const firstExperiment = sim.guidedExperiments?.[0];
+  return {
+    objective: sim.description,
+    starter: firstExperiment?.steps?.slice(0, 2) ?? [
+      'Ask students to predict what will change before adjusting any controls.',
+      'Run one visible change and have students compare the result with their prediction.',
+    ],
+    teacherMoves: firstExperiment?.steps ?? [
+      'Start with the default setup and identify the important quantities on the canvas.',
+      'Change one variable at a time so the cause and effect stay visible.',
+      'Open Data only after students have described the motion qualitatively.',
+    ],
+    studentChecks: [
+      'Which variable caused the largest visible change?',
+      'What evidence on the canvas supports your answer?',
+      'What would you change next to test your explanation?',
+    ],
+    exitTicket: 'Write one claim and one piece of evidence from the simulation.',
+  };
+}
+
+function getPromptText(item) {
+  if (typeof item === 'string') return item;
+  if (typeof item === 'number' || typeof item === 'boolean') return String(item);
+  if (!item || typeof item !== 'object') return '';
+  return (
+    item.instruction ||
+    item.question ||
+    item.title ||
+    item.explanation ||
+    item.tryThis ||
+    item.commonMisconception ||
+    ''
+  );
+}
+
+function ClassroomListItem({ item }) {
+  if (!item || typeof item !== 'object') return <>{getPromptText(item)}</>;
+
+  const prompt = getPromptText(item);
+  const choiceItems = Array.isArray(item.choices) ? item.choices : [];
+  const details = [item.explanation, item.tryThis].filter(Boolean);
+
+  return (
+    <div className="classroom-list-item">
+      {prompt && <div>{prompt}</div>}
+      {choiceItems.length > 0 && (
+        <ul className="classroom-choice-list">
+          {choiceItems.map((choice, index) => (
+            <li key={`${choice}-${index}`}>{choice}</li>
+          ))}
+        </ul>
+      )}
+      {details.map((detail) => (
+        <div className="classroom-item-detail" key={detail}>
+          {detail}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ClassroomPanel({ sim }) {
+  const guide = getClassroomGuide(sim);
+  const renderList = (items) => (
+    <ol className="classroom-list">
+      {items.map((item, index) => (
+        <li key={`${getPromptText(item)}-${index}`}>
+          <ClassroomListItem item={item} />
+        </li>
+      ))}
+    </ol>
+  );
+
+  return (
+    <div className="side-pane classroom-pane">
+      <section className="classroom-block classroom-objective">
+        <div className="classroom-block-label">Learning Goal</div>
+        <p>{getPromptText(guide.objective)}</p>
+      </section>
+
+      <section className="classroom-block">
+        <div className="classroom-block-label">5-Minute Start</div>
+        {renderList(guide.starter)}
+      </section>
+
+      <section className="classroom-block">
+        <div className="classroom-block-label">Teacher Flow</div>
+        {renderList(guide.teacherMoves)}
+      </section>
+
+      <section className="classroom-block">
+        <div className="classroom-block-label">Student Checks</div>
+        {renderList(guide.studentChecks)}
+      </section>
+
+      <section className="classroom-block">
+        <div className="classroom-block-label">Exit Ticket</div>
+        <p>{getPromptText(guide.exitTicket)}</p>
+      </section>
+    </div>
+  );
+}
+
 function drawExportOverlayFrame({
   targetCanvas,
   sourceCanvas,
@@ -328,6 +436,7 @@ export default function SimulationRunner({ sim, onBack }) {
   const [isExportingVideo, setIsExportingVideo] = useState(false);
   const [globalPan, setGlobalPan] = useState({ x: 0, y: 0 });
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
+  const [projectorMode, setProjectorMode] = useState(false);
 
   const isModern = !!(sim.init && sim.update);
   const engine = usePhysicsEngine(
@@ -737,11 +846,21 @@ export default function SimulationRunner({ sim, onBack }) {
     setShowMobilePanel(false);
   }, []);
 
+  const toggleProjectorMode = useCallback(() => {
+    setProjectorMode((active) => !active);
+    setSidePanelOpen(false);
+    setShowMobilePanel(false);
+    setParams((prev) => {
+      if (!('viewScale' in prev)) return prev;
+      return { ...prev, viewScale: Math.max(Number(prev.viewScale) || 1, 1.15) };
+    });
+  }, []);
+
   return (
     <div
       className={`sim-runner ${sidePanelOpen ? 'side-panel-open' : ''} ${
         showMobilePanel ? 'mobile-panel-open' : ''
-      }`}
+      } ${projectorMode ? 'projector-mode' : ''}`}
     >
       <div className="sim-main-area">
         <div className="sim-runner-top-bar">
@@ -771,6 +890,12 @@ export default function SimulationRunner({ sim, onBack }) {
 
           <div className="sim-panel-actions" aria-label="Simulation panels">
             <button
+              className={`btn panel-action-btn ${sidePanelOpen && sideTab === 'classroom' ? 'active' : ''}`}
+              onClick={() => openSidePanel('classroom')}
+            >
+              <ClipboardList size={14} /> Class
+            </button>
+            <button
               className={`btn panel-action-btn ${sidePanelOpen && sideTab === 'controls' ? 'active' : ''}`}
               onClick={() => openSidePanel('controls')}
             >
@@ -787,6 +912,15 @@ export default function SimulationRunner({ sim, onBack }) {
               onClick={() => openSidePanel('equations')}
             >
               <BookOpen size={14} /> Theory
+            </button>
+          </div>
+
+          <div className="sim-toolbar-group projector-toggle hide-mobile">
+            <button
+              className={`btn panel-action-btn ${projectorMode ? 'active' : ''}`}
+              onClick={toggleProjectorMode}
+            >
+              <Presentation size={14} /> Project
             </button>
           </div>
 
@@ -864,13 +998,25 @@ export default function SimulationRunner({ sim, onBack }) {
       <div className="sim-side-panel" aria-hidden={!sidePanelOpen}>
         <div className="sim-side-panel-header">
           <span className="sim-side-panel-title">
-            {sideTab === 'controls' ? 'Parameters' : sideTab === 'graph' ? 'Data' : 'Theory'}
+            {sideTab === 'classroom'
+              ? 'Classroom'
+              : sideTab === 'controls'
+                ? 'Parameters'
+                : sideTab === 'graph'
+                  ? 'Data'
+                  : 'Theory'}
           </span>
           <button className="icon-btn" onClick={closeSidePanel} title="Close panel">
             <X size={16} />
           </button>
         </div>
         <div className="sim-side-tabs">
+          <button
+            className={`sim-side-tab ${sideTab === 'classroom' ? 'active' : ''}`}
+            onClick={() => setSideTab('classroom')}
+          >
+            <ClipboardList size={13} /> Class
+          </button>
           <button
             className={`sim-side-tab ${sideTab === 'controls' ? 'active' : ''}`}
             onClick={() => setSideTab('controls')}
@@ -892,6 +1038,8 @@ export default function SimulationRunner({ sim, onBack }) {
         </div>
 
         <div className="sim-side-content custom-scroll">
+          {sideTab === 'classroom' && <ClassroomPanel sim={sim} />}
+
           {sideTab === 'controls' && (
             <div className="side-pane">
               <div className="side-pane-header">
@@ -943,6 +1091,13 @@ export default function SimulationRunner({ sim, onBack }) {
 
       {!sidePanelOpen && (
         <div className="sim-mobile-dock" aria-label="Simulation quick actions">
+          <button
+            className="icon-btn"
+            onClick={() => openSidePanel('classroom')}
+            title="Open classroom flow"
+          >
+            <ClipboardList size={17} />
+          </button>
           <button className="icon-btn" onClick={() => openSidePanel('graph')} title="Open data">
             <LineChartIcon size={17} />
           </button>

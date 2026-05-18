@@ -19,6 +19,8 @@
   --shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
   --font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
+  --font-telemetry:
+    'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --r-sm: 4px;
   --r-md: 6px;
   --r-lg: 8px;
@@ -611,6 +613,12 @@ canvas {
   border-left: 1px solid var(--border);
 }
 
+.projector-toggle {
+  margin-left: var(--sp-2);
+  padding-left: var(--sp-4);
+  border-left: 1px solid var(--border);
+}
+
 .sim-mobile-dock {
   display: none;
 }
@@ -661,6 +669,40 @@ canvas {
   overflow: hidden;
   background: var(--canvas-bg);
   touch-action: none;
+}
+
+.sim-runner.projector-mode .sim-runner-top-bar {
+  min-height: 72px;
+  border-bottom-color: #9fb8cc;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset;
+}
+
+.sim-runner.projector-mode .sim-title {
+  font-size: 22px;
+  font-weight: 850;
+}
+
+.sim-runner.projector-mode .sim-meta {
+  font-size: 12px;
+}
+
+.sim-runner.projector-mode .method-badge {
+  min-height: 24px;
+  font-size: 11px;
+}
+
+.sim-runner.projector-mode .sim-canvas-wrapper {
+  background: #f4f9ff;
+}
+
+.sim-runner.projector-mode .export-actions,
+.sim-runner.projector-mode .sim-speed-control,
+.sim-runner.projector-mode .sim-display-toggle {
+  display: none;
+}
+
+.sim-runner.projector-mode .data-readout {
+  display: none;
 }
 
 .sim-runner-canvas {
@@ -719,7 +761,7 @@ canvas {
 
 .sim-side-tabs {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   height: 48px;
   border-bottom: 1px solid var(--border);
 }
@@ -787,6 +829,73 @@ canvas {
   line-height: 1.6;
 }
 
+.classroom-pane {
+  gap: var(--sp-4);
+}
+
+.classroom-block {
+  padding: var(--sp-4);
+  border: 1px solid #cbddea;
+  border-radius: var(--r-lg);
+  background: #ffffff;
+}
+
+.classroom-objective {
+  background: #eef7ff;
+  border-color: #a8cbe5;
+}
+
+.classroom-block-label {
+  margin-bottom: var(--sp-2);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.classroom-block p {
+  margin: 0;
+  color: var(--text-sub);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.classroom-list {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--text-sub);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.classroom-list li + li {
+  margin-top: var(--sp-2);
+}
+
+.classroom-list-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.classroom-choice-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.classroom-item-detail {
+  padding: var(--sp-2);
+  border-left: 3px solid #a8cbe5;
+  background: #f7fbff;
+  color: #40586d;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .sim-error-overlay {
   position: absolute;
   inset: 0;
@@ -847,7 +956,7 @@ canvas {
   border-radius: var(--r-lg);
   background: rgba(255, 255, 255, 0.94);
   box-shadow: var(--shadow);
-  font-family: var(--font-mono);
+  font-family: var(--font-telemetry);
 }
 
 .data-readout-title {
@@ -855,7 +964,7 @@ canvas {
   padding-bottom: var(--sp-2);
   border-bottom: 1px solid var(--border);
   color: var(--text);
-  font-family: var(--font);
+  font-family: var(--font-telemetry);
   font-size: 12px;
   font-weight: 700;
 }
@@ -899,7 +1008,7 @@ canvas {
   border-radius: var(--r-sm);
   background: var(--accent-weak);
   color: var(--accent);
-  font-family: var(--font-mono);
+  font-family: var(--font-telemetry);
   font-size: 10px;
   font-weight: 600;
 }

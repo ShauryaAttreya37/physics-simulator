@@ -1,7 +1,8 @@
 import { rk4 } from '../../physics/solvers';
+import { drawArrow } from '../../utils/canvas';
 
 /**
- * Projectile Motion with Air Drag
+ * Projectile Motion with Air Drag — Research-grade interactive simulation
  */
 
 const DEFAULTS = {
@@ -10,6 +11,11 @@ const DEFAULTS = {
   launchSpeed: 40,
   launchAngle: 45,
   dragCoeff: 0.01,
+  showForces: 1,
+  showTrail: 1,
+  showEnergy: 1,
+  showVelocity: 1,
+  showIdeal: 1,
 };
 
 export const defaultParams = { ...DEFAULTS };
@@ -96,6 +102,11 @@ export const controls = [
   { key: 'mass', label: 'Mass [kg]', min: 0.1, max: 10, step: 0.1 },
   { key: 'gravity', label: 'Gravity [m/s²]', min: 1, max: 20, step: 0.1 },
   { key: 'dragCoeff', label: 'Drag b/m', min: 0, max: 0.1, step: 0.001 },
+  { key: 'showForces', label: 'Show Forces', type: 'toggle' },
+  { key: 'showVelocity', label: 'Show Velocity', type: 'toggle' },
+  { key: 'showTrail', label: 'Show Trail', type: 'toggle' },
+  { key: 'showEnergy', label: 'Show Energy', type: 'toggle' },
+  { key: 'showIdeal', label: 'Show Ideal Path', type: 'toggle' },
 ];
 
 export const method = 'rk4';
@@ -181,8 +192,8 @@ export function create(canvas, initParams = {}) {
   let x, y, vx, vy, simTime, stepCount;
   let trail; // [{x, y, vx, vy, t}]
   let E0;
-  let landed; // boolean — projectile hit ground
-  let landX; // landing position
+  let landed;
+  let landX;
   let maxHeight;
 
   // Interaction State
@@ -212,7 +223,6 @@ export function create(canvas, initParams = {}) {
     trail.push({ x, y, vx, vy, t: 0 });
   }
 
-  // State derivatives: [dx, dy, dvx, dvy]
   function derivs(state, p) {
     const [, , cvx, cvy] = state;
     const speed = Math.sqrt(cvx * cvx + cvy * cvy);
@@ -222,21 +232,16 @@ export function create(canvas, initParams = {}) {
   }
 
   function tick(dt) {
-    if (landed) {
-      return;
-    }
-
+    if (landed) return;
     const steps = 16;
     const h = dt / steps;
 
     for (let i = 0; i < steps; i++) {
       if (landed) break;
-
       const s0 = [x, y, vx, vy];
       const nextState = rk4(s0, h, derivs, p);
       const [newX, newY, newVx, newVy] = nextState;
 
-      // Check ground intersection (linear interpolation for exact landing)
       if (newY < 0 && simTime > 0.01) {
         const frac = y / (y - newY);
         x = x + (newX - x) * frac;
@@ -256,7 +261,6 @@ export function create(canvas, initParams = {}) {
       vy = newVy;
       simTime += h;
       stepCount++;
-
       if (y > maxHeight) maxHeight = y;
     }
 
@@ -265,7 +269,6 @@ export function create(canvas, initParams = {}) {
     }
   }
 
-  // Analytical parabola (vacuum)
   function getIdealTrajectory(xMax) {
     const rad = (p.launchAngle * Math.PI) / 180;
     const v0cos = p.launchSpeed * Math.cos(rad);
@@ -285,13 +288,44 @@ export function create(canvas, initParams = {}) {
   }
 
   function render() {
-    const W = canvas.width,
-      H = canvas.height;
+    const dpr = window.devicePixelRatio || 1;
+    const wrapper = canvas.parentElement;
+    let cssW = canvas.width,
+      cssH = canvas.height;
+    if (wrapper) {
+      cssW = wrapper.offsetWidth;
+      cssH = wrapper.offsetHeight;
+      if (canvas.width !== cssW * dpr || canvas.height !== cssH * dpr) {
+        canvas.width = cssW * dpr;
+        canvas.height = cssH * dpr;
+        canvas.style.width = `${cssW}px`;
+        canvas.style.height = `${cssH}px`;
+      }
+    }
 
-    ctx.fillStyle = '#ffffff';
+    ctx.save();
+    ctx.scale(dpr, dpr);
+    const W = cssW,
+      H = cssH;
+
+    ctx.fillStyle = '#f8fafc';
     ctx.fillRect(0, 0, W, H);
 
-    // Coordinate mapping (8% margin)
+    ctx.strokeStyle = 'rgba(0,0,0,0.04)';
+    ctx.lineWidth = 0.5;
+    for (let gx = 0; gx < W; gx += 40) {
+      ctx.beginPath();
+      ctx.moveTo(gx, 0);
+      ctx.lineTo(gx, H);
+      ctx.stroke();
+    }
+    for (let gy = 0; gy < H; gy += 40) {
+      ctx.beginPath();
+      ctx.moveTo(0, gy);
+      ctx.lineTo(W, gy);
+      ctx.stroke();
+    }
+
     const ox = W * 0.08;
     const oy = H * 0.82;
 
@@ -310,7 +344,6 @@ export function create(canvas, initParams = {}) {
     const sx = (wx) => ox + wx * scale;
     const sy = (wy) => oy - wy * scale;
 
-    // --- Ground ---
     ctx.beginPath();
     ctx.moveTo(0, oy);
     ctx.lineTo(W, oy);
@@ -318,12 +351,23 @@ export function create(canvas, initParams = {}) {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // --- Grid lines ---
-    ctx.font = '10px "Inter", sans-serif';
+    ctx.fillStyle = 'rgba(71, 85, 105, 0.05)';
+    ctx.fillRect(0, oy, W, H - oy);
+
+    ctx.font = '10px "JetBrains Mono", monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
 
-    // Horizontal axis (Range)
+    const niceStep = (range, targetSteps) => {
+      const rough = range / targetSteps;
+      const mag = Math.pow(10, Math.floor(Math.log10(rough)));
+      const residual = rough / mag;
+      if (residual <= 1.5) return mag;
+      if (residual <= 3.5) return 2 * mag;
+      if (residual <= 7.5) return 5 * mag;
+      return 10 * mag;
+    };
+
     const xGridStep = niceStep(targetW, 6);
     for (let gv = 0; gv < targetW * 1.2; gv += xGridStep) {
       const gx = sx(gv);
@@ -338,7 +382,6 @@ export function create(canvas, initParams = {}) {
       ctx.fillText(`${gv.toFixed(0)}`, gx, oy + 8);
     }
 
-    // Vertical axis (Height)
     const yGridStep = niceStep(targetH, 5);
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
@@ -351,25 +394,37 @@ export function create(canvas, initParams = {}) {
       ctx.strokeStyle = '#94a3b8';
       ctx.lineWidth = 1;
       ctx.stroke();
-      ctx.fillStyle = '#475569';
-      ctx.fillText(`${gh.toFixed(0)}`, ox - 8, gy);
+      if (gh > 0) {
+        ctx.fillStyle = '#475569';
+        ctx.fillText(`${gh.toFixed(0)}`, ox - 8, gy);
+      }
     }
 
-    // --- Ideal Trajectory (Reference) ---
-    const idealPts = getIdealTrajectory(rangeIdeal * 1.15 + 10);
-    if (idealPts.length > 1) {
-      ctx.beginPath();
-      ctx.moveTo(sx(idealPts[0].x), sy(idealPts[0].y));
-      for (const pt of idealPts) ctx.lineTo(sx(pt.x), sy(pt.y));
-      ctx.strokeStyle = 'rgba(71, 85, 105, 0.2)';
-      ctx.setLineDash([5, 5]);
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      ctx.setLineDash([]);
+    if (p.showIdeal) {
+      const idealPts = getIdealTrajectory(rangeIdeal * 1.15 + 10);
+      if (idealPts.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(sx(idealPts[0].x), sy(idealPts[0].y));
+        for (const pt of idealPts) ctx.lineTo(sx(pt.x), sy(pt.y));
+        ctx.strokeStyle = 'rgba(71, 85, 105, 0.3)';
+        ctx.setLineDash([5, 5]);
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
     }
 
-    // --- Actual Trajectory ---
-    if (trail.length > 1) {
+    if (p.showTrail && trail.length > 1) {
+      for (let i = 1; i < trail.length; i++) {
+        const alpha = landed ? 0.8 : 0.3 + 0.7 * (i / trail.length);
+        ctx.beginPath();
+        ctx.moveTo(sx(trail[i - 1].x), sy(trail[i - 1].y));
+        ctx.lineTo(sx(trail[i].x), sy(trail[i].y));
+        ctx.strokeStyle = `rgba(239, 68, 68, ${alpha})`;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+      }
+    } else if (!p.showTrail && trail.length > 1) {
       ctx.beginPath();
       ctx.moveTo(sx(trail[0].x), sy(trail[0].y));
       for (let i = 1; i < trail.length; i++) {
@@ -380,88 +435,325 @@ export function create(canvas, initParams = {}) {
       ctx.stroke();
     }
 
-    // --- Interaction Handles ---
+    if (landed) {
+      const landPx = sx(landX);
+      ctx.beginPath();
+      ctx.ellipse(landPx, oy, 8, 3, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(239, 68, 68, 0.4)';
+      ctx.fill();
+    }
+
     const launchX = sx(0);
     const launchY = sy(0);
     currentLaunchX = launchX;
     currentLaunchY = launchY;
 
-    const dirLen = Math.max(20, p.launchSpeed * 1.5);
-    const tipX = launchX + dirLen * Math.cos(rad);
-    const tipY = launchY - dirLen * Math.sin(rad);
-    currentTipX = tipX;
-    currentTipY = tipY;
+    if (simTime === 0) {
+      const dirLen = Math.max(30, p.launchSpeed * 1.8);
+      const tipX = launchX + dirLen * Math.cos(rad);
+      const tipY = launchY - dirLen * Math.sin(rad);
+      currentTipX = tipX;
+      currentTipY = tipY;
 
-    // Vector direction
-    ctx.beginPath();
-    ctx.moveTo(launchX, launchY);
-    ctx.lineTo(tipX, tipY);
-    ctx.strokeStyle = isDraggingVector ? '#3b82f6' : '#94a3b8';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Handle
-    ctx.beginPath();
-    ctx.arc(tipX, tipY, 6, 0, Math.PI * 2);
-    ctx.fillStyle = isDraggingVector ? '#3b82f6' : '#ffffff';
-    ctx.fill();
-    ctx.strokeStyle = '#3b82f6';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // --- Projectile ---
-    if (!landed) {
-      const px = sx(x);
-      const py = sy(y);
       ctx.beginPath();
-      ctx.arc(px, py, 6, 0, Math.PI * 2);
-      ctx.fillStyle = '#1e293b';
+      ctx.arc(launchX, launchY, 25, 0, -rad, true);
+      ctx.strokeStyle = 'rgba(59, 130, 246, 0.5)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = '#3b82f6';
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`${p.launchAngle}°`, launchX + 30, launchY - 15);
+
+      drawArrow(ctx, launchX, launchY, tipX, tipY, {
+        color: isDraggingVector ? '#2563eb' : '#64748b',
+        lineWidth: isDraggingVector ? 3 : 2,
+        headLength: 12,
+        label: `v₀ = ${p.launchSpeed} m/s`,
+      });
+
+      ctx.beginPath();
+      ctx.arc(tipX, tipY, 7, 0, Math.PI * 2);
+      ctx.fillStyle = isDraggingVector ? '#2563eb' : '#ffffff';
       ctx.fill();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#2563eb';
+      ctx.lineWidth = 2;
       ctx.stroke();
     }
 
-    // --- Landing Mark ---
-    if (landed) {
-      const landPx = sx(landX);
+    const px = sx(x);
+    const py = sy(y);
+    const bobR = Math.max(5, 5 + Math.sqrt(p.mass) * 1.5);
+
+    const drawProjectileVector = (x1, y1, x2, y2, { color, label, labelSide = 1 }) => {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const len = Math.hypot(dx, dy);
+      if (len < 1) return;
+
+      const angle = Math.atan2(dy, dx);
+      ctx.save();
+      ctx.setLineDash([]);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+      ctx.lineWidth = 7;
       ctx.beginPath();
-      ctx.arc(landPx, oy, 4, 0, Math.PI * 2);
-      ctx.fillStyle = '#ef4444';
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      const headLength = 11;
+      const headSpread = Math.PI / 7;
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(
+        x2 - headLength * Math.cos(angle - headSpread),
+        y2 - headLength * Math.sin(angle - headSpread),
+      );
+      ctx.lineTo(
+        x2 - headLength * Math.cos(angle + headSpread),
+        y2 - headLength * Math.sin(angle + headSpread),
+      );
+      ctx.closePath();
       ctx.fill();
+
+      if (label) {
+        const nx = Math.cos(angle + Math.PI / 2) * labelSide;
+        const ny = Math.sin(angle + Math.PI / 2) * labelSide;
+        const labelX = Math.max(28, Math.min(W - 28, x2 + nx * 16));
+        const labelY = Math.max(18, Math.min(H - 18, y2 + ny * 16));
+
+        ctx.font = '700 11px "Montserrat", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const metrics = ctx.measureText(label);
+        const labelW = metrics.width + 14;
+        const labelH = 18;
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.94)';
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.55)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(labelX - labelW / 2, labelY - labelH / 2, labelW, labelH, 5);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = color;
+        ctx.fillText(label, labelX, labelY + 0.5);
+      }
+
+      ctx.restore();
+    };
+
+    const scaledVectorEnd = (x1, y1, fx, fy, factor, minLen, maxLen) => {
+      const rawDx = fx * factor;
+      const rawDy = -fy * factor;
+      const rawLen = Math.hypot(rawDx, rawDy);
+      if (rawLen < 0.001) return { x: x1, y: y1 };
+      const targetLen = Math.max(minLen, Math.min(maxLen, rawLen));
+      return {
+        x: x1 + (rawDx / rawLen) * targetLen,
+        y: y1 + (rawDy / rawLen) * targetLen,
+      };
+    };
+
+    const bobGrad = ctx.createRadialGradient(
+      px - bobR * 0.3,
+      py - bobR * 0.3,
+      bobR * 0.1,
+      px,
+      py,
+      bobR,
+    );
+    bobGrad.addColorStop(0, '#f87171');
+    bobGrad.addColorStop(0.8, '#dc2626');
+    bobGrad.addColorStop(1, '#991b1b');
+
+    ctx.beginPath();
+    ctx.arc(px, py, bobR, 0, Math.PI * 2);
+    ctx.fillStyle = bobGrad;
+    ctx.fill();
+    ctx.strokeStyle = '#7f1d1d';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    if (p.showForces && simTime > 0 && !landed) {
+      const speed = Math.sqrt(vx * vx + vy * vy);
+      const fDragX = -p.dragCoeff * speed * vx * p.mass;
+      const fDragY = -p.dragCoeff * speed * vy * p.mass;
+      const fGravY = -p.mass * p.gravity;
+
+      const vecScale = scale * 0.1;
+
+      const gravityTail = { x: px - bobR - 18, y: py + bobR * 0.4 };
+      const gravityTip = scaledVectorEnd(gravityTail.x, gravityTail.y, 0, fGravY, vecScale, 32, 76);
+      drawProjectileVector(gravityTail.x, gravityTail.y, gravityTip.x, gravityTip.y, {
+        color: '#7c3aed',
+        label: 'mg',
+        labelSide: 1,
+      });
+
+      if (p.dragCoeff > 0 && speed > 0.1) {
+        const dragTail = { x: px, y: py - bobR - 20 };
+        const dragTip = scaledVectorEnd(dragTail.x, dragTail.y, fDragX, fDragY, vecScale, 34, 82);
+        drawProjectileVector(dragTail.x, dragTail.y, dragTip.x, dragTip.y, {
+          color: '#ea580c',
+          label: 'Drag',
+          labelSide: -1,
+        });
+      }
     }
 
-    // --- HUD ---
-    const hudX = W - 180;
+    if (p.showVelocity && simTime > 0 && !landed) {
+      const vecScale = scale * 0.15;
+      const velocityTail = { x: px + bobR + 18, y: py - bobR * 0.4 };
+      const velocityTip = scaledVectorEnd(velocityTail.x, velocityTail.y, vx, vy, vecScale, 38, 90);
+      drawProjectileVector(velocityTail.x, velocityTail.y, velocityTip.x, velocityTip.y, {
+        color: '#0891b2',
+        label: 'v',
+        labelSide: 1,
+      });
+    }
+
+    if (p.showEnergy) {
+      const speed2 = vx * vx + vy * vy;
+      const ke = 0.5 * p.mass * speed2;
+      const pe = Math.max(0, p.mass * p.gravity * y);
+      const te = ke + pe;
+      const maxE = Math.max(te, E0, 1);
+
+      const barX = W - 60;
+      const barBottom = H - 40;
+      const barHeight = H * 0.35;
+      const barW = 20;
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.beginPath();
+      ctx.roundRect(barX - 16, barBottom - barHeight - 40, barW + 32, barHeight + 60, 8);
+      ctx.fill();
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.stroke();
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'bold 9px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('ENERGY', barX + barW / 2, barBottom - barHeight - 25);
+
+      const keH = (ke / maxE) * barHeight;
+      const peH = (pe / maxE) * barHeight;
+
+      const peGrad = ctx.createLinearGradient(0, barBottom - keH - peH, 0, barBottom - keH);
+      peGrad.addColorStop(0, '#4ade80');
+      peGrad.addColorStop(1, '#16a34a');
+      ctx.fillStyle = peGrad;
+      ctx.fillRect(barX, barBottom - keH - peH, barW, peH);
+
+      const keGrad = ctx.createLinearGradient(0, barBottom - keH, 0, barBottom);
+      keGrad.addColorStop(0, '#60a5fa');
+      keGrad.addColorStop(1, '#2563eb');
+      ctx.fillStyle = keGrad;
+      ctx.fillRect(barX, barBottom - keH, barW, keH);
+
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.strokeRect(barX, barBottom - barHeight, barW, barHeight);
+
+      const totalH = (te / maxE) * barHeight;
+      ctx.setLineDash([3, 3]);
+      ctx.strokeStyle = '#b45309';
+      ctx.beginPath();
+      ctx.moveTo(barX - 6, barBottom - totalH);
+      ctx.lineTo(barX + barW + 6, barBottom - totalH);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.textAlign = 'right';
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillStyle = '#2563eb';
+      ctx.fillText(`${ke.toFixed(0)} J`, barX - 5, barBottom - 5);
+      ctx.fillStyle = '#16a34a';
+      ctx.fillText(`${pe.toFixed(0)} J`, barX - 5, barBottom - keH - 5);
+
+      if (te < E0 - 1) {
+        ctx.fillStyle = '#ef4444';
+        ctx.fillText(`-${(E0 - te).toFixed(0)} J`, barX - 5, barBottom - barHeight + 10);
+      }
+    }
+
+    const hudX = 20;
     const hudY = 20;
+    const hudW = 180;
+    const hudH = 120;
+
     ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.fillRect(hudX, hudY, 160, 100);
+    ctx.beginPath();
+    ctx.roundRect(hudX, hudY, hudW, hudH, 8);
+    ctx.fill();
     ctx.strokeStyle = '#e2e8f0';
-    ctx.strokeRect(hudX, hudY, 160, 100);
+    ctx.stroke();
 
-    ctx.fillStyle = '#475569';
-    ctx.font = 'bold 11px sans-serif';
+    ctx.font = '700 10px "Montserrat", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('FLIGHT DATA', hudX + 10, hudY + 20);
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = '#64748b';
+    ctx.fillText('FLIGHT TELEMETRY', hudX + 12, hudY + 12);
 
-    ctx.font = '11px sans-serif';
-    ctx.fillText(`Time: ${simTime.toFixed(2)}s`, hudX + 10, hudY + 40);
-    ctx.fillText(`Range: ${x.toFixed(1)}m`, hudX + 10, hudY + 55);
-    ctx.fillText(`Height: ${y.toFixed(1)}m`, hudX + 10, hudY + 70);
-    ctx.fillText(`Speed: ${Math.hypot(vx, vy).toFixed(1)}m/s`, hudX + 10, hudY + 85);
-  }
+    const speed = Math.hypot(vx, vy);
+    const hudLines = [
+      { label: 'Time', value: `${simTime.toFixed(2)} s`, color: '#0f172a' },
+      { label: 'Range (x)', value: `${x.toFixed(1)} m`, color: '#0f172a' },
+      { label: 'Height (y)', value: `${y.toFixed(1)} m`, color: '#16a34a' },
+      { label: 'Speed (|v|)', value: `${speed.toFixed(1)} m/s`, color: '#2563eb' },
+      { label: 'Max Height', value: `${maxHeight.toFixed(1)} m`, color: '#b45309' },
+    ];
 
-  // --- Utility: draw arrow with arrowhead ---
+    hudLines.forEach((line, i) => {
+      const ly = hudY + 32 + i * 16;
+      ctx.fillStyle = '#64748b';
+      ctx.font = '500 9px "Montserrat", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(line.label, hudX + 12, ly);
+      ctx.fillStyle = line.color;
+      ctx.font = '700 9px "Montserrat", sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(line.value, hudX + hudW - 12, ly);
+    });
 
-  // --- Utility: compute nice grid step ---
-  function niceStep(range, targetSteps) {
-    const rough = range / targetSteps;
-    const mag = Math.pow(10, Math.floor(Math.log10(rough)));
-    const residual = rough / mag;
-    if (residual <= 1.5) return mag;
-    if (residual <= 3.5) return 2 * mag;
-    if (residual <= 7.5) return 5 * mag;
-    return 10 * mag;
+    if (p.showForces && simTime > 0 && !landed) {
+      const legX = 20;
+      const legY = hudY + hudH + 10;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.beginPath();
+      ctx.roundRect(legX, legY, 110, p.dragCoeff > 0 ? 55 : 35, 6);
+      ctx.fill();
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.stroke();
+
+      ctx.font = 'bold 9px "JetBrains Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#a78bfa';
+      ctx.fillText('↓ Gravity (mg)', legX + 10, legY + 12);
+      if (p.dragCoeff > 0) {
+        ctx.fillStyle = '#fb923c';
+        ctx.fillText('↙ Air Drag', legX + 10, legY + 28);
+      }
+      if (p.showVelocity) {
+        ctx.fillStyle = '#22d3ee';
+        ctx.fillText('↗ Velocity', legX + 10, legY + (p.dragCoeff > 0 ? 44 : 28));
+      }
+    }
+
+    ctx.restore();
   }
 
   let rafId,
@@ -470,11 +762,13 @@ export function create(canvas, initParams = {}) {
   let speedScale = 1.0;
 
   function handlePointerDown(e) {
+    if (simTime > 0) return;
     const rect = canvas.getBoundingClientRect();
-    const hitX = e.clientX - rect.left;
-    const hitY = e.clientY - rect.top;
+    const dpr = window.devicePixelRatio || 1;
+    const hitX = (e.clientX - rect.left) * dpr;
+    const hitY = (e.clientY - rect.top) * dpr;
 
-    if (Math.hypot(hitX - currentTipX, hitY - currentTipY) <= 25) {
+    if (Math.hypot(hitX - currentTipX, hitY - currentTipY) <= 30 * dpr) {
       isDraggingVector = true;
     }
   }
@@ -482,26 +776,25 @@ export function create(canvas, initParams = {}) {
   function handlePointerMove(e) {
     if (!isDraggingVector) return;
     const rect = canvas.getBoundingClientRect();
-    const hitX = e.clientX - rect.left;
-    const hitY = e.clientY - rect.top;
+    const dpr = window.devicePixelRatio || 1;
+    const hitX = (e.clientX - rect.left) * dpr;
+    const hitY = (e.clientY - rect.top) * dpr;
 
     const dx = hitX - currentLaunchX;
     const dy = currentLaunchY - hitY;
 
-    // Update angle
     let angle = Math.atan2(dy, dx) * (180 / Math.PI);
     if (angle < 0) angle = 0;
     if (angle > 90) angle = 90;
     p.launchAngle = Math.round(angle);
 
-    // Update speed
     const dist = Math.hypot(dx, dy);
-    let speed = dist / 1.5;
+    let speed = dist / (1.5 * dpr);
     if (speed < 5) speed = 5;
     if (speed > 100) speed = 100;
     p.launchSpeed = Math.round(speed);
 
-    initState(); // Reset trajectory while dragging
+    initState();
     render();
   }
 
@@ -547,6 +840,9 @@ export function create(canvas, initParams = {}) {
     setParams(next) {
       Object.assign(p, next);
       if (!isDraggingVector) {
+        if ('launchSpeed' in next || 'launchAngle' in next || 'gravity' in next) {
+          if (simTime === 0) initState();
+        }
         render();
       }
     },
