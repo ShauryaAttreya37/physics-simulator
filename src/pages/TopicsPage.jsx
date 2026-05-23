@@ -564,6 +564,42 @@ const ICONS = {
       <circle cx="32" cy="32" r="3" fill="currentColor" />
     </svg>
   ),
+  'wave-on-a-string': (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      <path
+        d="M 8 32 C 16 12, 28 52, 40 16 C 46 4, 52 32, 56 32"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeDasharray="2 2"
+        opacity="0.3"
+      />
+      <path
+        d="M 8 32 C 16 12, 28 52, 40 16 C 46 4, 52 32, 56 32"
+        stroke="currentColor"
+        strokeWidth="2.5"
+      />
+      {[
+        [8, 32],
+        [16, 24],
+        [24, 38],
+        [32, 44],
+        [40, 16],
+        [48, 20],
+        [56, 32],
+      ].map(([x, y], i) => (
+        <circle
+          key={i}
+          cx={x}
+          cy={y}
+          r={i === 4 ? 4.5 : 3.5}
+          fill={i === 4 ? '#10b981' : i % 2 === 0 ? '#f97316' : '#64748b'}
+          stroke="currentColor"
+          strokeWidth="1"
+        />
+      ))}
+      <rect x="2" y="26" width="6" height="12" rx="1" fill="#3b82f6" />
+    </svg>
+  ),
   'electric-charges': (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
       <path

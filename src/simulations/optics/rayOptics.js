@@ -1,7 +1,8 @@
 /**
- * Ray Optics Bench
+ * Thin-Lens Optics Bench
  *
- * Geometric optics simulation for lenses, mirrors, and a parallel glass slab.
+ * Geometric optics simulation centered on the ideal thin-lens approximation,
+ * with mirror and parallel glass slab comparisons.
  * Uses paraxial ray tracing for calculations but renders rays hitting the curved surfaces.
  */
 const ELEMENTS = [
@@ -71,15 +72,15 @@ export const equationSections = [
   {
     title: 'Introduction',
     content:
-      'Geometrical optics uses light rays to understand how lenses, mirrors, and prisms bend and focus light. This simulation traces rays through optical systems to show how images are formed. You can experiment with lenses, mirrors, and refractive materials to understand cameras, telescopes, and eyeglasses.',
+      'Geometrical optics uses light rays to understand how lenses, mirrors, and refractive materials bend and focus light. This bench is primarily a thin-lens simulation: lens image locations and magnification use the ideal thin-lens, paraxial approximation. Mirror and glass-slab modes are included as comparisons for reflection and Snell-law refraction.',
   },
   {
-    title: 'Thin Lens and Mirror Equation',
+    title: 'Thin-Lens and Mirror Equation',
     equations: [
       {
         latex: String.raw`\frac{1}{f} = \frac{1}{d_o} + \frac{1}{d_i}`,
         description:
-          'The lens/mirror equation. It tells you where the image forms. If d_i is negative, the image is virtual (on the same side as object).',
+          'The ideal thin-lens and spherical-mirror equation. It tells you where the image forms. If d_i is negative, the image is virtual (on the same side as object).',
       },
       {
         latex: String.raw`m = -\frac{d_i}{d_o} = \frac{h_i}{h_o}`,
@@ -137,7 +138,7 @@ export const equationSections = [
   {
     title: 'How to Use',
     content:
-      '1. Select different optical elements (lens, mirror, prism, slab).\n2. Adjust object distance and height.\n3. Change focal length for lenses/mirrors.\n4. Try different refractive indices for prisms and slabs.\n5. Watch how rays bend and where images form.\n6. Use scenarios like "Camera Lens" or "Magnifying Glass" for examples.',
+      '1. Select a thin lens, mirror, or glass slab.\n2. Adjust object distance and height.\n3. Change focal length for the thin-lens and mirror modes.\n4. Try different refractive indices for the slab mode.\n5. Watch how rays bend and where images form.\n6. Use scenarios like "Camera Lens" or "Magnifying Glass" for examples.',
   },
   {
     title: 'Beginner Tips',

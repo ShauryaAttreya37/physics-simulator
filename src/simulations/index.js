@@ -32,6 +32,7 @@ import * as rayOptics from './optics/rayOptics';
 import * as totalInternalReflection from './optics/totalInternalReflection';
 import * as collisions from './mechanics/collisions';
 import * as idealGas from './thermodynamics/idealGas';
+import * as waveOnAString from './waves/waveOnAString';
 import { inferControlTooltip } from '../constants/physicsTooltips';
 
 const CONTROL_MARKERS = {
@@ -609,9 +610,9 @@ export const TOPICS = {
     sims: [
       {
         id: 'ray-optics',
-        title: 'Ray Optics Bench',
+        title: 'Thin-Lens Optics Bench',
         description:
-          'Trace rays through lenses, mirrors, and a glass slab. Compare focal length, image location, and magnification.',
+          'Trace rays with the ideal thin-lens model, plus mirror and glass-slab comparisons. Compare focal length, image location, and magnification.',
         tags: ['Thin Lens', 'Snell', 'Virtual Images'],
 
         method: 'analytical',
@@ -704,6 +705,27 @@ export const TOPICS = {
         graphParams: idealGas.graphParams,
         scenarios: idealGas.scenarios,
         guidedExperiments: idealGas.guidedExperiments,
+      },
+    ],
+  },
+  waves: {
+    label: 'Waves',
+    sims: [
+      {
+        id: 'wave-on-a-string',
+        title: 'Wave on a String',
+        description:
+          'Wiggle the end of a string to create waves. Adjust tension, damping, and frequency to study propagation and boundary reflections.',
+        tags: ['1D Waves', 'Reflection', 'Boundary Conditions', 'Tension'],
+        method: 'euler-chromer',
+        create: waveOnAString.create,
+        controls: waveOnAString.controls,
+        defaultParams: waveOnAString.defaultParams,
+        equationSections: waveOnAString.equationSections,
+        graphParams: waveOnAString.graphParams,
+        scenarios: waveOnAString.scenarios,
+        guidedExperiments: waveOnAString.guidedExperiments,
+        classroomGuide: waveOnAString.classroomGuide,
       },
     ],
   },
