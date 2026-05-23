@@ -31,3 +31,6 @@ dist-ssr
 
 # Local Database
 server/data/
+
+# Copilot workspace
+.claude/
