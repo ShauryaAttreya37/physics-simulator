@@ -98,6 +98,12 @@ export const scenarios = [
     params: { alpha: 0, targetOmega: 3.0, radiusA: 1.2, radiusB: 2.4, showTangentialVec: false },
   },
   {
+    name: 'Continuous Acceleration',
+    description:
+      'Platter continues to accelerate at a steady rate. Excellent for studying how centripetal acceleration grows while tangential acceleration remains constant.',
+    params: { alpha: 0.4, targetOmega: 8.0, radiusA: 1.2, radiusB: 2.4 },
+  },
+  {
     name: 'High-Speed Spin Up',
     description:
       'A moderate acceleration to a high speed. Watch centripetal vectors grow exponentially as speed increases!',
@@ -553,7 +559,6 @@ export function create(canvas, initParams = {}) {
     ctx.fill();
     ctx.shadowBlur = 0;
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-    ctx.lineWidth = 1;
     ctx.stroke();
 
     // HUD Header Title (Enlarged)
@@ -565,17 +570,21 @@ export function create(canvas, initParams = {}) {
     ctx.font = '12px "JetBrains Mono", monospace';
     ctx.fillStyle = '#94a3b8';
     ctx.fillText(`Platter ω = ${omega.toFixed(2)} rad/s`, hudX + 15, hudY + 48);
-    ctx.fillText(`Platter α = ${currentAlpha.toFixed(2)} rad/s²`, hudX + 15, hudY + 66);
+    const isTargetReached = Math.abs(omega - p.targetOmega) < 1e-3 && p.alpha > 0;
+    const alphaStr = isTargetReached
+      ? '0.00 (Target reached)'
+      : `${currentAlpha.toFixed(2)} rad/s²`;
+    ctx.fillText(`Platter α = ${alphaStr}`, hudX + 15, hudY + 66);
 
     // Comparison Table Grid
     const startY = hudY + 82;
     const rowH = 22; // Enlarged row height
 
-    // Table Header (Enlarged)
+    // Table Header (Enlarged Monospace)
     ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
     ctx.fillRect(hudX + 10, startY, hudW - 20, 20);
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 11px "Inter", sans-serif';
+    ctx.font = 'bold 11px "JetBrains Mono", monospace';
     ctx.fillText('LINEAR METRIC', hudX + 15, startY + 14);
     ctx.fillStyle = '#10b981'; // Green A
     ctx.textAlign = 'right';
@@ -636,7 +645,7 @@ export function create(canvas, initParams = {}) {
       }
 
       ctx.fillStyle = '#cbd5e1';
-      ctx.font = '11px "Inter", sans-serif'; // Cleaner labels font
+      ctx.font = '11px "JetBrains Mono", monospace'; // Crisp unified monospace font
       ctx.fillText(row.label, hudX + 15, y + 11);
 
       ctx.fillStyle = row.color;
