@@ -665,6 +665,33 @@ const ICONS = {
       <path d="M 28 12 L 32 12 L 32 16" stroke="#4ade80" strokeWidth="2.5" />
     </svg>
   ),
+  'rotational-kinematics-lab': (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      {/* Concentric tracks */}
+      <circle cx="32" cy="32" r="24" stroke="currentColor" strokeWidth="1" opacity="0.1" />
+      <circle cx="32" cy="32" r="16" stroke="currentColor" strokeWidth="1" opacity="0.1" />
+      {/* Outer disk rim */}
+      <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="2.5" opacity="0.3" />
+      {/* Center hub */}
+      <circle cx="32" cy="32" r="4.5" fill="currentColor" opacity="0.6" />
+
+      {/* Probe A (Green) at 3 o'clock */}
+      <circle cx="48" cy="32" r="3.5" fill="#10b981" />
+      {/* Velocity vector A (Tangential pointing down) */}
+      <path d="M 48 32 L 48 45" stroke="#0ea5e9" strokeWidth="2" />
+      <path d="M 45 42 L 48 45 L 51 42" stroke="#0ea5e9" strokeWidth="1.5" strokeLinecap="round" />
+
+      {/* Probe B (Purple) at 9 o'clock */}
+      <circle cx="16" cy="32" r="4.5" fill="#a855f7" />
+      {/* Velocity vector B (Tangential pointing up) */}
+      <path d="M 16 32 L 16 19" stroke="#0ea5e9" strokeWidth="2" />
+      <path d="M 13 22 L 16 19 L 19 22" stroke="#0ea5e9" strokeWidth="1.5" strokeLinecap="round" />
+
+      {/* Centripetal acceleration vectors pointing inward */}
+      <path d="M 48 32 L 40 32" stroke="#ef4444" strokeWidth="1.5" opacity="0.75" />
+      <path d="M 16 32 L 24 32" stroke="#ef4444" strokeWidth="1.5" opacity="0.75" />
+    </svg>
+  ),
   'gyroscope-precession-3d': (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
       <ellipse

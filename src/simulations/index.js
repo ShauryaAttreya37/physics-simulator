@@ -15,6 +15,7 @@ import * as workEnergyLab from './mechanics/workEnergyLab';
 import * as coriolisEffect from './mechanics/coriolisEffect';
 import * as torqueAngularAccelerationLab from './mechanics/torqueAngularAccelerationLab';
 import * as gyroscopePrecession3d from './mechanics/gyroscopePrecession3d';
+import * as rotationalKinematicsLab from './mechanics/rotationalKinematicsLab';
 
 import * as wavePool from './fluid/wavePool';
 import * as buoyancyLab from './fluid/buoyancyLab';
@@ -134,6 +135,28 @@ const CONTROL_MARKERS = {
       { value: 0.6, label: 'Low inertia' },
       { value: 3, label: 'Medium' },
       { value: 8, label: 'High inertia' },
+    ],
+  },
+  'rotational-kinematics-lab': {
+    targetOmega: [
+      { value: 2.0, label: 'Slow Spin' },
+      { value: 4.0, label: 'Nominal' },
+      { value: 7.0, label: 'High Spin' },
+    ],
+    alpha: [
+      { value: 0.5, label: 'Low Accel' },
+      { value: 1.2, label: 'Nominal' },
+      { value: 2.5, label: 'High Accel' },
+    ],
+    radiusA: [
+      { value: 0.8, label: 'Inner A' },
+      { value: 1.5, label: 'Mid A' },
+      { value: 2.8, label: 'Outer A' },
+    ],
+    radiusB: [
+      { value: 0.8, label: 'Inner B' },
+      { value: 2.0, label: 'Mid B' },
+      { value: 3.2, label: 'Outer B' },
     ],
   },
   'simple-pendulum': {
@@ -457,6 +480,22 @@ export const TOPICS = {
         graphParams: torqueAngularAccelerationLab.graphParams,
         scenarios: torqueAngularAccelerationLab.scenarios,
         guidedExperiments: torqueAngularAccelerationLab.guidedExperiments,
+      },
+      {
+        id: 'rotational-kinematics-lab',
+        title: 'Rotational Kinematics Lab',
+        description:
+          'Explore the relationship between angular parameters (velocity, acceleration) and linear quantities (tangential speed, radial and tangential acceleration) using interactive probes and vectors.',
+        tags: ['Rotational Kinematics', 'Tangential Velocity', 'Centripetal Acceleration'],
+        method: 'analytical',
+        create: rotationalKinematicsLab.create,
+        controls: rotationalKinematicsLab.controls,
+        defaultParams: rotationalKinematicsLab.defaultParams,
+        equations: rotationalKinematicsLab.equations,
+        equationSections: rotationalKinematicsLab.equationSections,
+        graphParams: rotationalKinematicsLab.graphParams,
+        scenarios: rotationalKinematicsLab.scenarios,
+        guidedExperiments: rotationalKinematicsLab.guidedExperiments,
       },
       {
         id: 'gyroscope-precession-3d',

@@ -392,7 +392,7 @@ export function create(canvas, initParams = {}) {
 
     // --- Modern HUD Panel ---
     const hudW = 240;
-    const hudH = 170;
+    const hudH = 195;
     const hudX = W - hudW - 20;
     const hudY = 20;
 
