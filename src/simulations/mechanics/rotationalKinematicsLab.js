@@ -13,6 +13,7 @@ const DEFAULTS = {
   targetOmega: 3.0, // rad/s (motor target speed)
   radiusA: 1.2, // m
   radiusB: 2.4, // m
+  slowMotion: false, // Slo-mo mode toggle
   showVelocityVec: true,
   showCentripetalVec: true,
   showTangentialVec: true,
@@ -26,6 +27,7 @@ export const controls = [
   { key: 'alpha', label: 'Angular Accel α [rad/s²]', min: 0, max: 3, step: 0.1 },
   { key: 'radiusA', label: 'Sensor A Radius r_A [m]', min: 0.2, max: 3.4, step: 0.05 },
   { key: 'radiusB', label: 'Sensor B Radius r_B [m]', min: 0.2, max: 3.4, step: 0.05 },
+  { key: 'slowMotion', label: 'Slow Motion (0.25x)', type: 'toggle' },
   { key: 'showVelocityVec', label: 'Show Velocity (v)', type: 'toggle' },
   { key: 'showCentripetalVec', label: 'Show Centripetal Accel (a_c)', type: 'toggle' },
   { key: 'showTangentialVec', label: 'Show Tangential Accel (a_t)', type: 'toggle' },
@@ -214,8 +216,10 @@ export function create(canvas, initParams = {}) {
   }
 
   function tick(dt) {
+    const timeScale = p.slowMotion ? 0.25 : 1.0;
+    const scaledDt = dt * timeScale;
     const steps = 10;
-    const h = dt / steps;
+    const h = scaledDt / steps;
 
     for (let i = 0; i < steps; i++) {
       if (p.alpha === 0) {
@@ -686,6 +690,33 @@ export function create(canvas, initParams = {}) {
     drawVectorTag('at (Tangential Accel)', '#f59e0b', 145, 30);
     drawVectorTag('ac (Centripetal Accel)', '#ef4444', 335, 30);
     drawVectorTag('anet (Net Accel)', '#a855f7', 535, 30);
+
+    // SLOW MOTION ACTIVE WATERMARK
+    if (p.slowMotion) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.08)';
+      ctx.strokeStyle = 'rgba(245, 158, 11, 0.3)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(20, 50, 160, 24, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      // pulsating glowing dot based on simTime
+      const pulseAlpha = 0.4 + 0.6 * Math.abs(Math.sin(simTime * 4));
+      ctx.globalAlpha = pulseAlpha;
+      ctx.arc(32, 62, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1.0;
+
+      ctx.font = 'bold 10px "Inter", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('SLOW MOTION (0.25X)', 44, 62);
+      ctx.restore();
+    }
   }
 
   // Pointer drag interactions
