@@ -501,6 +501,34 @@ export default function SimulationRunner({ sim, onBack }) {
     return () => clearTimeout(timer);
   }, [exportToast]);
 
+  // Set up global callback for legacy simulation canvas drags to update React parameter state
+  useEffect(() => {
+    window.onParamChange = (newParams) => {
+      setParams((prev) => ({ ...prev, ...newParams }));
+    };
+    return () => {
+      window.onParamChange = null;
+    };
+  }, []);
+
+  // Synchronize speed changes immediately to both modern engines and legacy simulation instances
+  useEffect(() => {
+    if (isModern) {
+      engine.setSpeed(speed);
+    } else if (simRef.current?.setSpeed) {
+      simRef.current.setSpeed(speed);
+    }
+  }, [speed, isModern, engine]);
+
+  // Fix Google Fonts canvas rendering race condition by forcing a redraw when web fonts are loaded
+  useEffect(() => {
+    if (typeof document !== 'undefined' && document.fonts) {
+      document.fonts.ready.then(() => {
+        setReloadNonce((prev) => prev + 1);
+      });
+    }
+  }, []);
+
   // Instantiate simulation
   useEffect(() => {
     const canvas = canvasRef.current;

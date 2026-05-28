@@ -545,7 +545,7 @@ export function create(canvas, initParams = {}) {
 
     // ── HIGH-TECH SIDE-BY-SIDE HUD PANEL ──────────────────────
     const hudW = 340; // Enlarged width to accommodate larger, more readable fonts without overlaps
-    const hudH = 285; // Enlarged height to accommodate taller rows
+    const hudH = 320; // Enlarged height to accommodate taller rows
     const hudX = W - hudW - 20;
     const hudY = 20;
 
@@ -566,18 +566,20 @@ export function create(canvas, initParams = {}) {
     ctx.fillStyle = '#38bdf8';
     ctx.fillText('ROTATIONAL VS LINEAR BENCH', hudX + 15, hudY + 25);
 
-    // Shared Angular Parameters (Enlarged)
-    ctx.font = '12px "JetBrains Mono", monospace';
+    // Shared Angular Parameters (Enlarged and aligned)
+    ctx.font = '11px "JetBrains Mono", monospace';
     ctx.fillStyle = '#94a3b8';
-    ctx.fillText(`Platter ω = ${omega.toFixed(2)} rad/s`, hudX + 15, hudY + 48);
+    ctx.fillText(`Target Speed ω  = ${p.targetOmega.toFixed(2)} rad/s`, hudX + 15, hudY + 46);
+    ctx.fillText(`Platter Speed ω = ${omega.toFixed(2)} rad/s`, hudX + 15, hudY + 64);
+    ctx.fillText(`Applied Accel α = ${p.alpha.toFixed(2)} rad/s²`, hudX + 15, hudY + 82);
     const isTargetReached = Math.abs(omega - p.targetOmega) < 1e-3 && p.alpha > 0;
     const alphaStr = isTargetReached
       ? '0.00 (Target reached)'
       : `${currentAlpha.toFixed(2)} rad/s²`;
-    ctx.fillText(`Platter α = ${alphaStr}`, hudX + 15, hudY + 66);
+    ctx.fillText(`Platter Accel α = ${alphaStr}`, hudX + 15, hudY + 100);
 
     // Comparison Table Grid
-    const startY = hudY + 82;
+    const startY = hudY + 116;
     const rowH = 22; // Enlarged row height
 
     // Table Header (Enlarged Monospace)
