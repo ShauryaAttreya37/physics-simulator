@@ -7,6 +7,7 @@ const TopicsPage = lazy(() => import('./pages/TopicsPage'));
 const DocsPage = lazy(() => import('./pages/DocsPage'));
 const IntegratorsPage = lazy(() => import('./pages/IntegratorsPage'));
 const SandboxPage = lazy(() => import('./pages/SandboxPage'));
+const ActivityPage = lazy(() => import('./pages/ActivityPage'));
 
 export default function App() {
   const navigate = useNavigate();
@@ -19,7 +20,8 @@ export default function App() {
   const renderHeader = () => {
     const isHome = location.pathname === '/';
     const isLab = location.pathname === '/topics' || location.pathname.startsWith('/lab');
-    if (isHome || isLab) return null;
+    const isActivity = location.pathname.startsWith('/activity');
+    if (isHome || isLab || isActivity) return null;
 
     return (
       <header className="app-header">
@@ -73,6 +75,8 @@ export default function App() {
             element={<IntegratorsPage onBack={() => handleNavigate('home')} />}
           />
           <Route path="/sandbox" element={<SandboxPage onHome={() => handleNavigate('home')} />} />
+          <Route path="/activity" element={<ActivityPage />} />
+          <Route path="/activity/:simId" element={<ActivityPage />} />
         </Routes>
       </Suspense>
     </div>
